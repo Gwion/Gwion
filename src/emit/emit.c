@@ -194,7 +194,7 @@ ANN static void struct_pop(const Emitter emit, const Type type,
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt);
 
-ANN static m_bool _emit_defers(const Emitter emit) {
+ANN static m_bool emit_defers(const Emitter emit) {
   if (!vector_size(&emit->code->frame->defer)) return GW_OK;
   Stmt stmt;
   while ((stmt = (Stmt)vector_pop(&emit->code->frame->defer)))
@@ -202,27 +202,13 @@ ANN static m_bool _emit_defers(const Emitter emit) {
   return GW_OK;
 }
 
-ANN static m_bool emit_defers(const Emitter emit) {
-  emit->status.in_defer = true;
-  const m_bool ret = _emit_defers(emit);
-  emit->status.in_defer = false;
-  return ret;
-}
-
-ANN static m_bool _emit_defers2(const Emitter emit) {
+ANN static m_bool emit_defers2(const Emitter emit) {
   for (m_uint i = vector_size(&emit->code->frame->defer) + 1; --i;) {
     const Stmt stmt = (Stmt)vector_at(&emit->code->frame->defer, i - 1);
     if (!stmt) break;
     CHECK_BB(emit_stmt(emit, stmt));
   }
   return GW_OK;
-}
-
-ANN static m_bool emit_defers2(const Emitter emit) {
-  emit->status.in_defer = true;
-  const m_bool ret = _emit_defers2(emit);
-  emit->status.in_defer = false;
-  return ret;
 }
 
 ANN static m_int _frame_pop(const Emitter emit) {
@@ -2065,8 +2051,7 @@ ANN static m_bool optimize_tail_call(const Emitter emit, const Exp_Call *e) {
 }
 
 ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
-  if(!emit->status.in_defer)
-    CHECK_BB(emit_defers2(emit));
+  CHECK_BB(emit_defers2(emit));
   if (stmt->val) {
     if (stmt->val->exp_type == ae_exp_call) {
       const Func f = stmt->val->d.exp_call.func->type->info->func;
