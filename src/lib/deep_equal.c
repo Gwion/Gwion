@@ -183,7 +183,7 @@ struct DeepEmits {
 };
 
 static void deep_emits_init(const Emitter emit, struct DeepEmits *ds) {
-  emit_add_instr(emit, RegMove)->m_val = -SZ_INT;
+  emit_regmove(emit, -SZ_INT);
   deep_emit_init(emit, ds->lhs, -SZ_INT);
   deep_emit_init(emit, ds->rhs, 0);
   vector_init(&ds->acc);

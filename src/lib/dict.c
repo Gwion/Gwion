@@ -375,8 +375,7 @@ ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
   const Instr top = emit_add_instr(emit, Goto);
   top->m_val = pc;
   ok->m_val = emit_code_size(emit);
-  const Instr _pop = emit_add_instr(emit, RegMove);
-  _pop->m_val = -SZ_INT;// - key->size;
+  emit_regmove(emit, -SZ_INT);
   return GW_OK;
 }
 

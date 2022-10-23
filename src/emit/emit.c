@@ -389,12 +389,12 @@ ANN static m_bool emit_pre_constructor_array(const Emitter emit,
   if (!tflag(type, tflag_struct))
     emit_add_instr(emit, ArrayBottom);
   else
-    regpop(emit, SZ_INT);
-  regpop(emit, SZ_INT);
+    emit_regmove(emit, -SZ_INT);
+  emit_regmove(emit, -SZ_INT);
   const Instr pc = emit_add_instr(emit, Goto);
   pc->m_val      = start_index;
   top->m_val     = emit_code_size(emit);
-  regpop(emit, SZ_INT * 3);
+  emit_regmove(emit, -SZ_INT*3);
   emit_add_instr(emit, ArrayPost);
   return GW_OK;
 }
@@ -635,7 +635,7 @@ ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
 ANN static m_bool emit_prim_array_exp(const Emitter emit, const Type t, Exp e) {
   do {
     CHECK_BB(emit_exp1(emit, e));
-    regpop(emit, t->size - t->actual_size);
+    emit_regmove(emit, - t->size + t->actual_size);
   } while((e = e->next));
   return GW_OK;
 }
@@ -734,7 +734,7 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp *data) {
   init->m_val = int2pow2(count);
   init->m_val2 = (m_uint)t;
   const m_uint sz = (key->size + val->size + SZ_INT) * count;
-  regpop(emit, sz);
+  emit_regmove(emit, -sz);
   const Instr ctor = emit_add_instr(emit, dict_lit_ctor);
   ctor->m_val = sz;
   ctor->m_val2 = count;
@@ -924,7 +924,7 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   regpushi(emit, (m_uint)string);
   regpushi(emit, (m_uint)emit->locale->code);
   emit_exp_call1(emit, emit->locale, true);
-  regpop(emit, emit->locale->def->base->ret_type->size);
+  emit_regmove(emit, -emit->locale->def->base->ret_type->size);
   const VM_Code code = finalyze(emit, EOC);
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
   vm_add_shred(emit->gwion->vm, shred);
@@ -962,7 +962,7 @@ ANN static m_bool _decl_static(const Emitter emit, const Exp_Decl *decl,
   emit_add_instr(emit, Assign);
 //  if(get_depth(var_decl->value->type) && !is_ref)
 //    (void)emit_object_addref(emit, -SZ_INT, 0);
-  regpop(emit, SZ_INT);
+  emit_regmove(emit, -SZ_INT);
   return GW_OK;
 }
 
@@ -1077,7 +1077,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
     if (!emit_var)
       emit_add_instr(emit, Assign);
     else {
-      regpop(emit, SZ_INT);
+      emit_regmove(emit, -SZ_INT);
       const Instr instr = emit_add_instr(emit, Reg2Reg);
       instr->m_val      = -SZ_INT;
     }
@@ -1275,7 +1275,7 @@ ANN static inline void inline_args_ini(const Emitter emit, const Func f,
     value->from->offset = emit_local(emit, value->type);
     nspc_add_value(emit->env->curr, arg->var_decl.xid, value);
   }
-  regpop(emit, f->code->stack_depth);
+  emit_regmove(emit, -f->code->stack_depth);
   const Instr cpy = emit_add_instr(emit, Reg2Mem4);
   cpy->m_val2     = f->code->stack_depth;
   cpy->m_val      = start_offset;
@@ -1375,7 +1375,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   CHECK_BB(_emit_exp_call(emit, exp_call));
   const Type t = exp_self(exp_call)->type;
   if (exp_getvar(e)) {
-    regpop(emit, exp_self(exp_call)->type->size);
+    emit_regmove(emit, -exp_self(exp_call)->type->size);
     if(isa(t, emit->gwion->type[et_object]) > 0)
       emit_local_exp(emit, e);
     const Instr instr = emit_add_instr(emit, Reg2RegAddr);
@@ -1383,7 +1383,7 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   } else {
     if (!is_func(emit->gwion, exp_call->func->type) && // is_callable
              tflag(e->type, tflag_struct))
-    regpop(emit, SZ_INT);
+    emit_regmove(emit, -SZ_INT);
   }
 //  if(isa(e->type, emit->gwion->type[et_object]) > 0)
 //    emit_local_exp(emit, e);
@@ -1408,7 +1408,7 @@ ANN static m_uint pop_exp_size(Exp e) {
 
 ANN static inline void pop_exp(const Emitter emit, Exp e) {
   const m_uint size = pop_exp_size(e);
-  if (size) regpop(emit, size);
+  if (size) emit_regmove(emit, -size);
 }
 
 ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e) {
@@ -1681,7 +1681,7 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
 }
 
 ANN static void emit_exp_spork_finish(const Emitter emit, const m_uint depth) {
-  regpop(emit, depth);
+  emit_regmove(emit, -depth);
   const Instr spork = emit_add_instr(emit, SporkFunc);
   spork->m_val      = depth + SZ_INT;
   spork->m_val2     = -SZ_INT;
@@ -1824,7 +1824,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
     }
   }
   if(offset) {
-    regpop(emit, offset);
+    regpop(emit, offset);//    emit_regmove(emit, offset);
     const Instr args  = emit_add_instr(emit, SporkCode);
     args->m_val       = offset;
   }
@@ -2042,7 +2042,7 @@ ANN static m_bool optimize_tail_call(const Emitter emit, const Exp_Call *e) {
   if (e->args) {
     emit_func_args(emit, e);
     const Func f = e->func->type->info->func;
-    regpop(emit, f->def->stack_depth);
+    emit_regmove(emit, -f->def->stack_depth);
     emit_args(emit, f);
   }
   emit_add_instr(emit, Goto);
@@ -2319,7 +2319,7 @@ ANN static m_bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   nspc_push_value(emit->gwion->mp, emit->env->curr);
 
   CHECK_BB(emit_exp(emit, stmt->exp)); // add ref?
-  regpop(emit, SZ_INT);
+  emit_regmove(emit, -SZ_INT);
 
   if (n) {
     unroll_init(emit, n);
@@ -2365,7 +2365,7 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
     idx->m_val2                = -1;
   }
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond));
-  regpop(emit, SZ_INT);
+  emit_regmove(emit, -SZ_INT);
   const Instr tomem  = emit_add_instr(emit, Reg2Mem);
   tomem->m_val       = offset + (!stmt->idx ? 0 : SZ_INT);
   *index             = emit_code_size(emit);
@@ -2520,7 +2520,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
       if (!nspc_lookup_value1(emit->env->curr, e->d.prim.d.var)) {
         if (!n) {
           CHECK_BO(emit_exp(emit, base));
-          regpop(emit, base->type->size);
+          emit_regmove(emit, -base->type->size);
         }
         CHECK_BO(case_value(emit, base, e));
         return CASE_PASS;
@@ -2545,7 +2545,7 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
             const Instr instr =
                 emit_unionmember(emit, v->type->size, false /*emit_addr*/);
             instr->m_val = i;
-            regpop(emit, v->type->size);
+            emit_regmove(emit, -v->type->size);
             case_op(emit, e->d.exp_call.args, e->d.exp_call.args, vec, i + 1);
             return CASE_PASS;
           }
@@ -2725,7 +2725,7 @@ ANN static VM_Code emit_internal(const Emitter emit, const Func f) {
     vmcode_addref(f->code);
     return f->code;
   } else if (f->def->base->xid == insert_symbol("@gack")) {
-    regpop(emit, SZ_INT + f->value_ref->from->owner_class->size);
+    emit_regmove(emit, -SZ_INT - f->value_ref->from->owner_class->size);
     const Instr instr                       = emit_add_instr(emit, RegPushMem);
     instr->m_val                            = SZ_INT;
     f->code                                 = finalyze(emit, FuncReturn);
@@ -2788,7 +2788,7 @@ ANN static void me_bottom(MemoizeEmitter *me, const m_uint pc) {
   const Instr idx = emit_add_instr(me->emit, RegPushMem4);
   idx->m_val      = me->offset;
   emit_add_instr(me->emit, int_pre_inc);
-  regpop(me->emit, SZ_INT);
+  emit_regmove(me->emit, -SZ_INT);
   const Instr loop = emit_add_instr(me->emit, Goto);
   loop->m_val      = pc;
 }

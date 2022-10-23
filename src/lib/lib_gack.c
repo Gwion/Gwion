@@ -24,17 +24,14 @@ static OP_EMIT(opem_gack_implicit) {
   if(t == imp->t) {
     const Instr cpy = emit_add_instr(emit, Reg2RegOther2); // kind
     cpy->m_val2 = SZ_INT;
-    const Instr instr = emit_add_instr(emit, RegMove);
-    instr->m_val = imp->t->size - SZ_INT;
+    emit_regmove(emit, imp->t->size - SZ_INT);
   } else {
-    const Instr push = emit_add_instr(emit, RegMove);
-    push->m_val = SZ_INT;
+    emit_regmove(emit, SZ_INT);
     struct Op_Import opi = {.lhs = t,
                           .op  = insert_symbol(emit->gwion->st, "@implicit"),
                           .rhs = imp->t};
     CHECK_BB(op_emit(emit, &opi));
-    const Instr pop = emit_add_instr(emit, RegMove);
-    pop->m_val = -SZ_INT;
+    emit_regmove(emit, -SZ_INT);
     const Instr cpy = emit_add_instr(emit, Reg2RegOther2); // kind
     cpy->m_val = cpy->m_val2 = imp->t->size;
   }

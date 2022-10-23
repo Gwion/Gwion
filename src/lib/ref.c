@@ -55,8 +55,7 @@ static OP_EMIT(opem_ref_implicit_similar) {
                              .rhs  = imp->t,
                              .data = (m_uint)imp};
   CHECK_BB(op_emit(emit, &opi));
-  const Instr instr = emit_add_instr(emit, RegMove);
-  instr->m_val = -imp->e->type->size;
+  emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
   return emit_exp(emit, imp->e);
@@ -91,8 +90,7 @@ static OP_EMIT(opem_ref_contract_similar) {
                           .rhs  = base,
                           .data = (m_uint)&cast};
   CHECK_BB(op_emit(emit, &opi));
-  const Instr instr = emit_add_instr(emit, RegMove);
-  instr->m_val = -imp->e->type->size;
+  emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
   emit_exp(emit, imp->e);

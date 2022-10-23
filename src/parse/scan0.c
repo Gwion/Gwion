@@ -523,8 +523,7 @@ static OP_EMIT(opem_struct_assign) {
     const Instr instr = emit_add_instr(emit, Reg2RegOther);
     instr->m_val  = -(t->size + SZ_INT);
     instr->m_val2 = t->size;
-    const Instr pop = emit_add_instr(emit, RegMove);
-    pop->m_val = -SZ_INT;
+    emit_regmove(emit, -SZ_INT);
   }
   emit_struct_addref(emit, t, 0, false);
   return GW_OK;

@@ -140,10 +140,8 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   if (f->def->base->tmpl) {
     if(member->is_call) emit_dottmpl(emit, f);
     else {
-      if(vflag(f->value_ref, vflag_member)) {
-        const Instr instr = emit_add_instr(emit, RegMove);
-        instr->m_val = -SZ_INT;
-      }
+      if(vflag(f->value_ref, vflag_member))
+        emit_regmove(emit, -SZ_INT);
       const Instr instr = emit_add_instr(emit, RegPushImm);
       instr->m_val = (m_uint)f;
       return;
@@ -164,10 +162,8 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     if (!vflag(f->value_ref, vflag_member))
       instr->m_val2 = -SZ_INT;
     else {
-      if(member->is_call){
-        const Instr instr = emit_add_instr(emit, RegMove);
-        instr->m_val      = SZ_INT;
-      } else instr->m_val2 = -SZ_INT;
+      if(member->is_call) emit_regmove(emit, SZ_INT);
+      else instr->m_val2 = -SZ_INT;
     }
   }
   return;
@@ -184,10 +180,7 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
                                         const bool emit_addr) {
   const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   instr->m_val      = v->from->offset;
-  if (!emit_addr) {
-    const Instr instr = emit_add_instr(emit, RegMove);
-    instr->m_val      = v->type->size - SZ_INT;
-  }
+  if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
