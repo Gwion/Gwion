@@ -1195,7 +1195,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += VAL2;
       DISPATCH()
     dotfunc:
-      *(VM_Code *)(reg + (m_uint)VAL2) =
+      *(VM_Code *)(reg + IVAL2) =
           ((Func)(*(M_Object *)(reg - SZ_INT))->type_ref->nspc->vtable.ptr[OFFSET + VAL])->code;
       DISPATCH()
     gacktype : {
@@ -1207,9 +1207,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       m_str str = *(m_str *)(reg - SZ_INT);
       if (!VAL) {
         gw_out("%s\n", str);
-fflush(stdout);
-}
-      else
+        fflush(stdout);
+      } else
         *(M_Object *)(reg - SZ_INT) = new_string(vm->gwion, str);
       if (str) mp_free2(vm->gwion->mp, strlen(str), str);
       DISPATCH();

@@ -212,10 +212,6 @@ ANN static bool deep_emit(const Emitter emit, struct DeepEmits *ds) {
     struct Exp_ rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
     struct Exp_ temp = MK_BIN(lexp, rexp, ds->bin);
     temp.type=emit->gwion->type[et_bool];
-    if(tflag(lexp.type, tflag_struct))
-      exp_setvar(&lexp, true);
-    if(tflag(rexp.type, tflag_struct))
-      exp_setvar(&rexp, true);
     if(emit_exp(emit, &temp) < 0) return false;
     vector_add(&ds->acc, (m_uint)emit_add_instr(emit, BranchEqInt));
   }

@@ -1358,7 +1358,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
     CHECK_BB(emit_func_args(emit, exp_call));
   if (is_func(emit->gwion, t)) // is_callable needs type
     CHECK_BB(emit_exp_call1(emit, t->info->func,
-                            is_static_call(emit, exp_call->func)));
+                            is_static_call(emit->gwion, exp_call->func)));
   else {
     struct Op_Import opi = {.op   = insert_symbol("@ctor"),
                             .rhs  = t,
@@ -1659,8 +1659,7 @@ ANN static void call_finish(const Emitter emit, const Func f,
   const m_uint offset = emit_code_offset(emit);
   if (f != emit->env->func || !is_static || strcmp(s_name(f->def->base->xid), "new"))
     regseti(emit, offset);
-  const bool _is_static = !strcmp(s_name(f->def->base->xid), "new") ? true : is_static;
-  const Instr instr   = emit_call(emit, f, _is_static);
+  const Instr instr   = emit_call(emit, f, is_static);
   instr->m_val        = f->def->base->ret_type->size;
   instr->m_val2       = offset;
 }

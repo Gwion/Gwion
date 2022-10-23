@@ -4,7 +4,6 @@
 #include "vm.h"
 #include "gwion.h"
 
-#define MAX(a, b) (a >= b ? a : b)
 ANN void free_value(Value a, Gwion gwion) {
   const Type t = a->type;
   if (t->size > SZ_INT && !vflag(a, vflag_func) && a->d.ptr)

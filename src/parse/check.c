@@ -952,10 +952,24 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   return NULL;
 }
 
+ANN static Type check_static(const Env env, const Exp e) {
+  const Type t = e->type;
+  if(unlikely(!is_func(env->gwion, t))             ||
+     !t->info->func                                ||
+     !GET_FLAG(t->info->func->def->base, abstract) ||
+     !is_static_call(env->gwion, e)) return t;
+  env_err(env, e->pos, "making a static call to an abstract function");
+  env->context->error = false;
+  gwerr_secondary_from("declared here", t->info->value->from);
+  env->context->error = true;
+  return NULL;
+}
+
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if (!ret) return exp_self(exp)->type;
   const Type t = exp->func->type;
+  CHECK_OO(check_static(env, exp->func));
   const Type _ret = _check_exp_call1(env, exp);
   if(_ret) return _ret;
   if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
@@ -1856,11 +1870,31 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   return ret;
 }
 
+ANN m_bool check_new(const Env env, const Func_Def fdef) {
+  if(!fdef->builtin && !GET_FLAG(fdef->base->func, const) &&
+    GET_FLAG(env->class_def->info->parent, abstract)) {
+    // we can probably do simpler, but this may require fixing new@ index
+    const Value v = nspc_lookup_value0(env->class_def->info->parent->nspc, fdef->base->xid);
+    if(v) {
+      Func f = v->d.func_ref;
+      while(f) {
+        if(compat_func(fdef, f->def)) break;
+        f = f->next;
+      }
+      if(f && GET_FLAG(f, abstract)) ERR_B(fdef->base->pos, "What what?");
+    }
+  }
+  return GW_OK;
+}
+
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   const uint16_t depth = env->scope->depth;
   env->scope->depth = 0;
   const m_bool ret = _check_func_def(env, fdef);
   env->scope->depth = depth;
+  // we need to find matching parent and see if abstract
+  if(!strcmp(s_name(fdef->base->xid), "new"))
+    CHECK_BB(check_new(env, fdef));
   return ret;
 }
 
