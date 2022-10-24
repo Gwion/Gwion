@@ -136,4 +136,10 @@ ANN static inline void emit_pushimm(const Emitter emit, const m_uint value) {
   const Instr instr = emit_add_instr(emit, RegPushImm);
   instr->m_val = value;
 }
+
+ANN static inline void emit_setimm(const Emitter emit, const m_uint value, const m_uint value2) {
+  const Instr instr = emit_add_instr(emit, RegSetImm);
+  instr->m_val  = value;
+  instr->m_val2 = value2;
+}
 #endif
