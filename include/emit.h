@@ -122,4 +122,13 @@ ANN static inline void emit_regmove(const Emitter emit, const m_uint i) {
   instr->m_val = i;
 }
 
+ANN static inline void emit_pushfunc(const Emitter emit, const Func f) {
+  if(f->code) {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)f->code;
+  } else {
+    const Instr instr = emit_add_instr(emit, SetFunc);
+    instr->m_val = (m_uint)f;
+  }
+}
 #endif

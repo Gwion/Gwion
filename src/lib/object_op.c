@@ -131,10 +131,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
   if(!strcmp(s_name(f->def->base->xid), "new")) {
-    if(f != emit->env->func) {
-      const Instr instr = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-      instr->m_val = (m_uint)f->code ?: (m_uint)f;
-    }
+    if(f != emit->env->func) emit_pushfunc(emit, f);
     return;
   }
   if (f->def->base->tmpl) {
@@ -148,15 +145,10 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
     if (member->is_call && f == emit->env->func && strcmp(s_name(f->def->base->xid), "new")) return;
-    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-    func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
-    return;
+    return emit_pushfunc(emit, f);
   } else {
-    if (tflag(member->base->type, tflag_struct)) {
-      const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-      func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
-      return;
-    }
+    if (tflag(member->base->type, tflag_struct))
+      return emit_pushfunc(emit, f);
     const Instr instr = emit_add_instr(emit, DotFunc);
     instr->m_val      = f->def->vt_index;
     if (!vflag(f->value_ref, vflag_member))
