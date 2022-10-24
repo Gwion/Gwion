@@ -450,9 +450,11 @@ ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   trait->loc        = pdef->pos;
   trait->name       = s_name(pdef->xid);
   trait->filename   = env->name;
-  if(GET_FLAG(pdef, global))
-    nspc_add_trait(env->global_nspc, pdef->xid, trait);
-  else nspc_add_trait(env->curr, pdef->xid, trait);
+  const bool global = GET_FLAG(pdef, global);
+  if(global) env_push_global(env);
+  CHECK_BB(scan0_defined(env, pdef->xid, pdef->pos));
+  nspc_add_trait(env->curr, pdef->xid, trait);
+  if(global) env_pop(env, 0);
   Ast ast = pdef->body;
   if(!ast) return GW_OK; // ???
   for(m_uint i = 0; i < ast->len; i++) {
