@@ -233,9 +233,9 @@ ANN static Type check_prim_range(const Env env, Range **data) {
   env_weight(env, 1);
   const Exp e = range->start ?: range->end;
   assert(e);
-  const Symbol     sym = insert_symbol("@range");
+  const Symbol     sym = insert_symbol("[:]");
   struct Op_Import opi = {.op   = sym,
-                          .rhs  = e->type,
+                          .lhs  = e->type,
                           .pos  = e->pos,
                           .data = (uintptr_t)prim_exp(data)};
   return op_check(env, &opi);
@@ -449,7 +449,7 @@ ANN static Type check_prim(const Env env, Exp_Primary *prim) {
 }
 
 ANN Type check_array_access(const Env env, const Array_Sub array) {
-  const Symbol     sym = insert_symbol("@array");
+  const Symbol     sym = insert_symbol("[]");
   struct Op_Import opi = {.op   = sym,
                           .lhs  = array->exp->type,
                           .rhs  = array->type,
@@ -468,7 +468,7 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
   CHECK_OO(check_exp(env, range->base));
   CHECK_BO(check_range(env, range->range));
   env_weight(env, 1);
-  const Symbol sym = insert_symbol("@slice");
+  const Symbol sym = insert_symbol("[:]");
   const Exp    e   = range->range->start ?: range->range->end;
   assert(e);
   struct Op_Import opi = {.op   = sym,

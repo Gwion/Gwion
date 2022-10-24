@@ -650,7 +650,7 @@ static OP_CHECK(opck_dict_scan) {
     set_tflag(t, tflag_dtor);
   }
   struct Op_Func opfunc = { .ck = opck_dict_access, .em = opem_dict_access };
-  struct Op_Import opi = { .lhs = key, .rhs = t, .ret = val, .op = insert_symbol("@array"), .func = &opfunc };
+  struct Op_Import opi = { .lhs = key, .rhs = t, .ret = val, .op = insert_symbol("[]"), .func = &opfunc };
   add_op(env->gwion, &opi);
   opi.op = insert_symbol("~~");
   opfunc.em = opem_dict_remove;

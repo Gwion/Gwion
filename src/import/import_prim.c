@@ -119,7 +119,7 @@ static OP_CHECK(opck_bit_access) {
 ANN static void scan_prim_op(const Env env, const Type t){
   struct Op_Func   opfunc = { .ck = opck_bit_access, .em = opem_bit_access };
   struct Op_Import opi    = {
-      .op = insert_symbol(env->gwion->st, "@array"),
+      .op = insert_symbol(env->gwion->st, "[]"),
       .lhs = env->gwion->type[et_int],
       .rhs = t,
       .func = &opfunc

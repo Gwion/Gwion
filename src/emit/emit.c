@@ -657,10 +657,10 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   Range *range = *data;
   CHECK_BB(emit_range(emit, range));
   const Exp    e   = range->start ?: range->end;
-  const Symbol sym = insert_symbol("@range");
+  const Symbol sym = insert_symbol("[:]");
   assert(e);
   struct Op_Import opi = {.op   = sym,
-                          .rhs  = e->type,
+                          .lhs  = e->type,
                           .pos  = e->pos,
                           .data = (uintptr_t)prim_exp(data)};
   CHECK_BB(op_emit(emit, &opi));
@@ -724,7 +724,7 @@ ANN m_bool emit_array_access(const Emitter                 emit,
   if (tflag(info->array.type, tflag_typedef))
     info->array.type = typedef_base(info->array.type);
   // look mum no pos
-  struct Op_Import opi = {.op   = insert_symbol("@array"),
+  struct Op_Import opi = {.op   = insert_symbol("[]"),
                           .lhs  = info->array.exp->type,
                           .rhs  = info->array.type,
                           .data = (uintptr_t)info};
@@ -748,7 +748,7 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array *array) {
 ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {
   CHECK_BB(emit_exp(emit, range->base));
   CHECK_BB(emit_range(emit, range->range));
-  const Symbol sym = insert_symbol("@slice");
+  const Symbol sym = insert_symbol("[:]");
   const Exp    e   = range->range->start ?: range->range->end;
   assert(e);
   struct Op_Import opi = {.op   = sym,

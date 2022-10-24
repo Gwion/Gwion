@@ -573,7 +573,7 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_ini(gwi, "int", "string", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_string_access))
   GWI_BB(gwi_oper_emi(gwi, opem_string_access))
-  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_end(gwi, "[]", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "string", "string", "bool"))
   GWI_BB(gwi_oper_add(gwi, opck_string_eq))
@@ -582,7 +582,7 @@ GWION_IMPORT(string) {
   GWI_BB(gwi_oper_end(gwi, "!=", String_neq))
 
   GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
-  GWI_BB(gwi_oper_end(gwi, "@slice", StringSlice))
+  GWI_BB(gwi_oper_end(gwi, "[:]", StringSlice))
 
   struct SpecialId_ file_spid = {
       .ck = check_filepp, .is_const = 1};
