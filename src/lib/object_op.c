@@ -227,6 +227,8 @@ OP_CHECK(opck_object_dot) {
                member->base->d.prim.prim_type != ae_prim_id ||
                strcmp(s_name(member->base->d.prim.d.var), "this"))
               ERR_N(exp_self(member)->pos, "calling a parent constructor is only allowed with `this`");
+            if(GET_FLAG(env->func, const))
+              ERR_N(exp_self(member)->pos, "parent constructor already called");
             SET_FLAG(env->func, const); // mark the function as ctor_ok
             const Value ret = nspc_lookup_value1(parent->nspc, sym);
             member->xid = sym;

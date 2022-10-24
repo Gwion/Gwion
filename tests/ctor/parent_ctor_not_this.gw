@@ -1,0 +1,11 @@
+#! [contains] calling a parent constructor is only allowed with
+class C {
+  operator new() {}
+}
+
+class D extends C {
+  operator new() {
+    var D d;
+    d.C();
+  }
+}

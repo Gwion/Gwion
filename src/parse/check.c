@@ -1870,31 +1870,11 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   return ret;
 }
 
-ANN m_bool check_new(const Env env, const Func_Def fdef) {
-  if(!fdef->builtin && !GET_FLAG(fdef->base->func, const) &&
-    GET_FLAG(env->class_def->info->parent, abstract)) {
-    // we can probably do simpler, but this may require fixing new@ index
-    const Value v = nspc_lookup_value0(env->class_def->info->parent->nspc, fdef->base->xid);
-    if(v) {
-      Func f = v->d.func_ref;
-      while(f) {
-        if(compat_func(fdef, f->def)) break;
-        f = f->next;
-      }
-      if(f && GET_FLAG(f, abstract)) ERR_B(fdef->base->pos, "What what?");
-    }
-  }
-  return GW_OK;
-}
-
 ANN m_bool check_func_def(const Env env, const Func_Def fdef) {
   const uint16_t depth = env->scope->depth;
   env->scope->depth = 0;
   const m_bool ret = _check_func_def(env, fdef);
   env->scope->depth = depth;
-  // we need to find matching parent and see if abstract
-  if(!strcmp(s_name(fdef->base->xid), "new"))
-    CHECK_BB(check_new(env, fdef));
   return ret;
 }
 
