@@ -324,7 +324,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
 }
 
 ANN static Type check_dot(const Env env, const Exp_Dot *member) {
-  struct Op_Import opi = {.op   = insert_symbol("@dot"),
+  struct Op_Import opi = {.op   = insert_symbol("."),
                           .lhs  = member->base->type,
                           .data = (uintptr_t)member,
                           .pos  = exp_self(member)->pos};

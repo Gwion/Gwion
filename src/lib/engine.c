@@ -134,7 +134,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_end(gwi, ".", NULL))
 
   GWI_BB(import_class(gwi))
 
@@ -142,7 +142,7 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_end(gwi, ".", NULL))
   GWI_BB(import_deep_equal(gwi));
 
   GWI_BB(import_dict(gwi));

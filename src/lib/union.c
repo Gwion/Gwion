@@ -190,7 +190,7 @@ ANN GWION_IMPORT(union) {
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_end(gwi, ".", NULL))
 
   GWI_BB(gwi_union_ini(gwi, "Option:[A]"))
   GWI_BB(gwi_union_add(gwi, "None", "none"))
