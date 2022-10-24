@@ -518,8 +518,7 @@ static OP_EMIT(opem_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   if(!impl->e->type->info->func->code)
     emit_ensure_func(emit, impl->e->type->info->func);
-  const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = (m_uint)impl->e->type->info->func->code;
+  emit_pushimm(emit, (m_uint)impl->e->type->info->func->code);
   return emit_fptr_assign(emit, impl->e->type, impl->t);
 }
 

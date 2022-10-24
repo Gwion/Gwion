@@ -32,8 +32,7 @@ static OP_EMIT(opem_union_dot) {
   const Map      map    = &member->base->type->nspc->info->value->map;
   CHECK_BB(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)exp_self(member)->type->info->func->code;
+    emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
     return GW_OK;
   }
   if (!strcmp(s_name(member->xid), "index")) {

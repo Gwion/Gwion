@@ -41,8 +41,7 @@ static OP_CHECK(opck_basic_ctor) {
 static OP_EMIT(opem_implicit_class) {
   struct Implicit *imp = (struct Implicit*)data;
   const Type t = actual_type(emit->gwion, imp->e->type);
-  const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = map_size(&t->nspc->info->value->map);
+  emit_pushimm(emit, map_size(&t->nspc->info->value->map));
   return GW_OK; emit_exp(emit, imp->e);
 }
 

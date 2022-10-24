@@ -139,8 +139,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     else {
       if(vflag(f->value_ref, vflag_member))
         emit_regmove(emit, -SZ_INT);
-      const Instr instr = emit_add_instr(emit, RegPushImm);
-      instr->m_val = (m_uint)f;
+      emit_pushimm(emit, (m_uint)f);
       return;
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
@@ -276,8 +275,7 @@ OP_EMIT(opem_object_dot) {
       ensure_emit(emit, t_base);
   }
   if (is_class(emit->gwion, value->type)) {
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val      = (m_uint)value->type;
+    emit_pushimm(emit, (m_uint)value->type);
     return GW_OK;
   }
   if (tflag(t_base, tflag_struct) && !GET_FLAG(value, static)) {
@@ -300,10 +298,7 @@ OP_EMIT(opem_object_dot) {
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
   } else if (GET_FLAG(value, static))
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
-  else { // member type
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val      = (m_uint)value->type;
-  }
+  else emit_pushimm(emit, (m_uint)value->type);
   if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))

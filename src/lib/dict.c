@@ -362,8 +362,7 @@ static OP_CHECK(opck_dict_remove_toop) {
 
 ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
                           const struct Op_Import *opi, const Exp call, const Exp exp) {
-  const Instr room_for_tombstone = emit_add_instr(emit, RegPushImm);
-  room_for_tombstone->m_val = -1;
+  emit_pushimm(emit, -1); // room for tombstone
   CHECK_BB(emit_exp(emit, call));
   const m_uint pc = emit_code_size(emit);
   const Instr iter = emit_add_instr(emit, hmap_iter);

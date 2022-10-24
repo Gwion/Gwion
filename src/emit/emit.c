@@ -1718,7 +1718,7 @@ struct Sporker {
 
 ANN static m_bool spork_prepare_code(const Emitter         emit,
                                      const struct Sporker *sp) {
-  emit_add_instr(emit, RegPushImm);
+  emit_pushimm(emit, 0);
   push_spork_code(emit, sp->is_spork ? SPORK_CODE_PREFIX : FORK_CODE_PREFIX,
                   sp->pos);
   if (emit->env->class_def) stack_alloc(emit);
