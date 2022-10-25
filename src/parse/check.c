@@ -148,11 +148,11 @@ ANN static inline m_bool inferable(const Env env, const Type t,
 ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
   if (decl->td->array && decl->td->array->exp)
     CHECK_OO(check_exp(env, decl->td->array->exp));
-//  if (decl->args && !decl->args->type) { // for some reason this can be parsed twice
   if (decl->args) {
     const Exp e = new_exp_unary2(env->gwion->mp, insert_symbol("new"), cpy_type_decl(env->gwion->mp, decl->td), decl->args, decl->td->pos);
     CHECK_OO(check_exp(env, e));
     decl->args = e;
+    e->ref = exp_self(decl);
   }
   if (decl->td->xid == insert_symbol("auto")) { // should be better
     CHECK_BO(scan1_exp(env, exp_self(decl)));
@@ -894,11 +894,15 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
 }
 
 ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
-  /* const */Type t = exp->func->type;
+  Type t = exp->func->type;
   if (!is_func(env->gwion, t)) { // use func flag?
     if(isa(exp->func->type, env->gwion->type[et_closure]) > 0)
       t = closure_def(t)->base->func->value_ref->type;
-    else {
+    else if(is_class(env->gwion, t) && tflag(t->info->base_type, tflag_struct)) {
+      const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
+      if(v) t = exp->func->type = v->type;
+      else return NULL;
+    } else {
       struct Op_Import opi = {.op   = insert_symbol("@ctor"),
                               .rhs  = actual_type(env->gwion, exp->func->type),
                               .data = (uintptr_t)exp,
@@ -910,13 +914,6 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (!t->info->func) // TODO: effects?
     return check_lambda_call(env, exp);
-/*
-  if (fflag(t->info->func, fflag_ftmpl)) {
-    const Value value = t->info->func->value_ref;
-    if (value->from->owner_class)
-      CHECK_BO(ensure_traverse(env, value->from->owner_class));
-  }
-*/
   if (exp->args) {
     CHECK_OO(check_exp(env, exp->args));
     Exp e = exp->args;
@@ -927,23 +924,13 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
     return check_exp_call_template(env, (Exp_Call *)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
   if (func) {
-/*
-    if (func != env->func && func->def && !fflag(func, fflag_valid)) {
-      if(func->value_ref->from->owner_class)
-        CHECK_BO(ensure_check(env, func->value_ref->from->owner_class));
-      else {
-        const m_uint scope = env_push(env, NULL, func->value_ref->from->owner);
-        const m_bool ret = check_func_def(env, func->def);
-        env_pop(env, scope);
-        CHECK_BO(ret);
-      }
-    }
-*/
     exp->func->type = func->value_ref->type;
     call_add_effect(env, func, exp->func->pos);
-// used in new. why???
-    return func->def->base->ret_type != env->gwion->type[et_auto] ?
-      func->def->base->ret_type : exp->func->d.exp_dot.base->type;
+    if(func->def->base->ret_type != env->gwion->type[et_auto])
+      return func->def->base->ret_type;
+    if(tflag(func->value_ref->from->owner_class, tflag_struct))
+      return func->value_ref->from->owner_class;
+    return exp->func->d.exp_dot.base->type;
   }
   if(exp->func->exp_type == ae_exp_lambda) {
     const Type tt = partial_type(env, exp);
@@ -968,7 +955,8 @@ ANN static Type check_static(const Env env, const Exp e) {
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if (!ret) return exp_self(exp)->type;
-  const Type t = exp->func->type;
+//  const Type t = actual_type(env->gwion, exp->func->type);
+/*  const */Type t = exp->func->type;
   CHECK_OO(check_static(env, exp->func));
   const Type _ret = _check_exp_call1(env, exp);
   if(_ret) return _ret;
@@ -982,7 +970,17 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       if(t) return t;
     }
   }
-  function_alternative(env, t, exp->args, exp->func->pos);
+//puts(t->name);
+//  if(!is_func(env->gwion, t)) {
+//    if(is_class(env->gwion, t)) {
+//      const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
+//      if(v) t = v->type;
+//    }
+// else
+//  }
+//exit(3);
+  if(is_func(env->gwion, exp->func->type))
+    function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;
 }
 
@@ -1131,7 +1129,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     }
 // check for closure and b ring it back
     if (!is_func(env->gwion, t)) return check_exp_call1(env, exp);
-    if(strcmp("new", s_name(t->info->func->def->base->xid)))
+    if(!is_new(t->info->func->def))
       return check_exp_call_tmpl(env, exp, t);
   }
   return check_exp_call1(env, exp);
@@ -1409,7 +1407,7 @@ stmt_func_xxx(loop, Stmt_Loop, env_inline_mult(env, 1.5); check_idx(env, stmt->i
 stmt_func_xxx(each, Stmt_Each, env_inline_mult(env, 1.5), do_stmt_each(env, stmt))
 
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
-  if (!strcmp(s_name(env->func->def->base->xid), "new")) {
+  if (is_new(env->func->def)) {
     if(stmt->val)
       ERR_B(stmt_self(stmt)->pos,
             _("'return' statement inside constructor function should have no expression"))

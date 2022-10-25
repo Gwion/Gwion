@@ -80,7 +80,7 @@ ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
 ANN m_uint emit_localn(const Emitter emit, const Type t);
 ANN void* emit_localx(const Emitter emit, const Type t);
-ANN void emit_local_exp(const Emitter emit, const Exp);
+ANN m_uint emit_local_exp(const Emitter emit, const Exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
 ANN m_bool emit_exp(const Emitter, const Exp);
 

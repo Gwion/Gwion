@@ -130,7 +130,7 @@ ANN static void emit_dottmpl(const Emitter emit, const Func f) {
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
   const Func f = exp_self(member)->type->info->func;
 
-  if(!strcmp(s_name(f->def->base->xid), "new")) {
+  if(is_new(f->def)) {
     if(f != emit->env->func) emit_pushfunc(emit, f);
     return;
   }
@@ -143,7 +143,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
       return;
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
-    if (member->is_call && f == emit->env->func && strcmp(s_name(f->def->base->xid), "new")) return;
+    if (member->is_call && f == emit->env->func && !is_new(f->def)) return;
     return emit_pushfunc(emit, f);
   } else {
     if (tflag(member->base->type, tflag_struct))
@@ -171,6 +171,7 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
                                         const bool emit_addr) {
   const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
   instr->m_val      = v->from->offset;
+  instr->m_val2     = 3;
   if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 

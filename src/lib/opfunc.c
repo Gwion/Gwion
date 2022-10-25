@@ -140,9 +140,6 @@ OP_CHECK(opck_new) {
     self->d.exp_call.tmpl = NULL;
     self->exp_type = ae_exp_call;
     CHECK_BN(traverse_exp(env, self));
-//    const Type tbase = func->type->info->value->from->owner_class;
-//    if(!tflag(base->type, tflag_union) && tbase != base->type)
-//      ERR_N(base->pos, "'%s' has no matching constructor", base->type->name);
     return self->type;
   }
   if (GET_FLAG(t, abstract) &&
@@ -156,7 +153,8 @@ OP_CHECK(opck_new) {
 
 OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
-  CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
+  if(!tflag(exp_self(unary)->type, tflag_struct))
+    CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
   if(!unary->ctor.exp)
     emit_local_exp(emit, exp_self(unary));
