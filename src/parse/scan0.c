@@ -519,10 +519,24 @@ ANN Ast spread_class(const Env env, const Ast body);
 static OP_EMIT(opem_struct_assign) {
   const Exp_Binary *bin = data;
   const Type t = bin->lhs->type;
+  const Exp e = exp_self(bin);
+  if(unlikely(exp_getvar(e))) {
+    for(m_int i = vector_size(&emit->code->instr); --i > e->start && i;) {
+      const Instr instr = (Instr)vector_at(&emit->code->instr, i-1);
+      free_instr(emit->gwion, instr);
+    }
+    VLEN(&emit->code->instr) = e->start;
+    exp_setvar(bin->lhs, true);
+    CHECK_BB(emit_exp(emit, bin->lhs));
+    CHECK_BB(emit_exp(emit, bin->rhs));
+    emit_add_instr(emit, Assign);
+    return GW_OK;
+  }
+// need to add ref counting (release former)
   if(t->size == SZ_INT) emit_add_instr(emit, int_r_assign);
   else if(t->size == SZ_FLOAT) emit_add_instr(emit, float_r_assign);
   else {
-    const Instr instr = emit_add_instr(emit, Reg2RegOther);
+    const Instr instr = (Instr)emit_add_instr(emit, Reg2RegOther);
     instr->m_val  = -(t->size + SZ_INT);
     instr->m_val2 = t->size;
     emit_regmove(emit, -SZ_INT);
@@ -531,8 +545,15 @@ static OP_EMIT(opem_struct_assign) {
   return GW_OK;
 }
 
+ANN static OP_CHECK(opck_struct_assign) {
+  CHECK_NN(opck_rassign(env, data));
+  Exp_Binary *bin = data;
+  exp_setnomut(exp_self(bin), true);
+  return bin->lhs->type;
+}
+
 ANN static void scan0_struct_assign(const Env env, const Type t) {
-  struct Op_Func   opfunc = {.ck = opck_rassign, .em = opem_struct_assign };
+  struct Op_Func   opfunc = {.ck = opck_struct_assign, .em = opem_struct_assign };
   struct Op_Import opi    = {
       .op = insert_symbol(":=>"), .lhs = t, .rhs = t, .ret = t, .func = &opfunc};
   add_op(env->gwion, &opi);

@@ -975,11 +975,17 @@ ANN static m_bool struct_finish(const Emitter emit, const Exp_Decl *decl) {
   const Type t = decl->type;
   const bool emit_addr = exp_getvar(exp_self(decl));
   if (decl->args) {
+//exp_setvar(decl->args, emit_addr);
     const Instr instr = (Instr)vector_back(&emit->code->instr);
     CHECK_BB(emit_exp(emit, decl->args));
     if (emit_addr) {
       emit_regmove(emit, -t->size);
-      vector_add(&emit->code->instr, (m_uint)instr);
+//      emit_regmove(emit, SZ_INT -t->size);
+//      const Instr instr = emit_add_instr(emit, Reg2RegAddr);
+      const Instr instr = emit_add_instr(emit, RegPushMem4);
+//      emit_add_instr(emit, EOC);
+//      instr->m_val      = -SZ_INT;
+//      vector_add(&emit->code->instr, (m_uint)instr);
     }
     return GW_OK;
   }
@@ -2004,6 +2010,7 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
   Exp exp = e;
   do {
+    e->start = emit_code_size(emit);
     if (emit->info->debug && emit->status.line < e->pos.first.line) {
       const Instr instr = emit_add_instr(emit, DebugLine);
       instr->m_val = emit->status.line = e->pos.first.line;
