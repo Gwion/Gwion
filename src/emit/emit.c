@@ -245,7 +245,7 @@ ANEW static Code *new_code(const Emitter emit, const m_str name) {
 }
 
 ANN static void free_code(MemPool p, Code *code) {
-  vector_release(&code->instr);
+  if(code->instr.ptr) vector_release(&code->instr);
   vector_release(&code->stack_break);
   vector_release(&code->stack_cont);
   vector_release(&code->stack_return);
