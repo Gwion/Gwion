@@ -148,4 +148,6 @@ mk_emit_instr(setimm, RegSetImm);
 mk_emit_instr(regtomem, Reg2Mem);
 mk_emit_instr(regtomem4, Reg2Mem4);
 mk_emit_instr(regpushmem4, RegPushMem4);
+
+ANN void emit_struct_release(const Emitter, const Type , const m_uint offset);
 #endif

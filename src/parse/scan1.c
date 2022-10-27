@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -92,10 +91,6 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
   return GW_OK;
 }
 
-static inline bool array_ref(const Array_Sub array) {
-  return array && !array->exp;
-}
-
 ANN m_bool abstract_array(const Env env, const Array_Sub array) {
   Exp e = array->exp;
   while(e) {
@@ -107,7 +102,7 @@ ANN m_bool abstract_array(const Env env, const Array_Sub array) {
 }
 
 ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
-  const bool    decl_ref = array_ref(decl->td->array);
+  const bool decl_ref = decl->td->array && !decl->td->array->exp;
   Var_Decl *const vd = &decl->vd;
   CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
   Type t = decl->type;
@@ -230,7 +225,7 @@ ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot *member) {
 
 ANN static m_bool scan1_exp_if(const Env env, const Exp_If *exp_if) {
   CHECK_BB(scan1_exp(env, exp_if->cond));
-  CHECK_BB(scan1_exp(env, exp_if->if_exp ?: exp_if->cond));
+  if(exp_if->if_exp) CHECK_BB(scan1_exp(env, exp_if->if_exp));
   return scan1_exp(env, exp_if->else_exp);
 }
 
@@ -451,15 +446,11 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   return GW_OK;
 }
 
-#include "object.h"
-#include "instr.h"
-#include "operator.h"
-#include "import.h"
-
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  if(GET_FLAG(fptr->cdef, global))env_push_global(env);
+  const bool global = GET_FLAG(fptr->cdef, global);
+  if(global) env_push_global(env);
   const m_bool ret = scan1_class_def(env, fptr->cdef);
-  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  if(global) env_pop(env, 0);
   return ret;
 }
 
@@ -549,30 +540,11 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
 }
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
-  for(m_uint i = 0; i < l->len; i++) {
+  uint32_t i;
+  for(i = 0; i < l->len; i++) {
     const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt(env, s));
   }
-/*
-  do {
-    CHECK_BB(scan1_stmt(env, l->stmt));
-    if (l->next) {
-      if (l->stmt->stmt_type != ae_stmt_return) {
-        if (l->next->stmt->stmt_type == ae_stmt_exp &&
-            !l->next->stmt->d.stmt_exp.val) {
-          Stmt_List next = l->next;
-          l->next        = l->next->next;
-          next->next     = NULL;
-          free_stmt_list(env->gwion->mp, next);
-        }
-      } else {
-        Stmt_List tmp = l->next;
-        l->next       = NULL;
-        free_stmt_list(env->gwion->mp, tmp);
-      }
-    }
-  } while ((l = l->next));
-*/
   return GW_OK;
 }
 
@@ -665,11 +637,10 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if(GET_FLAG(fdef->base, abstract) && !env->class_def)
     ERR_B(fdef->base->pos, "file scope function can't be abstract");
+  CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->pos));
+  CHECK_BB(scan1_fdef_defined(env, fdef));
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
-  if (fdef->base->td)
-    CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos));
-  CHECK_BB(scan1_fdef_defined(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef);
   struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                              env->func;
