@@ -514,15 +514,37 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   return ret;
 }
 
+ANN static m_bool reemit_and_release(const Emitter emit, const Exp e) {
+  exp_setvar(e, false);
+  CHECK_BB(emit_exp(emit, e));
+  exp_setvar(e, true);
+  return GW_OK;
+}
+
 ANN Ast spread_class(const Env env, const Ast body);
+
+ANN static void exp_rewind(const Emitter emit, 	const uint32_t start) {
+  const Vector v = &emit->code->instr;
+  for(m_int i = vector_size(v); --i > start && i;) {
+    const Instr instr = (Instr)vector_at(v, i-1);
+    free_instr(emit->gwion, instr);
+  }
+  VLEN(&emit->code->instr) = start;
+}
 
 static OP_EMIT(opem_struct_assign) {
   const Exp_Binary *bin = data;
   const Type t = bin->lhs->type;
   const Exp e = exp_self(bin);
+  CHECK_BB(reemit_and_release(emit, bin->rhs));
+  const Type rhs = bin->rhs->type;
+  emit_struct_release(emit, rhs, 0);
+  emit_regmove(emit, -rhs->size);
   if(unlikely(exp_getvar(e))) {
-    for(m_int i = vector_size(&emit->code->instr); --i > e->start && i;) {
-      const Instr instr = (Instr)vector_at(&emit->code->instr, i-1);
+    exp_rewind(emit, e->start);
+    const Vector v = &emit->code->instr;
+    for(m_int i = vector_size(v); --i > e->start && i;) {
+      const Instr instr = (Instr)vector_at(v, i-1);
       free_instr(emit->gwion, instr);
     }
     VLEN(&emit->code->instr) = e->start;
@@ -532,14 +554,12 @@ static OP_EMIT(opem_struct_assign) {
     emit_add_instr(emit, Assign);
     return GW_OK;
   }
-// need to add ref counting (release former)
   if(t->size == SZ_INT) emit_add_instr(emit, int_r_assign);
   else if(t->size == SZ_FLOAT) emit_add_instr(emit, float_r_assign);
   else {
     const Instr instr = (Instr)emit_add_instr(emit, Reg2RegOther);
-    instr->m_val  = -(t->size + SZ_INT);
+    instr->m_val  = -t->size * 2;
     instr->m_val2 = t->size;
-    emit_regmove(emit, -SZ_INT);
   }
   emit_struct_addref(emit, t, 0, false);
   return GW_OK;

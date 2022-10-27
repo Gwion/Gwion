@@ -18,7 +18,6 @@ enum {
   eRegPushBase4,
   eReg2Reg,
   eReg2RegOther,
-  eReg2RegOther2,
   eReg2RegAddr,
   eReg2RegDeref,
   eStructMember,
@@ -157,7 +156,6 @@ enum {
   eSporkIni,
   eForkIni,
   eSporkFunc,
-  eSporkMemberFptr,
   eSporkExp,
   eSporkCode,
   eForkEnd,
@@ -236,7 +234,6 @@ enum {
 #define  RegPushBase4         (f_instr)eRegPushBase4
 #define  Reg2Reg              (f_instr)eReg2Reg
 #define  Reg2RegOther         (f_instr)eReg2RegOther
-#define  Reg2RegOther2        (f_instr)eReg2RegOther2
 #define  Reg2RegAddr          (f_instr)eReg2RegAddr
 #define  Reg2RegDeref         (f_instr)eReg2RegDeref
 #define  StructMember         (f_instr)eStructMember
@@ -375,7 +372,6 @@ enum {
 #define  SporkIni             (f_instr)eSporkIni
 #define  ForkIni              (f_instr)eForkIni
 #define  SporkFunc            (f_instr)eSporkFunc
-#define  SporkMemberFptr      (f_instr)eSporkMemberFptr
 #define  SporkExp             (f_instr)eSporkExp
 #define  SporkCode            (f_instr)eSporkCode
 #define  ForkEnd              (f_instr)eForkEnd
@@ -535,12 +531,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eReg2RegOther:
         gw_out("{Y}┃{0}{-}% 4lu{0}: Reg2RegOther", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eReg2RegOther2:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: Reg2RegOther2", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
@@ -1143,11 +1133,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eSporkFunc:
         gw_out("{Y}┃{0}{-}% 4lu{0}: SporkFunc   ", j);
-        gw_out("\n");
-        break;
-      case eSporkMemberFptr:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: SporkMemberFptr", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
       case eSporkExp:

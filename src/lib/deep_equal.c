@@ -164,9 +164,8 @@ ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_i
   d->tmp->d.prim.value = d->val;
   d->tmp->type = d->val->type;
   check_deep_equal_exp(emit->env, d->exp, &d->vec);
-  const Instr instr = emit_add_instr(emit, Reg2Mem);
-  instr->m_val2 = offset;
-  d->val->from->offset = instr->m_val = emit_localn(emit, d->val->type);
+  d->val->from->offset = emit_localn(emit, d->val->type);
+  emit_regtomem(emit, d->val->from->offset, offset);
 }
 
 ANN static void deep_emit_release(const Emitter emit, struct DeepEmit *d) {

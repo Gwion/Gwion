@@ -1,4 +1,4 @@
-#! [contains] 42
+#! [contains] 13
 
 struct S {
   12 :=> var int i;
@@ -8,4 +8,4 @@ struct S {
   }
 }
 
-<<< 12 :=> (S(21,21) :=> var auto s).i >>>;
+<<< 13 :=> (S(21,21) :=> var auto s).i >>>;

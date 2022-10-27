@@ -423,7 +423,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
       &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
       &&regpushmemderef, &&pushnow, &&baseint, &&basefloat, &&baseother,
-      &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
+      &&baseaddr, &&regtoreg, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
       &&structmember, &&structmemberfloat, &&structmemberother,
       &&structmemberaddr, &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
       &&regpushme, &&regpushmaybe, &&funcreturn, &&_goto, &&allocint,
@@ -454,7 +454,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&regtomem, &&regtomemother,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
-      &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkcode,
+      &&sporkini, &&forkini, &&sporkfunc, &&sporkexp, &&sporkcode,
       &&forkend, &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
@@ -563,9 +563,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH();
     regtoreg:
       *(m_uint *)(reg + IVAL) = *(m_uint *)(reg + IVAL2);
-      DISPATCH()
-    regtoregother:
-      memcpy(*(m_bit **)(reg - SZ_INT), reg + IVAL, VAL2);
       DISPATCH()
     regtoregother2:
       memcpy(reg - VAL2, reg + IVAL, VAL2);
@@ -897,7 +894,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       *(m_float *)(reg - SZ_FLOAT) += vm->bbq->pos;
       VM_OUT
       break;
-    recurs : {
+    recurs:
+    {
       register const uint push = SVAL2;
       mem += push;
       *(frame_t *)(mem - sizeof(frame_t)) =
@@ -961,14 +959,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       for (m_uint i = 0; i < VAL; i += SZ_INT)
         *(m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
       child->reg += VAL;
-      DISPATCH()
-    sporkmemberfptr:
-      for (m_uint i = SZ_INT; i < VAL; i += SZ_INT)
-        *(m_uint *)(child->reg + i) = *(m_uint *)(reg - VAL + i);
-      *(M_Object *)(child->reg + VAL) = *(M_Object *)(reg + VAL + SZ_INT);
-      *(m_uint *)(child->reg + VAL + SZ_INT) =
-          *(m_uint *)(reg + VAL - SZ_INT * 2);
-      child->reg += VAL + SZ_INT * 2;
       DISPATCH()
     sporkexp:
       //  LOOP_OPTIM
@@ -1106,20 +1096,20 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     dotmembermem:
-      reg += SZ_INT;
-      *(m_uint *)(reg - SZ_INT) =
+      *(m_uint *)reg =
           *(m_uint *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT;
       DISPATCH()
     dotmembermem2:
-      reg += SZ_INT - SZ_FLOAT;
-      *(m_float *)(reg - SZ_FLOAT) =
+      *(m_float *)(reg + SZ_INT) =
           *(m_float *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT - SZ_FLOAT;
       DISPATCH()
 //    dotmembermem3:
     dotmembermem4:
-      reg += SZ_INT;
-      *(m_bit **)(reg - SZ_INT) =
+      *(m_bit **)reg =
           ((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT;
       DISPATCH()
     dotmember:
       *(m_uint *)(reg - SZ_INT) =
@@ -1278,7 +1268,7 @@ static void *_dispatch[] = {
       &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
       &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,
       &&_regpushmemderef, &&_pushnow, &&_baseint, &&_basefloat, &&_baseother,
-      &&_baseaddr, &&_regtoreg, &&_regtoregother, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
+      &&_baseaddr, &&_regtoreg, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
       &&_structmember, &&_structmemberfloat, &&_structmemberother,
       &&_structmemberaddr, &&_memsetimm, &&_memaddimm, &&_repeatidx, &&_repeat,
       &&_regpushme, &&_regpushmaybe, &&_funcreturn, &&__goto, &&_allocint,
@@ -1309,7 +1299,7 @@ static void *_dispatch[] = {
       &&_regtomem, &&_regtomemother,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
-      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkmemberfptr, &&_sporkexp, &&_sporkcode, &&_forkend,
+      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkexp, &&_sporkcode, &&_forkend,
       &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
@@ -1347,7 +1337,6 @@ goto *_dispatch[*(m_bit*)prepare_code];
     PREPARE(baseother);
     PREPARE(baseaddr);
     PREPARE(regtoreg);
-    PREPARE(regtoregother);
     PREPARE(regtoregother2);
     PREPARE(regtoregaddr);
     PREPARE(regtoregderef);
@@ -1512,7 +1501,6 @@ return;
     PREPARE(sporkini);
     PREPARE(forkini);
     PREPARE(sporkfunc);
-    PREPARE(sporkmemberfptr);
     PREPARE(sporkexp);
     PREPARE(sporkcode);
     PREPARE(forkend);

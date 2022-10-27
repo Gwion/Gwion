@@ -137,9 +137,15 @@ ANN static inline void emit_pushimm(const Emitter emit, const m_uint value) {
   instr->m_val = value;
 }
 
-ANN static inline void emit_setimm(const Emitter emit, const m_uint value, const m_uint value2) {
-  const Instr instr = emit_add_instr(emit, RegSetImm);
-  instr->m_val  = value;
-  instr->m_val2 = value2;
-}
+#define mk_emit_instr(name, instruction)                                                           \
+ANN static inline Instr emit_##name(const Emitter emit, const m_uint value, const m_uint value2) { \
+  const Instr instr = emit_add_instr(emit, instruction);                                           \
+  instr->m_val  = value;                                                                           \
+  instr->m_val2 = value2;                                                                          \
+  return instr;                                                                                    \
+ }
+mk_emit_instr(setimm, RegSetImm);
+mk_emit_instr(regtomem, Reg2Mem);
+mk_emit_instr(regtomem4, Reg2Mem4);
+mk_emit_instr(regpushmem4, RegPushMem4);
 #endif

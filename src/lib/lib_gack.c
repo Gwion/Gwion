@@ -22,7 +22,7 @@ static OP_EMIT(opem_gack_implicit) {
   const struct Implicit *imp  = (struct Implicit *)data;
   const Type t = imp->e->d.prim.d.exp->cast_to ?: imp->e->d.prim.d.exp->type;
   if(t == imp->t) {
-    const Instr cpy = emit_add_instr(emit, Reg2RegOther2); // kind
+    const Instr cpy = emit_add_instr(emit, Reg2RegOther); // kind
     cpy->m_val2 = SZ_INT;
     emit_regmove(emit, imp->t->size - SZ_INT);
   } else {
@@ -32,7 +32,7 @@ static OP_EMIT(opem_gack_implicit) {
                           .rhs = imp->t};
     CHECK_BB(op_emit(emit, &opi));
     emit_regmove(emit, -SZ_INT);
-    const Instr cpy = emit_add_instr(emit, Reg2RegOther2); // kind
+    const Instr cpy = emit_add_instr(emit, Reg2RegOther); // kind
     cpy->m_val = cpy->m_val2 = imp->t->size;
   }
   return GW_OK;

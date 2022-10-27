@@ -593,8 +593,10 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   const m_uint scope   = env->scope->depth;
   env->scope->depth    = 0;
   vector_init(&v);
-  while (vector_size((Vector)&env->curr->info->value->ptr) > 1)
-    vector_add(&v, vector_pop((Vector)&env->curr->info->value->ptr));
+  Vector w = (Vector)&env->curr->info->value->ptr;
+  m_uint i = vector_size(w);
+  while (i-- > 1) vector_add(&v, vector_at(w, i));
+  vector_realloc(w);
   const m_bool ret = traverse_func_def(env, fdef);
   for (m_uint i = vector_size(&v) + 1; --i;)
     vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i - 1));
@@ -893,24 +895,24 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
   }
 }
 
-ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
-  Type t = exp->func->type;
-  if (!is_func(env->gwion, t)) { // use func flag?
-    if(isa(exp->func->type, env->gwion->type[et_closure]) > 0)
-      t = closure_def(t)->base->func->value_ref->type;
-    else if(is_class(env->gwion, t) && tflag(t->info->base_type, tflag_struct)) {
-      const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
-      if(v) t = exp->func->type = v->type;
-      else return NULL;
-    } else {
-      struct Op_Import opi = {.op   = insert_symbol("@ctor"),
-                              .rhs  = actual_type(env->gwion, exp->func->type),
-                              .data = (uintptr_t)exp,
-                              .pos  = exp_self(exp)->pos};
-      const Type       t   = op_check(env, &opi);
-      return t;
-    }
+ANN Type call_type(const Env env, Exp_Call *const exp) {
+  const Type t = exp->func->type;
+  if (is_func(env->gwion, t)) return t;
+  if(isa(exp->func->type, env->gwion->type[et_closure]) > 0)
+    return closure_def(t)->base->func->value_ref->type;
+  if(is_class(env->gwion, t) && tflag(t->info->base_type, tflag_struct)) {
+    const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
+    if(v) return exp->func->type = v->type;
   }
+  struct Op_Import opi = {.op   = insert_symbol("@ctor"),
+                          .rhs  = actual_type(env->gwion, exp->func->type),
+                          .data = (uintptr_t)exp,
+                          .pos  = exp_self(exp)->pos};
+  return op_check(env, &opi);
+}
+
+ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
+  DECL_OO(const Type, t, = call_type(env, exp));
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (!t->info->func) // TODO: effects?
     return check_lambda_call(env, exp);

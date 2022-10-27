@@ -8,5 +8,4 @@ struct S {
   }
 }
 
-S(21,21) :=> var auto s;
-<<< s.i >>>;
+<<< (S(21,21) :=> var auto s).i >>>;
