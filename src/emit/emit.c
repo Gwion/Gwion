@@ -1340,8 +1340,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *call) {
   const Func f = t->info->func;
   if(unlikely(is_new_struct(f, exp_self(call)->type)))
     emit_new_struct(emit, call);
-  else if (strstr(emit->code->name, "ork~") ||  // skip when recursing
-      (f != emit->env->func || (f && f->value_ref->from->owner_class)))
+  else if (f != emit->env->func || (f && f->value_ref->from->owner_class))
     CHECK_BB(prepare_call(emit, call));
   else CHECK_BB(emit_func_args(emit, call));
   CHECK_BB(emit_exp_call1(emit, f, is_static_call(emit->gwion, call->func)));
