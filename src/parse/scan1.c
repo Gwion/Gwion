@@ -605,6 +605,13 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   if (op == insert_symbol("@conditional") ||
       op == insert_symbol("@unconditional"))
     return scan_internal_int(env, base);
+  if(op == insert_symbol("@array_init") ||
+     op == insert_symbol("@each")       ||
+     op == insert_symbol("@each_idx")   ||
+     op == insert_symbol("@each_init")  ||
+     op == insert_symbol("@each_val")   ||
+     op == insert_symbol("@partial"))
+      ERR_B(base->pos, "operator '%s' not allowed", s_name(op));
   return GW_OK;
 }
 
