@@ -371,21 +371,6 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   return ret;
 }
 
-ANN void struct_release(const VM_Shred shred, const Type base,
-                        const m_bit *ptr) {
-  const Vector types   = &base->info->tuple->types;
-  const Vector offsets = &base->info->tuple->offset;
-  for (m_uint i = 0; i < vector_size(types); ++i) {
-    const Type t = (Type)vector_at(types, i);
-    if (isa(t, shred->info->vm->gwion->type[et_compound]) < 0) continue;
-    const m_uint offset = vector_at(offsets, i);
-    if (!tflag(t, tflag_struct))
-      release(*(M_Object *)(ptr + offset), shred);
-    else
-      struct_release(shred, t, *(m_bit **)(ptr + offset));
-  }
-}
-
 static OP_EMIT(opem_not_object) {
   const Vector v    = &emit->code->instr;
   const Instr  back = (Instr)vector_back(v);

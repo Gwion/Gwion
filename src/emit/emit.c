@@ -131,25 +131,6 @@ if(!tflag(t, tflag_tmpl))return GW_OK;
   return envset_run(&es, t);
 }
 
-ANN static void emit_struct_dtor(const Emitter emit, const Type type,
-                                 const m_uint offset) {
-  const m_uint code_offset = emit_code_offset(emit);
-  emit->code->frame->curr_offset += SZ_INT;
-  emit_regpushmem4(emit, offset, 0);
-  emit_regtomem(emit, code_offset, -SZ_INT);
-  emit_pushimm(emit, (m_uint)type);
-  emit_regtomem(emit, code_offset + SZ_INT, -SZ_INT);
-  emit_setimm(emit, (m_uint)type->nspc->dtor, SZ_INT);
-  emit_setimm(emit, code_offset, SZ_INT*2);
-  emit_regmove(emit, SZ_INT * 2);
-  const Instr prelude = emit_add_instr(emit, SetCode);
-  prelude->m_val      = -SZ_INT * 4;
-  prelude->udata.one  = 2;
-  const Instr next    = emit_add_instr(emit, Overflow);
-  next->m_val2        = code_offset;
-  emit->code->frame->curr_offset -= SZ_INT;
-}
-
 ANN void emit_object_release(const Emitter emit, const m_uint offset) {
   const Instr instr = emit_add_instr(emit, ObjectRelease);
   instr->m_val = offset;
@@ -164,7 +145,6 @@ ANN void emit_compound_release(const Emitter emit, const Type t, const m_uint of
 ANN void emit_struct_release(const Emitter emit, const Type type,
                              const m_uint offset) {
   if (!type->info->tuple) return;
-  if (type->nspc->dtor) emit_struct_dtor(emit, type, offset);
   const Vector v = &type->info->tuple->types;
   for (m_uint i = 0; i < vector_size(v); i++) {
     const Type t = (Type)vector_at(v, i);
