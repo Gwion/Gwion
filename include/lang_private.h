@@ -9,7 +9,6 @@ ANN m_bool import_shred(const Gwi gwi);
 ANN m_bool import_event(const Gwi gwi);
 ANN m_bool import_ugen(const Gwi gwi);
 ANN m_bool import_array(const Gwi gwi);
-ANN m_bool import_ptr(const Gwi gwi);
 ANN m_bool import_xork(const Gwi gwi);
 ANN m_bool import_modules(const Gwi gwi);
 ANN m_bool import_object_op(const Gwi gwi);

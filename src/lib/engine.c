@@ -119,7 +119,6 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(import_array(gwi))
   GWI_BB(import_event(gwi))
   GWI_BB(import_ugen(gwi))
-  GWI_BB(import_ptr(gwi))
   GWI_BB(import_xork(gwi))
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_new))
