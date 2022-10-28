@@ -296,9 +296,9 @@ ANN m_uint emit_code_offset(const Emitter emit) {
   return emit->code->frame->curr_offset;
 }
 
-ANN m_uint emit_local(const Emitter emit, const Type t) {
+ANN static Local * add_local(const Emitter emit, const Type t, const bool is_compound) {
   Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
-  if (isa(t, emit->gwion->type[et_compound]) > 0) {
+  if (is_compound) {
     l->is_compound = true;
     VMValue vmval  = {
         .t = t,
@@ -308,19 +308,17 @@ ANN m_uint emit_local(const Emitter emit, const Type t) {
     m_vector_add(&emit->code->live_values, &vmval);
     ++emit->code->frame->value_count;
   }
+  return l;
+}
+
+ANN m_uint emit_local(const Emitter emit, const Type t) {
+  const bool is_compound = isa(t, emit->gwion->type[et_compound]) > 0;
+  Local *const l = add_local(emit, t, is_compound);
   return l->offset;
 }
 
 ANN void* emit_localx(const Emitter emit, const Type t) {
-  Local *const l = frame_local(emit->gwion->mp, emit->code->frame, t);
-  l->is_compound = true;
-  VMValue vmval  = {
-      .t = t,
-      .offset = l->offset,
-      .start = emit_code_size(emit)
-  };
-  m_vector_add(&emit->code->live_values, &vmval);
-  ++emit->code->frame->value_count;
+  Local *const l = add_local(emit, t, 1);
   l->instr = emit_regtomem(emit, l->offset, -SZ_INT);
   return l;
 }
