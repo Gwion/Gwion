@@ -182,7 +182,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
         ? t->info->cdef->base.tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(t->info->cdef->base.tmpl);
     if(!single_variadic) CHECK_BO(check_tmpl(env, tl, sl, td->pos, is_spread));
-    struct Op_Import opi = {.op   = insert_symbol("@scan"),
+    struct Op_Import opi = {.op   = insert_symbol("class"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,
                             .pos  = td->pos};

@@ -722,7 +722,7 @@ GWION_IMPORT(func) {
 
   GWI_BB(gwi_oper_ini(gwi, "funptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_closure_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))

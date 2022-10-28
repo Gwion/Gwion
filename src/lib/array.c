@@ -990,7 +990,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, NULL, "bool"))
   GWI_BB(gwi_oper_end(gwi, "@array_init", NoOp))

@@ -185,7 +185,7 @@ GWION_IMPORT(ptr) {
   GWI_BB(gwi_class_end(gwi))
   GWI_BB(gwi_oper_ini(gwi, "Ptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Ptr", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ptr_assign))
   GWI_BB(gwi_oper_emi(gwi, opem_ptr_assign))

@@ -691,7 +691,7 @@ GWION_IMPORT(dict) {
 
   GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_dict_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "int"))
   GWI_BB(gwi_oper_emi(gwi, opem_dict_each))
