@@ -184,7 +184,6 @@ ANN static m_bool emit_defers(const Emitter emit) {
     if(s) CHECK_BB(emit_stmt(emit, s));
   }
   VLEN(v) = i;
-  vector_realloc(v);
   return GW_OK;
 }
 
@@ -2121,7 +2120,6 @@ ANN static void set_pcs(const Vector v, const m_uint pc) {
     instr->m_val = pc;
   }
   VLEN(v) = i - 1;
-  vector_realloc(v);
 }
 
 ANN static void emit_pop_stack(const Emitter emit, const m_uint index) {

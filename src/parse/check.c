@@ -596,7 +596,6 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   Vector w = (Vector)&env->curr->info->value->ptr;
   m_uint i = vector_size(w);
   while (i-- > 1) vector_add(&v, vector_at(w, i));
-  vector_realloc(w);
   const m_bool ret = traverse_func_def(env, fdef);
   for (m_uint i = vector_size(&v) + 1; --i;)
     vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i - 1));
