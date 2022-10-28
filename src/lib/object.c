@@ -72,7 +72,7 @@ ANN void struct_release(const VM_Shred shred, const Type base,
     const Type t = (Type)vector_at(types, i);
     if (isa(t, shred->info->vm->gwion->type[et_compound]) < 0) continue;
     const m_uint offset = vector_at(offsets, i);
-    compound_release(shred, t, *(m_bit **)(ptr + offset));
+    compound_release(shred, t, ptr + offset);
   }
 }
 

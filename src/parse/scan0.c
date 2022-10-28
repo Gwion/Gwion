@@ -514,13 +514,6 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   return ret;
 }
 
-ANN static m_bool reemit_and_release(const Emitter emit, const Exp e) {
-  exp_setvar(e, false);
-  CHECK_BB(emit_exp(emit, e));
-  exp_setvar(e, true);
-  return GW_OK;
-}
-
 ANN Ast spread_class(const Env env, const Ast body);
 
 ANN static void exp_rewind(const Emitter emit, 	const uint32_t start) {
@@ -536,10 +529,10 @@ static OP_EMIT(opem_struct_assign) {
   const Exp_Binary *bin = data;
   const Type t = bin->lhs->type;
   const Exp e = exp_self(bin);
-  CHECK_BB(reemit_and_release(emit, bin->rhs));
   const Type rhs = bin->rhs->type;
-  emit_struct_release(emit, rhs, 0);
-  emit_regmove(emit, -rhs->size);
+  const Instr instr = emit_add_instr(emit, StructReleaseRegAddr);
+  instr->m_val = -rhs->size;
+  instr->m_val2 = (m_uint)t;
   if(unlikely(exp_getvar(e))) {
     exp_rewind(emit, e->start);
     const Vector v = &emit->code->instr;

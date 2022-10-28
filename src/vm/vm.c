@@ -459,7 +459,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
-      &&remref, &&remref2, &&except, &&allocmemberaddr,
+      &&_remref, &&_remref2, &&_structreleaseregaddr, &&structreleasemem,
+      &&_except, &&_allocmemberaddr,
       &&dotmembermem, &&dotmembermem2, /*&&dotmembermem3, */&&dotmembermem4,
       &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
       &&unioncheck, &&unionint, &&unionfloat,
@@ -1080,6 +1081,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         release(*(M_Object *)(mem + vector_at(&v, i)), shred);
 }
       DISPATCH()
+    structreleaseregaddr:
+      struct_release(shred, (Type)VAL2, *(m_bit**)(reg + IVAL));
+    structreleasemem:
+      struct_release(shred, (Type)VAL2, mem + IVAL);
     except:
       /* TODO: Refactor except instruction             *
        * so that                                       *
@@ -1303,7 +1308,8 @@ static void *_dispatch[] = {
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
       &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
-      &&_remref, &&_remref2, &&_except, &&_allocmemberaddr,
+      &&_remref, &&_remref2, &&_structreleaseregaddr, &&_structreleasemem,
+      &&_except, &&_allocmemberaddr,
       &&_dotmembermem, &&_dotmembermem2, /*&&_dotmembermem3, */&&_dotmembermem4,
       &&_dotmember, &&_dotfloat, &&_dotother, &&_dotaddr,
       &&_unioncheck, &&_unionint, &&_unionfloat,
@@ -1524,6 +1530,8 @@ return;
     PREPARE(assign);
     PREPARE(remref);
     PREPARE(remref2);
+    PREPARE(structreleaseregaddr);
+    PREPARE(structreleasemem);
     PREPARE(except);
     PREPARE(allocmemberaddr);
     PREPARE(dotmembermem);

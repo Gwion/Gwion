@@ -144,13 +144,9 @@ ANN void emit_compound_release(const Emitter emit, const Type t, const m_uint of
 
 ANN void emit_struct_release(const Emitter emit, const Type type,
                              const m_uint offset) {
-  if (!type->info->tuple) return;
-  const Vector v = &type->info->tuple->types;
-  for (m_uint i = 0; i < vector_size(v); i++) {
-    const Type t = (Type)vector_at(v, i);
-    if (isa(t, emit->gwion->type[et_compound]) > 0)
-      emit_compound_release(emit, t, offset + vector_at(&type->info->tuple->offset, i));
-  }
+  const Instr instr = emit_add_instr(emit, StructReleaseMem);
+  instr->m_val = offset;
+  instr->m_val2 = (m_uint)type;
 }
 
 ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt);
