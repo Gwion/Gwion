@@ -2245,7 +2245,7 @@ ANN static m_bool _unroll(const Emitter emit, Looper *loop) {
   const m_uint end = emit_code_size(emit);
   for (m_uint i = 1; i < loop->n; ++i) CHECK_BB(unroll_run(emit, loop));
   unroll->m_val2      = end - start;
-  const Instr unroll2 = emit_add_instr(emit, Unroll2);
+  const Instr unroll2 = emit_add_instr(emit, VM_IN);
   unroll2->m_val      = (m_uint)unroll;
   scoped_end(emit);
   return GW_OK;

@@ -103,7 +103,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
           instr->m_val = next->m_val;
           next->opcode = eNoOp;
         }
-      } else if (instr->opcode == eUnroll2) {
+      } else if (instr->opcode == eVM_IN) {
         const Instr  unroll     = (Instr)instr->m_val;
         const m_uint pc         = vector_find(v, (m_uint)unroll);
         m_uint       reduce_pre = 0, reduce = 0;

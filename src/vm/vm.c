@@ -466,8 +466,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&dotfunc, &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
-      &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
-      &&regpushimm};
+      &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&vmin, &&other};
+//      &&regpushimm};
 
   if(!prepare_code) {
     PRAGMA_PUSH()
@@ -1206,7 +1206,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     gack:
       VM_OUT
       gack(shred, VAL);
-      goto in;
+      goto vmin;
     try_ini:
       if (!shred->info->frame.ptr) // ???
         vector_init(&shred->info->frame);
@@ -1229,8 +1229,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH();
     other:
       VM_OUT((f_instr)VAL2)(shred, (Instr)VAL);
-    unroll2:
-    in:
+    vmin:
       if (!s->curr) break;
       bytecode = (code = shred->code)->bytecode;
       reg      = shred->reg;
@@ -1311,8 +1310,7 @@ static void *_dispatch[] = {
       &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
       &&_dotfunc, &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
       &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
-      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_unroll2, &&_other,
-      &&_regpushimm};
+      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_vmin, &&_other};
 
 #define PREPARE(a) \
 _##a: \
@@ -1566,7 +1564,7 @@ _other:
   prepare_code += BYTECODE_SZ;\
   goto *_dispatch[*(m_bit*)prepare_code];
 }
-    PREPARE(unroll2);
+    PREPARE(vmin);
     PREPARE(debugline);
     PREPARE(debugvalue);
     PREPARE(debugpush);

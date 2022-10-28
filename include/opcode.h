@@ -212,9 +212,8 @@ enum {
   eDebugPush,
   eDebugPop,
   eEOC,
-  eUnroll2,
+  eVM_IN,
   eOP_MAX,
-  eDotTmplVal,
 };
 
 #define  RegSetImm            (f_instr)eRegSetImm
@@ -428,9 +427,8 @@ enum {
 #define  DebugPush            (f_instr)eDebugPush
 #define  DebugPop             (f_instr)eDebugPop
 #define  EOC                  (f_instr)eEOC
-#define  Unroll2              (f_instr)eUnroll2
+#define  VM_IN                (f_instr)eVM_IN
 #define  OP_MAX               (f_instr)eOP_MAX
-#define  DotTmplVal           (f_instr)eDotTmplVal
 #ifndef __cplusplus
 ANN static inline void dump_opcodes(const VM_Code code) {
   gw_out("{Y}┏━━━━┓{0}{-Y} {+}%s{0}\n{Y}┃{0}\n", code->name);
@@ -1414,17 +1412,12 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: EOC         ", j);
         gw_out("\n");
         break;
-      case eUnroll2:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: Unroll2     ", j);
+      case eVM_IN:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: VM_IN       ", j);
         gw_out("\n");
         break;
       case eOP_MAX:
         gw_out("{Y}┃{0}{-}% 4lu{0}: OP_MAX      ", j);
-        gw_out(" {-R}%-14p{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eDotTmplVal:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: DotTmplVal  ", j);
         gw_out("\n");
         break;
     }

@@ -73,4 +73,6 @@ INSTR(SetCtor);
 
 INSTR(dict_ctor_alt);
 INSTR(dict_lit_ctor);
+
+INSTR(DotTmplVal);
 #endif
