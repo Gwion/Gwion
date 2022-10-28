@@ -539,12 +539,29 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
   return scan1_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
+ANN static inline bool end_flow(Stmt s) {
+  const ae_stmt_t t = s->stmt_type;
+    return t == ae_stmt_continue ||
+           t == ae_stmt_break    ||
+           t == ae_stmt_return;
+}
+
+ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
+  for(uint32_t i = len; i < l->len; i++) {
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    free_stmt(env->gwion->mp, s);
+  }
+  l->len = len;
+}
+
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   uint32_t i;
   for(i = 0; i < l->len; i++) {
     const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt(env, s));
+    if(end_flow(s)) break;
   }
+  if(++i < l->len) dead_code(env, l, i);
   return GW_OK;
 }
 
