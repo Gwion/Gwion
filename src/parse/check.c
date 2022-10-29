@@ -2014,7 +2014,7 @@ ANN static bool class_def_has_body(const Env env, Ast ast) {
           if (GET_FLAG(exp->d.exp_decl.td, late)) continue;
           Var_Decl vd = exp->d.exp_decl.vd;
           if (GET_FLAG(vd.value, late)) continue;
-          if (isa(vd.value->type, env->gwion->type[et_compound]) > 0)
+          if (tflag(vd.value->type, tflag_compound))
               return true;
         } else return true;
       }
@@ -2063,7 +2063,7 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
   }
 
   if(t != tgt && v->type->nspc && (!GET_FLAG(v, late) ||  vflag(v, vflag_assigned)) && strncmp(tgt->name, "Option:[", 8) &&
-      isa(tgt, env->gwion->type[et_compound]) > 0)
+      tflag(tgt, tflag_compound))
     return recursive_type(env, t, tgt);
 
   return false;
@@ -2086,7 +2086,7 @@ ANN static m_bool recursive_type_base(const Env env, const Type t) {
   bool error = false;
   struct scope_iter iter = {t->nspc->info->value, 0, 0};
   while (scope_iter(&iter, &value) > 0) {
-    if (isa(value->type, env->gwion->type[et_compound]) < 0) continue;
+    if (!tflag(value->type, tflag_compound)) continue;
     if (value->type->nspc && (!GET_FLAG(value, late) || vflag(value, vflag_assigned))) {
       if(value->type == t || recursive_type(env, t, value->type)) {
         env_err(env, value->from->loc, _("recursive type"));

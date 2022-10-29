@@ -42,6 +42,7 @@ enum tflag {
   tflag_enum     = 1 << 22,
   tflag_ref      = 1 << 23,
   tflag_packed   = 1 << 24,
+  tflag_compound = 1 << 25,
 } __attribute__((packed));
 
 struct Type_ {

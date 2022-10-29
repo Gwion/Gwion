@@ -137,7 +137,7 @@ ANN void emit_object_release(const Emitter emit, const m_uint offset) {
 }
 
 ANN void emit_compound_release(const Emitter emit, const Type t, const m_uint offset) {
-  if(isa(t, emit->gwion->type[et_compound]) > 0)
+  if(tflag(t, tflag_compound))
     return emit_object_release(emit, offset);
   emit_struct_release(emit, t, offset);
 }
@@ -288,7 +288,7 @@ ANN static Local * add_local(const Emitter emit, const Type t, const bool is_com
 }
 
 ANN m_uint emit_local(const Emitter emit, const Type t) {
-  const bool is_compound = isa(t, emit->gwion->type[et_compound]) > 0;
+  const bool is_compound = tflag(t, tflag_compound);
   Local *const l = add_local(emit, t, is_compound);
   return l->offset;
 }
@@ -385,7 +385,7 @@ ANEW ANN static ArrayInfo *new_arrayinfo(const Emitter emit, const Type t) {
 
 ANN static inline m_bool arrayinfo_ctor(const Emitter emit, ArrayInfo *info) {
   const Type base = info->base;
-  if (isa(base, emit->gwion->type[et_compound]) > 0 &&
+  if (tflag(base, tflag_compound) &&
       !GET_FLAG(base, abstract)) {
     CHECK_BB(emit_pre_constructor_array(emit, base));
     info->is_obj = 1;
@@ -565,7 +565,7 @@ ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
 ANN2(1)
 static void emit_exp_addref1(const Emitter emit, const Exp exp, m_int size) {
   const Type t = exp->cast_to ?: exp->type;
-  if (isa(t, emit->gwion->type[et_compound]) > 0)
+  if (tflag(t, tflag_compound))
     emit_compound_addref(emit, exp->type, size, exp_getvar(exp));
 }
 
@@ -2028,7 +2028,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
       if (stmt->val->exp_type == ae_exp_call && emit->env->func == f)
         return optimize_tail_call(emit, &stmt->val->d.exp_call);
     }
-//    if(!stmt->val->ref && isa(stmt->val->type, emit->gwion->type[et_compound]) > 0)
+//    if(!stmt->val->ref && tflag(stmt->val->type, tflag_compound))
 //      emit_local(emit, stmt->val->type);
     emit->status.in_return = true;
     CHECK_BB(emit_exp(emit, stmt->val));

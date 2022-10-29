@@ -212,7 +212,7 @@ static OP_EMIT(opem_array_sr) {
   if (shift_match(bin->lhs->type, bin->rhs->type))
     return emit_array_shift(emit, ArrayConcatRight);
   emit_regmove(emit, -SZ_INT);
-  if (isa(bin->lhs->type, emit->gwion->type[et_compound]) > 0)
+  if (tflag(bin->lhs->type, tflag_compound))
     emit_compound_addref(emit, bin->lhs->type, -SZ_INT*2, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
@@ -222,7 +222,7 @@ static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
-  if (isa(bin->rhs->type, emit->gwion->type[et_compound]) > 0)
+  if (tflag(bin->rhs->type, tflag_compound))
     emit_compound_addref(emit, bin->rhs->type, -SZ_INT, false);
   emit_regmove(emit, -bin->rhs->type->size);
   emit_add_instr(emit, ArrayAppend);
@@ -756,12 +756,12 @@ static OP_CHECK(opck_array_scan) {
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);
   set_tflag(t, tflag_cdef | tflag_tmpl);
-  void *rem = isa(base, env->gwion->type[et_compound]) > 0
+  void *rem = tflag(base, tflag_compound)
                   ? !tflag(base, tflag_struct) ? vm_vector_rem_obj
                                                : vm_vector_rem_struct
                   : vm_vector_rem;
   builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), rem);
-  void *insert = isa(base, env->gwion->type[et_compound]) > 0
+  void *insert = tflag(base, tflag_compound)
                      ? !tflag(base, tflag_struct) ? vm_vector_insert_obj
                                                   : vm_vector_insert_struct
                      : vm_vector_insert;
@@ -779,7 +779,7 @@ static OP_CHECK(opck_array_scan) {
   array_func(env, t, "foldr", vm_vector_foldr);
 //  array_func(env, t, "new", vm_vector_new);
 
-  if (isa(base, env->gwion->type[et_compound]) > 0) {
+  if (tflag(base, tflag_compound)) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
                                "array component dtor", SZ_INT, true, false);
     set_tflag(t, tflag_dtor);

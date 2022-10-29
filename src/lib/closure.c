@@ -88,7 +88,7 @@ ANN void free_captures(const VM_Shred shred, m_bit *const caps) {
   const Capture_List captures = (*(Func_Def*)caps)->captures;
   for(m_uint i = 0; i < captures->len; i++) {
     Capture *const cap = mp_vector_at(captures, Capture, i);
-    if(isa(cap->temp->type, shred->info->vm->gwion->type[et_compound]) > 0)
+    if(tflag(cap->temp->type, tflag_compound))
       compound_release(shred, cap->temp->type, caps + SZ_INT + sz);
     sz += cap->temp->type->size;
   }
@@ -131,7 +131,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
         e->type = cap->orig->type;
         exp_setvar(e, cap->is_ref);
         emit_exp(emit, e);
-        if(!cap->is_ref && isa(cap->temp->type, emit->gwion->type[et_compound]) > 0)
+        if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
           emit_compound_addref(emit, cap->temp->type, cap->temp->type->size, 0);
         offset += cap->temp->type->size;
       }

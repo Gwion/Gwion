@@ -88,8 +88,8 @@ ANN static void hmapinfo_init(HMapInfo *const info, const Type types[], const Ty
   info->key = key;
   info->val = val;
   info->sz = key->size + val->size;
-  info->keyk = isa(key, types[et_compound]) > 0 + tflag(key, tflag_struct);
-  info->valk = isa(val, types[et_compound]) > 0 + tflag(val, tflag_struct);
+  info->keyk = tflag(key, tflag_compound) + tflag(key, tflag_struct);
+  info->valk = tflag(val, tflag_compound) + tflag(val, tflag_struct);
 }
 
 static DTOR(dict_clear_dtor) {

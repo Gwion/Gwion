@@ -46,7 +46,7 @@ static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
 
 static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   if(v->from->ctx && v->from->ctx->error) return; // this is quite a hack
-  if (isa(v->type, gwion->type[et_compound]) > 0 ) {
+  if (tflag(v->type, tflag_compound) ) {
     if (!tflag(v->type, tflag_struct))
       nspc_release_object(a, v, gwion);
     else nspc_release_struct(a, v, gwion);

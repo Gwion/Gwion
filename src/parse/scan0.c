@@ -346,6 +346,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
     t->size = 0;
     set_tflag(t, tflag_struct);
   }
+  set_tflag(t, tflag_compound);
   t->info->tuple  = new_tupleform(env->gwion->mp, parent);
   t->nspc         = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;

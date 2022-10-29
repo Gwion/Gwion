@@ -57,7 +57,7 @@ static DTOR(UnionDtor) {
   if (idx) {
     const Map   map = &o->type_ref->nspc->info->value->map;
     const Value v   = (Value)map_at(map, idx - 1);
-    if (isa(v->type, shred->info->vm->gwion->type[et_compound]) > 0)
+    if (tflag(v->type, tflag_compound))
       compound_release(shred, v->type, (o->data + SZ_INT));
   }
 }

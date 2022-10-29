@@ -56,6 +56,7 @@ ANN static inline void gwi_type_flag(const Type t) {
 }
 
 ANN static Type type_finish(const Gwi gwi, const Type t) {
+  tflag(t, tflag_compound);
   gwi_add_type(gwi, t);
   import_class_ini(gwi->gwion->env, t);
   if (t->info->cdef && t->info->cdef->base.tmpl) {
