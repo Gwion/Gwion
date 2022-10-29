@@ -16,8 +16,8 @@ static inline enum Kind kindof(const m_uint size, const uint emit_var) {
 ANN Instr emit_kind(Emitter emit, const m_uint size, const bool addr,
                     const f_instr func[]) {
   const enum Kind kind  = kindof(size, addr);
-  const Instr     instr = emit_add_instr(emit, func[kind]);
-  instr->m_val2         = size;
+  const Instr instr = emit_add_instr(emit, func[kind]);
+  if(kind == KIND_OTHER) instr->m_val2 = size;
   return instr;
 }
 

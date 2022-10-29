@@ -112,7 +112,7 @@ ANN static inline void frame_push(Frame *frame) {
 }
 
 static const f_instr allocmember[] = {RegPushImm, RegPushImm2, RegPushImm3,
-                                      AllocMember4};
+                                      DotMemberMem4};
 static const f_instr allocword[]   = {AllocWord, AllocWord2, AllocWord3,
                                     RegPushMem4};
 
