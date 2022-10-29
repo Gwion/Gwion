@@ -460,7 +460,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
       &&_remref, &&_remref2, &&_structreleaseregaddr, &&structreleasemem,
-      &&_except, &&_allocmemberaddr,
+      &&_except,
       &&dotmembermem, &&dotmembermem2, /*&&dotmembermem3, */&&dotmembermem4,
       &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
       &&unioncheck, &&unionint, &&unionfloat,
@@ -1096,10 +1096,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         continue;
       }
       DISPATCH();
-    allocmemberaddr:
-      *(m_bit **)reg = (*(M_Object *)mem)->data + VAL;
-      reg += SZ_INT;
-      DISPATCH()
     dotmembermem:
       *(m_uint *)reg =
           *(m_uint *)((*(M_Object *)(mem + VAL2))->data + VAL);
@@ -1309,7 +1305,7 @@ static void *_dispatch[] = {
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
       &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
       &&_remref, &&_remref2, &&_structreleaseregaddr, &&_structreleasemem,
-      &&_except, &&_allocmemberaddr,
+      &&_except,
       &&_dotmembermem, &&_dotmembermem2, /*&&_dotmembermem3, */&&_dotmembermem4,
       &&_dotmember, &&_dotfloat, &&_dotother, &&_dotaddr,
       &&_unioncheck, &&_unionint, &&_unionfloat,
@@ -1533,7 +1529,6 @@ return;
     PREPARE(structreleaseregaddr);
     PREPARE(structreleasemem);
     PREPARE(except);
-    PREPARE(allocmemberaddr);
     PREPARE(dotmembermem);
     PREPARE(dotmembermem2);
     //PREPARE(dotmembermem3);

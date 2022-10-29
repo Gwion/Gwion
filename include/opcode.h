@@ -184,7 +184,6 @@ enum {
   eStructReleaseRegAddr,
   eStructReleaseMem,
   eGWOP_EXCEPT,
-  eAllocMember4,
   eDotMemberMem,
   eDotMemberMem2,
   eDotMemberMem4,
@@ -401,7 +400,6 @@ enum {
 #define  StructReleaseRegAddr  (f_instr)eStructReleaseRegAddr
 #define  StructReleaseMem      (f_instr)eStructReleaseMem
 #define  GWOP_EXCEPT           (f_instr)eGWOP_EXCEPT
-#define  AllocMember4          (f_instr)eAllocMember4
 #define  DotMemberMem          (f_instr)eDotMemberMem
 #define  DotMemberMem2         (f_instr)eDotMemberMem2
 #define  DotMemberMem4         (f_instr)eDotMemberMem4
@@ -1277,11 +1275,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eGWOP_EXCEPT:
         gw_out("{Y}┃{0}{-}% 4lu{0}: GWOP_EXCEPT ", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eAllocMember4:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: AllocMember4", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
