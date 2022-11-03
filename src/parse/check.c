@@ -593,12 +593,13 @@ ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef) {
   const m_uint scope   = env->scope->depth;
   env->scope->depth    = 0;
   vector_init(&v);
-  Vector w = (Vector)&env->curr->info->value->ptr;
+  const Vector w = (Vector)&env->curr->info->value->ptr;
   m_uint i = vector_size(w);
   while (i-- > 1) vector_add(&v, vector_at(w, i));
+  VLEN(w) = 1;
   const m_bool ret = traverse_func_def(env, fdef);
   for (m_uint i = vector_size(&v) + 1; --i;)
-    vector_add((Vector)&env->curr->info->value->ptr, vector_at(&v, i - 1));
+    vector_add(w, vector_at(&v, i - 1));
   vector_release(&v);
   env->scope->depth     = scope;
   return ret;
@@ -1008,7 +1009,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
    e->exp_type = ae_exp_unary;
    unary->unary_type = unary_td;
    unary->op = insert_symbol("new");
-   unary->ctor.td = new_type_decl(env->gwion->mp, insert_symbol("auto"), bin->rhs->d.exp_unary.ctor.td->pos);
+   unary->ctor.td = cpy_type_decl(env->gwion->mp, bin->rhs->d.exp_unary.ctor.td);
    unary->ctor.exp = lhs;
    free_exp(env->gwion->mp, rhs);
    return check_exp(env, e);
@@ -1999,7 +2000,7 @@ ANN static m_bool check_body(const Env env, Section *const section) {
   return ret;
 }
 
-ANN static bool class_def_has_body(const Env env, Ast ast) {
+ANN static bool class_def_has_body(Ast ast) {
   for(m_uint i = 0; i < ast->len; i++) {
     const Section *section = mp_vector_at(ast, Section, i);
     if (section->section_type == ae_section_stmt) {
@@ -2105,7 +2106,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   if (!tflag(t, tflag_struct)) inherit(t);
   if (cdef->body) {
     CHECK_BB(env_body(env, cdef, check_body));
-    if (cflag(cdef, cflag_struct) || class_def_has_body(env, cdef->body))
+    if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
       set_tflag(t, tflag_ctor);
   }
   if (!GET_FLAG(cdef, abstract)) CHECK_BB(check_abstract(env, cdef));

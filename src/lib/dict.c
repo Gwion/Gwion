@@ -84,7 +84,7 @@ static clear_fn* o_clear[3]  = { clear_on, clear_oo, clear_os };
 static clear_fn* s_clear[3]  = { clear_sn, clear_so, clear_ss };
 static clear_fn*const* clear[3] = { n_clear, o_clear, s_clear };
 
-ANN static void hmapinfo_init(HMapInfo *const info, const Type types[], const Type key, const Type val) {
+ANN static void hmapinfo_init(HMapInfo *const info, const Type key, const Type val) {
   info->key = key;
   info->val = val;
   info->sz = key->size + val->size;
@@ -643,7 +643,7 @@ static OP_CHECK(opck_dict_scan) {
     type_addref(t);
   }
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
-  hmapinfo_init(hinfo, env->gwion->type, key, val);
+  hmapinfo_init(hinfo, key, val);
   if(hinfo->keyk + hinfo->valk) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL, "@dtor", SZ_INT, true, false);
     t->nspc->dtor->native_func = (m_uint)dict_clear_dtor;

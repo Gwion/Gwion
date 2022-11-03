@@ -569,14 +569,14 @@ static void emit_exp_addref1(const Emitter emit, const Exp exp, m_int size) {
     emit_compound_addref(emit, exp->type, size, exp_getvar(exp));
 }
 
-ANN2(1)
-static void emit_exp_addref(const Emitter emit, /* const */ Exp exp,
+/*ANN2(1)
+static void emit_exp_addref(const Emitter emit, Exp exp,
                             m_int size) {
   do {
     emit_exp_addref1(emit, exp, size);
     size += exp_size(exp);
   } while ((exp = exp->next));
-}
+}*/
 
 ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
   const Exp next   = e->next;
@@ -589,6 +589,7 @@ ANN static inline m_bool emit_exp1(const Emitter emit, const Exp e) {
 ANN static m_bool emit_prim_array_exp(const Emitter emit, const Type t, Exp e) {
   do {
     CHECK_BB(emit_exp1(emit, e));
+    emit_exp_addref1(emit, e, -t->size);
     emit_regmove(emit, - t->size + t->actual_size);
   } while((e = e->next));
   return GW_OK;
@@ -600,7 +601,6 @@ ANN static m_bool emit_prim_array(const Emitter emit, const Array_Sub *data) {
   const Type base = array_base_simple(type);
   if(!base->actual_size) CHECK_BB(emit_exp(emit, e));
   else CHECK_BB(emit_prim_array_exp(emit, base, e));
-  emit_exp_addref(emit, e, -exp_totalsize(e));
   m_uint count = 0;
   do ++count;
   while ((e = e->next));
@@ -1309,6 +1309,7 @@ ANN static m_bool emit_new_struct(const Emitter emit,const Exp_Call *call)  {
     emit_regpushmem4(emit, offset, 0);
   }
   emit_add_instr(emit, NoOp);
+  CHECK_BB(emit_exp_call1(emit, call->func->type->info->func, is_static_call(emit->gwion, call->func))); // is a ctor, is_static is true
   return GW_OK;
 }
 
@@ -1340,28 +1341,22 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *call) {
   const Func f = t->info->func;
   if(unlikely(is_new_struct(f, exp_self(call)->type)))
     emit_new_struct(emit, call);
-  else if (f != emit->env->func || (f && f->value_ref->from->owner_class))
-    CHECK_BB(prepare_call(emit, call));
-  else CHECK_BB(emit_func_args(emit, call));
-  CHECK_BB(emit_exp_call1(emit, f, is_static_call(emit->gwion, call->func)));
+  else {
+    if (f != emit->env->func || (f && f->value_ref->from->owner_class))
+      CHECK_BB(prepare_call(emit, call));
+    else CHECK_BB(emit_func_args(emit, call));
+    CHECK_BB(emit_exp_call1(emit, f, is_static_call(emit->gwion, call->func)));
+  }
   return GW_OK;
 }
 
 ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
-  const Exp e = exp_self(exp_call);
-  if (exp_getvar(e)) emit_regmove(emit, SZ_INT);
   CHECK_BB(_emit_exp_call(emit, exp_call));
-  const Type t = exp_self(exp_call)->type;
+  const Exp e = exp_self(exp_call);
   if (exp_getvar(e)) {
     emit_regmove(emit, -exp_self(exp_call)->type->size);
-    if(isa(t, emit->gwion->type[et_object]) > 0)
-      emit_local_exp(emit, e);
-    const Instr instr = emit_add_instr(emit, Reg2RegAddr);
-    instr->m_val      = -SZ_INT;
-  } else {
-    if (!is_func(emit->gwion, exp_call->func->type) && // is_callable
-             tflag(e->type, tflag_struct))
-    emit_regmove(emit, -SZ_INT);
+    const Instr instr = emit_add_instr(emit, RegPushMem4);
+    instr->m_val  = emit_local_exp(emit, e);
   }
   return GW_OK;
 }
