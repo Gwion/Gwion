@@ -95,15 +95,15 @@ ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t,
                                  : emit_struct_addref(emit, t, size, emit_var);
 }
 
-ANN Instr emit_kind(Emitter, const m_uint size, const bool addr,
+ANN Instr emit_kind(Emitter, const m_uint val, const m_uint size, const bool addr,
                     const f_instr func[]);
-ANN Instr emit_regpushimm(Emitter, const m_uint, const bool);
-ANN Instr emit_regpushmem(Emitter, const m_uint, const bool);
-ANN Instr emit_regpushbase(Emitter, const m_uint, const bool);
-ANN Instr emit_dotstatic(Emitter, const m_uint, const bool);
-ANN Instr emit_dotmember(Emitter, const m_uint, const bool);
-ANN Instr emit_structmember(Emitter, const m_uint, const bool);
-ANN Instr emit_unionmember(Emitter, const m_uint, const bool);
+ANN Instr emit_regpushimm(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_regpushmem(Emitter, const m_uint, const m_uint , const bool);
+ANN Instr emit_regpushbase(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_dotstatic(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_dotmember(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_structmember(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_unionmember(Emitter, const m_uint, const m_uint, const bool);
 
 void emit_fast_except(const Emitter emit, const ValueFrom *vf, const loc_t loc);
 ANN static inline m_uint emit_code_size(const Emitter emit) {

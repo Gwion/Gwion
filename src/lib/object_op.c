@@ -101,20 +101,16 @@ static OP_CHECK(opck_struct_scan) {
 ANN static void emit_dot_static_data(const Emitter emit, const Value v,
                                      const bool emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_dotstatic(emit, size, emit_addr);
-  instr->m_val  = (m_uint)(v->from->owner->class_data + v->from->offset);
-  instr->m_val2 = size;
+  const m_uint data = (m_uint)(v->from->owner->class_data + v->from->offset);
+  emit_dotstatic(emit, data, size, emit_addr);
 }
 
 ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
                                             const bool emit_addr) {
   if (vflag(v, vflag_builtin) /*&& GET_FLAG(v, const)*/) {
     const m_uint size  = v->type->size;
-    const Instr  instr = emit_regpushimm(emit, size, emit_addr);
-    instr->m_val       = (m_uint)v->d.ptr;
-    instr->m_val2      = size;
-  } else
-    emit_dot_static_data(emit, v, emit_addr);
+    emit_regpushimm(emit, (m_uint)v->d.ptr, size, emit_addr);
+  } else emit_dot_static_data(emit, v, emit_addr);
 }
 
 ANN static void emit_dottmpl(const Emitter emit, const Func f) {
@@ -163,14 +159,12 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
 ANN static inline void emit_member(const Emitter emit, const Value v,
                                    const uint emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_dotmember(emit, size, emit_addr);
-  instr->m_val       = v->from->offset;
+  emit_dotmember(emit, v->from->offset, size, emit_addr);
 }
 
 ANN static inline void emit_struct_data(const Emitter emit, const Value v,
                                         const bool emit_addr) {
-  const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
-  instr->m_val      = v->from->offset;
+  emit_structmember(emit, v->from->offset, v->type->size, emit_addr);
   if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 

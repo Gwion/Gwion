@@ -43,9 +43,7 @@ static OP_EMIT(opem_union_dot) {
     if (VKEY(map, i) == (m_uint)member->xid) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
-      const Instr instr     = emit_unionmember(emit, v->type->size, emit_addr);
-      instr->m_val          = i; // + 1;
-      instr->m_val2         = v->type->size;
+      emit_unionmember(emit, i, v->type->size, emit_addr);
       return GW_OK;
     }
   }
