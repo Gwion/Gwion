@@ -30,8 +30,8 @@ ANN void gwi_reset(const Gwi gwi) {
 }
 
 ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
-  struct LintState ls     = {.builtin = true, };
-  Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls, .nindent = 4};
+  struct LintState ls     = {.builtin = true, .nindent = 4};
+  Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls };
   lint_indent(&linter);
   lint(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->lint = &linter;
