@@ -16,7 +16,7 @@ Gwion is a programming language, aimed at making music
      alt = "Bran the musical wizard grizzly bear casting spell with a wand" /> < Bran, our mascot, kindly provided by [neverRare](https://github.com/neverRare)  
 
 
-**strongly** inspired by [ChucK](http://chuck.stanford.edu/), but adding a bunch *high-level* features;
+**strongly** inspired by [ChucK](http://chuck.stanford.edu/), but adding a bunch of *high-level* features, 
 	  templating, first-class functions and more.  
 
 It aims to be simple, small,
