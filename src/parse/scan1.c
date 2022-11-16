@@ -456,6 +456,8 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
+  if(tflag(tdef->type->info->parent, tflag_ref))
+    ERR_B(tdef->pos, "can't typedef a reference type");
   if (tflag(tdef->type, tflag_cdef))
     return scan1_class_def(env, tdef->type->info->cdef);
   return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
@@ -512,7 +514,7 @@ ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
     ERR_B(stmt_self(stmt)->pos,
           _("'return' statement found outside function definition"))
   if (env->scope->depth == 1) env->func->memoize = 1;
-  if(stmt->val) scan1_exp(env, stmt->val);
+  if(stmt->val) CHECK_BB(scan1_exp(env, stmt->val));
   return GW_OK;
 }
 
