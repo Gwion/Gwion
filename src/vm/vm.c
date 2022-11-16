@@ -606,7 +606,12 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     regpushmaybe:
+
+#ifndef __AFL_HAVE_MANUAL_CONTROL
       *(m_uint *)reg = gw_rand((uint32_t *)vm->rand) > (UINT32_MAX / 2);
+#else
+      *(m_uint *)reg = 0;
+#endif
       reg += SZ_INT;
       DISPATCH();
     funcreturn : {
