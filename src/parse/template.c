@@ -169,7 +169,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
       while(d->next) d = d->next;
       if(!d->types) {
         if(!single_variadic)
-          ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
+          ERR_O(td->pos, _("you must provide template types for type '%s'"), t->name);
         d->types = new_mp_vector(env->gwion->mp, Type_Decl*, 0);
       }
       const Type ret = _scan_type(env, t, d);
@@ -196,7 +196,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
   if (td->next) {
     Type_Decl *next        = td->next;
     td->next               = NULL;
-    const Type maybe_array = known_type(env, td);
+    DECL_OO(const Type, maybe_array, = known_type(env, td));
     const Type owner       = array_base_simple(maybe_array);
     td->next               = next;
     CHECK_OO(owner);
