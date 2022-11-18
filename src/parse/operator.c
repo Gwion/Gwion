@@ -307,12 +307,10 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   c[len - 2] = '\0';
   const Exp bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->pos);
   base->lhs = bin;
-  const Symbol orig = base->op;
   base->op = insert_symbol(env->gwion->st, "=>");
   const Type ret = check_exp(env, exp_self(base));
   if(ret) return ret;
   env_set_error(env,  false);
-  base->op = orig;
   env_warn(env, opi->pos, _("during rewriting operation"));
   env_set_error(env,  true);
   return NULL;
