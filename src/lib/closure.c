@@ -117,7 +117,7 @@ static INSTR(fptr_assign) {
 ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Type rhs) {
   const Instr instr = emit_add_instr(emit, fptr_assign);
   if(rhs->info->cdef && rhs->info->cdef->base.tmpl)
-    instr->m_val = SZ_INT*2;
+    instr->m_val = SZ_INT * 2;
   if(!lhs->info->func) {
     const Func_Def fdef = lhs->info->func->def;
     const Capture_List captures = fdef->captures;
