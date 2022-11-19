@@ -244,7 +244,7 @@ ANN static inline bool overflow_(const m_bit *mem, const VM_Shred c) {
                 (SIZEOF_MEM));
 }
 
-ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
+ANN static VM_Shred init_spork_shred(const VM_Shred shred,
                                                  const VM_Code  code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
