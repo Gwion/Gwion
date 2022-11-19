@@ -638,7 +638,7 @@ ANN m_bool scan2_ast(const Env env, Ast *ast) {
   }
 
   for(uint32_t i = 0; i < acc->len; i++) {
-    Section * section = mp_vector_at(acc, Section, i);
+    Section *section = mp_vector_at(acc, Section, i);
     default_args(env, section, ast);
   }
   free_mp_vector(env->gwion->mp, Section, acc);
