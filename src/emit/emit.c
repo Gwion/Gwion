@@ -1926,7 +1926,12 @@ ANN static m_bool emit_exp_lambda(const Emitter     emit,
 
 ANN static m_bool emit_exp_td(const Emitter emit, Type_Decl *td) {
   const Type base = exp_self(td)->type;
-  emit_pushimm(emit, (m_uint)base);
+  if(!is_func(emit->gwion, base))
+    emit_pushimm(emit, (m_uint)base);
+  else {
+    const Instr instr = emit_add_instr(emit, SetFunc);
+    instr->m_val = (m_uint)base->info->func;
+  }
   return GW_OK;
 }
 
