@@ -1807,7 +1807,7 @@ ANN static m_bool emit_implicit_cast(const Emitter       emit,
 }
 
 ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr, /*const */bool b) {
-  CHECK_BO(emit_exp(emit, e));
+  CHECK_BO(emit_exp_pop_next(emit, e));
   {
     const Instr ex = (Instr)vector_back(&emit->code->instr);
     if(ex->opcode == eOP_MAX && ex->execute == fast_except) {
@@ -2009,7 +2009,7 @@ ANN static m_bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
 //    if(!stmt->val->ref && tflag(stmt->val->type, tflag_compound))
 //      emit_local(emit, stmt->val->type);
     emit->status.in_return = true;
-    CHECK_BB(emit_exp(emit, stmt->val));
+    CHECK_BB(emit_exp_pop_next(emit, stmt->val));
     emit->status.in_return = false;
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
