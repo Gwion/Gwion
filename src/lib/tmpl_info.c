@@ -101,7 +101,7 @@ ANN bool tmpl_global(const Env env, Type_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
     Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
     const Type t = known_type(env, td);
-    if(!t && !type_global(env, t))
+    if(!t || !type_global(env, t))
       return false;
   }
   return true;
