@@ -1782,6 +1782,31 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef,
   return GW_OK;
 }
 
+ANN static bool effect_find(const MP_Vector *v, const Symbol sym) {
+  for(m_uint i = 0; i < v->len; i++) {
+    struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
+    if(eff->sym == sym) return true;
+  }
+  return false;
+}
+
+ANN static m_bool check_fdef_effects(const Env env, const Func_Def fdef) {
+  MP_Vector *v = (MP_Vector*)vector_back(&env->scope->effects);
+  if (v) {
+    if (fdef->base->xid == insert_symbol("@dtor"))
+      ERR_B(fdef->base->pos, _("can't use effects in destructors"));
+    const Vector base = &fdef->base->effects;
+    if (!base->ptr) vector_init(base);
+    for (uint32_t i = 0; i < v->len; i++) {
+      struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
+      if(!effect_find(v, eff->sym))
+        vector_add(base, (m_uint)eff->sym);
+    }
+    free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
+  }
+  return GW_OK;
+}
+
 ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if (fdef->base->args) CHECK_BB(check_func_args(env, fdef->base->args));
   if(fdef->builtin) return GW_OK;
@@ -1791,17 +1816,16 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
     const m_bool ret = check_stmt_list(env, fdef->d.code);
     nspc_pop_value(env->gwion->mp, env->curr);
     env->scope->depth--;
+    CHECK_BB(check_fdef_effects(env, fdef));
     return ret;
   }
   return GW_OK;
 }
 
-ANN static bool effect_find(const MP_Vector *v, const Symbol sym) {
-  for(m_uint i = 0; i < v->len; i++) {
-    struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-    if(eff->sym == sym) return true;
-  }
-  return false;
+ANN static m_bool check_ctor(const Env env, const Func func) {
+  if(!GET_FLAG(func, const) && nspc_lookup_value0(env->class_def->info->parent->nspc, insert_symbol("new")) && !GET_FLAG(func, const))
+    ERR_B(func->def->base->pos, "missing call to parent constructor");
+  return GW_OK;
 }
 
 ANN m_bool _check_func_def(const Env env, const Func_Def f) {
@@ -1838,19 +1862,6 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
   }
   vector_add(&env->scope->effects, 0);
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)check_fdef);
-  MP_Vector *v = (MP_Vector*)vector_back(&env->scope->effects);
-  if (v) {
-    if (fdef->base->xid == insert_symbol("@dtor"))
-      ERR_B(fdef->base->pos, _("can't use effects in destructors"));
-    const Vector base = &fdef->base->effects;
-    if (!base->ptr) vector_init(base);
-    for (uint32_t i = 0; i < v->len; i++) {
-      struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-      if(!effect_find(v, eff->sym))
-        vector_add(base, (m_uint)eff->sym);
-    }
-    free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
-  }
   vector_pop(&env->scope->effects);
   if (fbflag(fdef->base, fbflag_op)) operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
@@ -1861,6 +1872,8 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
          !check_effect_overload(&fdef->base->effects, override->d.func_ref)))
       ERR_B(fdef->base->pos, _("too much effects in override."),
             s_name(fdef->base->xid))
+      if(is_new(f) && !tflag(env->class_def, tflag_struct))
+        CHECK_BB(check_ctor(env, func));
   }
   if (GET_FLAG(fdef->base, global)) env_pop(env, scope);
   if (func->value_ref->from->owner_class)

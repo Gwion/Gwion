@@ -140,6 +140,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
     if (member->is_call && f == emit->env->func && !is_new(f->def)) return;
+    if(!member->is_call) emit_regmove(emit, SZ_INT);
     return emit_pushfunc(emit, f);
   } else {
     if (tflag(member->base->type, tflag_struct))
@@ -210,8 +211,8 @@ OP_CHECK(opck_object_dot) {
         if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
           return v->type;
         if (is_class(env->gwion, v->type)) {
-           DECL_OO(const Type, parent, = class_type(env, member, v->type));
-          if (isa(the_base, parent) > 0 && parent->nspc) {
+          DECL_OO(const Type, parent, = class_type(env, member, v->type));
+          if (the_base->info->parent == parent && parent->nspc) {
             const Symbol sym = insert_symbol(env->gwion->st, "new");
             if(!env->func || env->func->def->base->xid != sym)
               ERR_N(exp_self(member)->pos, "calling a parent constructor is only allowed in `new` definition");
@@ -228,8 +229,7 @@ OP_CHECK(opck_object_dot) {
             if(ret) return ret->type;
           }
         }
-      } else if(is_class(env->gwion, v->type) && the_base == v->type->info->base_type)
-        return v->type->info->base_type;
+      }
     }
     env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
             the_base->name, str);
