@@ -291,7 +291,7 @@ OP_EMIT(opem_object_dot) {
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
   } else if (GET_FLAG(value, static))
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
-  else emit_pushimm(emit, (m_uint)value->type);
+  else exit(3); //emit_pushimm(emit, (m_uint)value->type);
   if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
