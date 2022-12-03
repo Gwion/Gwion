@@ -205,11 +205,17 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
                         .data  = env,
                         .scope = env->scope->depth,
                         .flag  = tflag_none};
-    envset_pushv(&es, owner->info->value);
+    const Context ctx = env->context;
+    const m_str name = env->name;
+    envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
+    env->context = owner->info->value->from->ctx;
+    env->name = owner->info->value->from->filename;
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
     envset_pop(&es, owner);
+    env->context = ctx;
+    env->name = name;
     if (!td->array) return ret;
     return array_type(env, ret, td->array->depth);
   }
