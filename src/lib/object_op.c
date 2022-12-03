@@ -140,7 +140,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
     if (member->is_call && f == emit->env->func && !is_new(f->def)) return;
-    if(!member->is_call) emit_regmove(emit, SZ_INT);
+    if(!member->is_call && vflag(f->value_ref, vflag_member)) emit_regmove(emit, -SZ_INT);
     return emit_pushfunc(emit, f);
   } else {
     if (tflag(member->base->type, tflag_struct))
@@ -203,6 +203,11 @@ OP_CHECK(opck_object_dot) {
   if (member->xid == insert_symbol(env->gwion->st, "this") && base_static)
     ERR_N(exp_self(member)->pos,
           _("keyword 'this' must be associated with object instance..."));
+//  if (member->base->exp_type == ae_exp_decl) {
+//puts(env->name);
+//return env->gwion->type[et_error];
+//    exit(12);
+//  }
   const Value value = get_value(env, member, the_base);
   if (!value) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
@@ -212,6 +217,12 @@ OP_CHECK(opck_object_dot) {
           return v->type;
         if (is_class(env->gwion, v->type)) {
           DECL_OO(const Type, parent, = class_type(env, member, v->type));
+          if (the_base == parent) {
+            const Symbol sym = insert_symbol(env->gwion->st, "new");
+            const Value ret = nspc_lookup_value1(parent->nspc, sym);
+            member->xid = sym;
+            if(ret) return ret->type;
+          }
           if (the_base->info->parent == parent && parent->nspc) {
             const Symbol sym = insert_symbol(env->gwion->st, "new");
             if(!env->func || env->func->def->base->xid != sym)

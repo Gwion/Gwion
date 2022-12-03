@@ -349,6 +349,8 @@ ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Va
 ANN static Type prim_owned(const Env env, const Symbol *data) {
   const Exp   exp  = exp_self(prim_exp(data));
   const Value v    = exp->d.prim.value;
+  if(is_class(env->gwion, v->type) && env->class_def == v->type->info->base_type) // write it better
+    return v->type->info->base_type;
   const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
   const Exp   base =
       new_prim_id(env->gwion->mp, insert_symbol(name), prim_pos(data));
@@ -1823,8 +1825,11 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
 }
 
 ANN static m_bool check_ctor(const Env env, const Func func) {
-  if(!GET_FLAG(func, const) && nspc_lookup_value0(env->class_def->info->parent->nspc, insert_symbol("new")) && !GET_FLAG(func, const))
-    ERR_B(func->def->base->pos, "missing call to parent constructor");
+  if(!func->def->builtin && !GET_FLAG(func, const)) {
+    const Value v = nspc_lookup_value0(env->class_def->info->parent->nspc, insert_symbol("new"));
+    if(v && !GET_FLAG(v, abstract))
+      ERR_B(func->def->base->pos, "missing call to parent constructor");
+  }
   return GW_OK;
 }
 

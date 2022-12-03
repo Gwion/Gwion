@@ -205,7 +205,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
                         .data  = env,
                         .scope = env->scope->depth,
                         .flag  = tflag_none};
-    envset_push(&es, owner, owner->nspc);
+    envset_pushv(&es, owner->info->value);
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);

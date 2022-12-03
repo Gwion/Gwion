@@ -66,10 +66,14 @@ ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
   Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
   const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->xid, td, body, loc);
-  if(GET_FLAG(fptr->base, global)) SET_FLAG(cdef, global);
+  if(GET_FLAG(fptr->base, global)) {
+    SET_FLAG(cdef, global);
+    UNSET_FLAG(fptr->base, global);
+  }
   if(fptr->base->tmpl) {
     fbase->tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
-    cdef->base.tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
+    if(!fptr->base->tmpl->call)
+      cdef->base.tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
   }
   fptr->cdef = cdef;
   return scan0_class_def(env, cdef);

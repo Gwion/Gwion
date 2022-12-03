@@ -690,6 +690,16 @@ static CTOR(fptr_ctor) {
   *(VM_Code*)o->data = ((Func)vector_front(&o->type_ref->nspc->vtable))->code;
 }
 
+ANN m_bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
+  fptr->cdef->base.type->nspc->offset += SZ_INT * 3;
+  env_push_type(env, fptr->cdef->base.type);
+  CHECK_BB(traverse_func_def(env, fdef));
+  builtin_func(env->gwion, fdef->base->func, fptr_ctor);
+  set_tflag(fdef->base->func->value_ref->type, tflag_ftmpl);
+  env_pop(env, 0);
+  return GW_OK;
+}
+
 static DTOR(fptr_dtor) {
   m_bit *const caps = *(m_bit**)(o->data + SZ_INT);
   if(caps) free_captures(shred, caps);

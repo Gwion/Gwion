@@ -32,7 +32,7 @@ static INSTR(EventWait) {
 static MFUN(event_signal) {
   const Vector   v  = &EV_SHREDS(o);
   if(!vector_size(v)) return;
-  const VM_Shred sh = vector_front(v);
+  const VM_Shred sh = (VM_Shred)vector_front(v);
   shredule(sh->tick->shreduler, sh, GWION_EPSILON);
   vector_rem(v, 0);
   release(sh->info->me, sh);

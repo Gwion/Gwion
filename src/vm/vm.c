@@ -1063,10 +1063,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     }
       DISPATCH()
     structaddref:
-      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
+      struct_addref(vm->gwion, (Type)VAL2, (reg + IVAL));
       DISPATCH()
     structaddrefaddr:
-      struct_addref(vm->gwion, (Type)VAL2, **(m_bit ***)(reg + IVAL));
+      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
       DISPATCH()
     objassign : {
       const M_Object o = **(M_Object **)(reg - SZ_INT);

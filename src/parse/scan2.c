@@ -12,6 +12,7 @@
 #include "import.h"
 #include "default_args.h"
 #include "spread.h"
+#include "closure.h"
 
 ANN static m_bool scan2_stmt(const Env, const Stmt);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
@@ -80,6 +81,7 @@ ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   const m_bool ret = scan2_class_def(env, fptr->cdef);
   const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
+  else CHECK_BB(tmpl_fptr(env, fptr, fdef));
   if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
   return ret;
 }
@@ -513,6 +515,7 @@ m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
     if (fbflag(f->base, fbflag_op)) CHECK_BB(scan2_func_def_op(env, f));
     set_vflag(f->base->func->value_ref, vflag_valid);
   }
+  if (f->base->tmpl) set_fflag(f->base->func, fflag_tmpl);
   return GW_OK;
 }
 
