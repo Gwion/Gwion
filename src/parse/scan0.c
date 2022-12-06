@@ -251,6 +251,7 @@ ANN static Type union_type(const Env env, const Symbol s, const loc_t loc) {
   add_type(env, env->curr, t);
   mk_class(env, t, loc);
   SET_FLAG(t, final);
+  set_tflag(t, tflag_compound);
   if (strncmp(t->name, "Option", 6)) SET_FLAG(t, abstract);
   return t;
 }
