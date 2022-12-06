@@ -84,15 +84,15 @@ ANN Type upvalue_type(const Env env, Capture *cap) {
 }
 
 ANN void free_captures(const VM_Shred shred, m_bit *const caps) {
-  uint32_t sz = 0;
+  uint32_t sz = SZ_INT;
   const Capture_List captures = (*(Func_Def*)caps)->captures;
   for(m_uint i = 0; i < captures->len; i++) {
     Capture *const cap = mp_vector_at(captures, Capture, i);
     if(tflag(cap->temp->type, tflag_compound))
-      compound_release(shred, cap->temp->type, caps + SZ_INT + sz);
+      compound_release(shred, cap->temp->type, caps + sz);
     sz += cap->temp->type->size;
   }
-  mp_free2(shred->info->mp, sz + SZ_INT, caps);
+  mp_free2(shred->info->mp, sz, caps);
 }
 
 static INSTR(fptr_capture) {
