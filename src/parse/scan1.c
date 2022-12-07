@@ -176,6 +176,7 @@ ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary *prim) {
     return scan1_exp(env, prim->d.exp);
   if (prim->prim_type == ae_prim_hack) {
     if(env->func) env->func->weight = 1; // mark function has having gack
+    // we should use effects when typechecking for that
     return scan1_exp(env, prim->d.exp);
   }
   if (prim->prim_type == ae_prim_array && prim->d.array->exp)
@@ -296,15 +297,14 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env,
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"),
           s_name(stmt->sym))
   if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->sym))
-    ERR_B(stmt_self(stmt)->pos, _("foreach index '%s' is already defined"),
+    ERR_B(stmt->idx->pos, _("foreach index '%s' is already defined"),
           s_name(stmt->idx->sym))
   return GW_OK;
 }
 
 ANN static inline m_bool shadow_err(const Env env, const Value v,
                                     const loc_t loc) {
-  if(env->scope->shadowing)
-    return GW_OK;
+  if(env->scope->shadowing) return GW_OK;
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
