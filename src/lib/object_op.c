@@ -124,14 +124,15 @@ ANN static void emit_dottmpl(const Emitter emit, const Func f) {
 }
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
-  const Func f = exp_self(member)->type->info->func;
+  const Exp self = exp_self(member);
+  const Func f = self->type->info->func;
 
   if(is_new(f->def)) {
     if(f != emit->env->func) emit_pushfunc(emit, f);
     return;
   }
   if (f->def->base->tmpl) {
-    if(member->is_call) emit_dottmpl(emit, f);
+    if(self->is_call) emit_dottmpl(emit, f);
     else {
       if(vflag(f->value_ref, vflag_member))
         emit_regmove(emit, -SZ_INT);
@@ -139,8 +140,8 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
       return;
     }
   } else if (is_static_call(emit->gwion, exp_self(member))) {
-    if (member->is_call && f == emit->env->func && !is_new(f->def)) return;
-    if(!member->is_call && vflag(f->value_ref, vflag_member)) emit_regmove(emit, -SZ_INT);
+    if (self->is_call && f == emit->env->func && !is_new(f->def)) return;
+    if(!self->is_call && vflag(f->value_ref, vflag_member)) emit_regmove(emit, -SZ_INT);
     return emit_pushfunc(emit, f);
   } else {
     if (tflag(member->base->type, tflag_struct))
@@ -150,7 +151,7 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
     if (!vflag(f->value_ref, vflag_member))
       instr->m_val2 = -SZ_INT;
     else {
-      if(member->is_call) emit_regmove(emit, SZ_INT);
+      if(self->is_call) emit_regmove(emit, SZ_INT);
       else instr->m_val2 = -SZ_INT;
     }
   }
@@ -184,86 +185,48 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
   return NULL;
 }
 
-ANN static Type class_type(const Env env, const Exp_Dot *member, const Type base) {
-  const Type parent = actual_type(env->gwion, base);
-  if(!tflag(parent, tflag_tmpl)) return parent;
-  Type_Decl td = {
-       .xid=insert_symbol(env->gwion->st, parent->name),
-       .types = member->is_call->tmpl ? member->is_call->tmpl->call : NULL
-  };
-  return known_type(env, &td);
-}
-
-OP_CHECK(opck_object_dot) {
-  Exp_Dot *const member      = (Exp_Dot *)data;
-  const m_str    str         = s_name(member->xid);
-  const m_bool   base_static = is_class(env->gwion, member->base->type);
-  const Type     the_base =
-      base_static ? _class_base(member->base->type) : member->base->type;
-  if (member->xid == insert_symbol(env->gwion->st, "this") && base_static)
-    ERR_N(exp_self(member)->pos,
-          _("keyword 'this' must be associated with object instance..."));
-//  if (member->base->exp_type == ae_exp_decl) {
-//puts(env->name);
-//return env->gwion->type[et_error];
-//    exit(12);
-//  }
-  const Value value = get_value(env, member, the_base);
-  if (!value) {
-    const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if(v) {
-      if (member->is_call) {
-        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
-          return v->type;
-        if (is_class(env->gwion, v->type)) {
-          DECL_OO(const Type, parent, = class_type(env, member, v->type));
-          if (the_base == parent) {
-            const Symbol sym = insert_symbol(env->gwion->st, "new");
-            const Value ret = nspc_lookup_value1(parent->nspc, sym);
-            member->xid = sym;
-            if(ret) return ret->type;
-          }
-          if (the_base->info->parent == parent && parent->nspc) {
-            const Symbol sym = insert_symbol(env->gwion->st, "new");
-            if(!env->func || env->func->def->base->xid != sym)
-              ERR_N(exp_self(member)->pos, "calling a parent constructor is only allowed in `new` definition");
-            // is this
-            if(member->base->exp_type != ae_exp_primary ||
-               member->base->d.prim.prim_type != ae_prim_id ||
-               strcmp(s_name(member->base->d.prim.d.var), "this"))
-              ERR_N(exp_self(member)->pos, "calling a parent constructor is only allowed with `this`");
-            if(GET_FLAG(env->func, const))
-              ERR_N(exp_self(member)->pos, "parent constructor already called");
-            SET_FLAG(env->func, const); // mark the function as ctor_ok
-            const Value ret = nspc_lookup_value1(parent->nspc, sym);
-            member->xid = sym;
-            if(ret) return ret->type;
-          }
-        }
-      }
-    }
-    env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
-            the_base->name, str);
-    if (member->base->type->nspc) did_you_mean_type(the_base, str);
-    return env->gwion->type[et_error];
-  }
-  CHECK_BN(not_from_owner_class(env, the_base, value, exp_self(member)->pos));
+ANN static m_bool member_access(const Env env, const Exp exp, const Value value) {
   if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
-                  exp_self(member)->pos, 0);
+                  exp->pos, 0);
       env_error_footer(env);
       defined_here(value);
       env_set_error(env, true);
     } else if (GET_FLAG(value, protect))
-      exp_setprot(exp_self(member), 1);
+      exp_setprot(exp, 1);
   }
+  return GW_OK;
+}
+
+OP_CHECK(opck_object_dot) {
+  Exp_Dot *const member      = (Exp_Dot *)data;
+  Exp self = exp_self(member);
+  const m_str    str         = s_name(member->xid);
+  const m_bool   base_static = is_class(env->gwion, member->base->type);
+  const Type     the_base =
+      base_static ? _class_base(member->base->type) : member->base->type;
+  const Value value = get_value(env, member, the_base);
+  if (!value) {
+    const Value v = nspc_lookup_value1(env->curr, member->xid);
+    if(v) {
+      if (self->is_call) {
+        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
+          return v->type;
+      }
+    }
+    env_err(env, self->pos, _("class '%s' has no member '%s'"),
+            the_base->name, str);
+    if (member->base->type->nspc) did_you_mean_type(the_base, str);
+    return env->gwion->type[et_error];
+  }
+  CHECK_BN(not_from_owner_class(env, the_base, value, self->pos));
+  CHECK_BN(member_access(env, self, value));
   if (base_static && vflag(value, vflag_member))
-    ERR_N(exp_self(member)->pos,
+    ERR_N(self->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
-  if (GET_FLAG(value, const)) exp_setmeta(exp_self(member), 1);
-  exp_self(member)->acquire = 1;
+  if (GET_FLAG(value, const)) exp_setmeta(self, true);
   return value->type;
 }
 
