@@ -54,6 +54,19 @@ ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
   return NULL;
 }
 
+ANN static inline m_bool scan0_global(const Env env, const ae_flag flag,
+                                      const loc_t loc) {
+  CHECK_BB(env_storage(env, flag, loc));
+  const bool global = (flag & ae_flag_global) == ae_flag_global;
+  if (!global) return global;
+  if (!env->class_def) {
+    env_push_global(env);
+    context_global(env);
+    return GW_OK;
+  }
+  ERR_B(loc, _("can't declare as global in class def"))
+}
+
 ANN m_bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   const loc_t loc = fptr->base->td->pos;
   CHECK_BB(env_access(env, fptr->base->flag, loc));
@@ -95,7 +108,7 @@ static OP_CHECK(opck_contract_similar) {
   return opck_similar_cast(env, data);
 }
 
-ANN /*static */ void scan0_implicit_similar(const Env env, const Type lhs,
+ANN static void scan0_implicit_similar(const Env env, const Type lhs,
                                             const Type rhs) {
   struct Op_Func   opfunc = {.ck = opck_similar_cast};
   struct Op_Import opi    = {
@@ -133,7 +146,7 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
                         : env->curr;
   add_type(env, nspc, t);
   tdef->type = t;
-  if (base->nspc) { // create a new nspc if `distinct`?
+  if (base->nspc) {
     t->nspc = new_nspc(env->gwion->mp, t->name);
     t->nspc->parent = base->nspc;
   }
@@ -164,12 +177,7 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_BB(env_access(env, tdef->ext->flag, tdef->ext->pos));
   DECL_OB(const Type, base, = known_type(env, tdef->ext));
   CHECK_BB(scan0_defined(env, tdef->xid, tdef->ext->pos));
-  const bool global =
-      GET_FLAG(tdef->ext, global); // TODO: handle global in class
-  if (global) {
-    context_global(env);
-    env_push_global(env);
-  }
+  DECL_BB(const m_bool, global, = scan0_global(env, tdef->ext->flag, tdef->ext->pos));
   if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
     typedef_simple(env, tdef, base);
   else CHECK_BB(typedef_complex(env, tdef, base));
@@ -209,35 +217,21 @@ ANN static Type enum_type(const Env env, const Enum_Def edef) {
   const Type   t    = type_copy(env->gwion->mp, env->gwion->type[et_int]);
   t->name           = s_name(edef->xid);
   t->info->parent   = env->gwion->type[et_int];
-  const bool global = GET_FLAG(edef, global); // TODO: handle global in class
-  if (global) {
-    context_global(env);
-    env_push_global(env);
-  }
   add_type(env, env->curr, t);
   mk_class(env, t, edef->pos);
   set_tflag(t, tflag_enum);
   CHECK_BO(mk_gack(env->gwion->mp, t, gack_enum));
-  if (global) env_pop(env, 0);
 //  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
 //  scan0_implicit_similar(env, env->gwion->type[et_int], t);
   return t;
 }
 
-ANN static inline m_bool scan0_global(const Env env, const ae_flag flag,
-                                      const loc_t pos) {
-  if (!env->class_def || !((flag & ae_flag_global) == ae_flag_global))
-    return GW_OK;
-  ERR_B(pos, _("can't declare as global in class def"))
-}
-
 ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
-  CHECK_BB(env_storage(env, edef->flag, edef->pos));
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos));
-  CHECK_BB(scan0_global(env, edef->flag, edef->pos));
+  DECL_BB(const m_bool, global, = scan0_global(env, edef->flag, edef->pos));
   edef->type = enum_type(env, edef);
   vector_init(&edef->values);
-  if (GET_FLAG(edef, global)) context_global(env);
+  if (global) env_pop(env, 0);
   return GW_OK;
 }
 
@@ -264,31 +258,16 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
     set_tflag(u->type, tflag_tmpl);
     set_tflag(u->type, tflag_udef);
   }
-  //  if(GET_FLAG(udef, global))
-  //    SET_FLAG(udef->type, global);
 }
 
 ANN m_bool scan0_union_def(const Env env, const Union_Def udef) {
-  CHECK_BB(env_storage(env, udef->flag, udef->pos));
-  CHECK_BB(scan0_global(env, udef->flag, udef->pos));
-  const bool global = GET_FLAG(udef, global); // TODO: handle global in class
-  if (global) {
-    context_global(env);
-    env_push_global(env);
-  }
-  if (GET_FLAG(udef, global)) context_global(env);
+  DECL_BB(const m_bool, global, = scan0_global(env, udef->flag, udef->pos));
   CHECK_BB(scan0_defined(env, udef->xid, udef->pos));
   udef->type   = union_type(env, udef->xid, udef->pos);
   SET_ACCESS(udef, udef->type);
   if (udef->tmpl) union_tmpl(env, udef);
   if (global) env_pop(env, 0);
   set_tflag(udef->type, tflag_scan0);
-  return GW_OK;
-}
-
-ANN static m_bool scan0_class_def_pre(const Env env, const Class_Def cdef) {
-  CHECK_BB(env_storage(env, cdef->flag, cdef->pos));
-  CHECK_BB(isres(env, cdef->base.xid, cdef->pos));
   return GW_OK;
 }
 
@@ -455,13 +434,12 @@ ANN static m_bool scan0_extend_def(const Env env, const Extend_Def xdef) {
 }
 
 ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
+  CHECK_BB(scan0_defined(env, pdef->xid, pdef->pos));
+  DECL_BB(const m_bool, global, = scan0_global(env, pdef->flag, pdef->pos));
   const Trait trait = new_trait(env->gwion->mp, pdef->pos);
   trait->loc        = pdef->pos;
   trait->name       = s_name(pdef->xid);
   trait->filename   = env->name;
-  const bool global = GET_FLAG(pdef, global);
-  if(global) env_push_global(env);
-  CHECK_BB(scan0_defined(env, pdef->xid, pdef->pos));
   nspc_add_trait(env->curr, pdef->xid, trait);
   if(global) env_pop(env, 0);
   Ast ast = pdef->body;
@@ -498,11 +476,7 @@ ANN m_bool scan0_prim_def(const Env env, const Prim_Def pdef) {
   const loc_t loc = pdef->loc;
   CHECK_BB(env_access(env, pdef->flag, loc));
   CHECK_BB(scan0_defined(env, pdef->name, loc));
-  const bool global = GET_FLAG(pdef, global);
-  if(global) {
-    context_global(env);
-    env_push_global(env);
-  }
+  DECL_BB(const m_bool, global, = scan0_global(env, pdef->flag, loc));
   const Type t = mk_primitive(env, s_name(pdef->name), pdef->size);
   add_type(env, env->curr, t);
   mk_class(env, t, pdef->loc);
@@ -514,8 +488,9 @@ ANN m_bool scan0_prim_def(const Env env, const Prim_Def pdef) {
 HANDLE_SECTION_FUNC(scan0, m_bool, Env)
 
 ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
+  CHECK_BB(isres(env, cdef->base.xid, cdef->pos));
   CHECK_OB((cdef->base.type = scan0_class_def_init(env, cdef)));
-  cdef->base.type->info->traits = cdef->traits;
+  cdef->base.type->info->traits = cdef->traits; // should we copy the traits?
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->pos);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
@@ -525,52 +500,36 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 
 ANN Ast spread_class(const Env env, const Ast body);
 
-ANN static void exp_rewind(const Emitter emit, 	const uint32_t start) {
-  const Vector v = &emit->code->instr;
-  for(m_int i = vector_size(v); --i > start && i;) {
-    const Instr instr = (Instr)vector_at(v, i-1);
-    free_instr(emit->gwion, instr);
-  }
-  VLEN(&emit->code->instr) = start;
+static INSTR(StructAssign) {
+  memcpy(*(m_bit**)REG(-SZ_INT), REG((m_int)instr->m_val), instr->m_val2);
 }
 
 static OP_EMIT(opem_struct_assign) {
   const Exp_Binary *bin = data;
   const Type t = bin->lhs->type;
   const Exp e = exp_self(bin);
-  const Type rhs = bin->rhs->type;
-  const Instr instr = emit_add_instr(emit, StructReleaseRegAddr);
-  instr->m_val = -rhs->size;
-  instr->m_val2 = (m_uint)t;
-  if(unlikely(exp_getvar(e))) {
-    exp_rewind(emit, e->start);
-    const Vector v = &emit->code->instr;
-    for(m_int i = vector_size(v); --i > e->start && i;) {
-      const Instr instr = (Instr)vector_at(v, i-1);
-      free_instr(emit->gwion, instr);
-    }
-    VLEN(&emit->code->instr) = e->start;
-    exp_setvar(bin->lhs, true);
-    CHECK_BB(emit_exp(emit, bin->lhs));
-    CHECK_BB(emit_exp(emit, bin->rhs));
-    emit_add_instr(emit, Assign);
-    return GW_OK;
-  }
-  if(t->size == SZ_INT) emit_add_instr(emit, int_r_assign);
-  else if(t->size == SZ_FLOAT) emit_add_instr(emit, float_r_assign);
-  else {
-    const Instr instr = (Instr)emit_add_instr(emit, Reg2RegOther);
-    instr->m_val  = -t->size * 2;
-    instr->m_val2 = t->size;
-  }
-  emit_struct_addref(emit, t, 0, false);
+
+  const Instr release = emit_add_instr(emit, StructReleaseRegAddr);
+  release->m_val = -SZ_INT;
+  release->m_val2 = (m_uint)t;
+
+  const Instr instr = emit_add_instr(emit, StructAssign);
+  instr->m_val  = -t->size - SZ_INT;
+  instr->m_val2 = t->size;
+  emit_struct_addref(emit, t, -SZ_INT, true); // add ref on lhs
+  if(exp_getvar(e)) {
+    emit_regmove(emit, -t->size);
+    const Instr instr = emit_add_instr(emit, Reg2Reg);
+    instr->m_val = -SZ_INT;
+    instr->m_val2 = t->size - SZ_INT;
+  } else emit_regmove(emit, -SZ_INT);
   return GW_OK;
 }
 
 ANN static OP_CHECK(opck_struct_assign) {
   CHECK_NN(opck_rassign(env, data));
   Exp_Binary *bin = data;
-  exp_setnomut(exp_self(bin), true);
+  bin->rhs->ref = bin->lhs;
   return bin->lhs->type;
 }
 
@@ -582,31 +541,20 @@ ANN static void scan0_struct_assign(const Env env, const Type t) {
 }
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
-  CHECK_BB(scan0_global(env, c->flag, c->pos));
+  DECL_BB(const m_bool, global, = scan0_global(env, c->flag, c->pos));
   const Ast old_extend = env->context ? env->context->extend : NULL;
   const int       cpy  = tmpl_base(c->base.tmpl) || GET_FLAG(c, global);
   const Class_Def cdef = !cpy ? c : cpy_class_def(env->gwion->mp, c);
-  if (GET_FLAG(cdef, global)) { // could be updated
-    vector_add(&env->scope->nspc_stack, (vtype)env->curr);
-    env->curr = env->global_nspc;
-    context_global(env);
-  }
-  const m_bool ret = scan0_class_def_pre(env, cdef) > 0
-                         ? scan0_class_def_inner(env, cdef)
-                         : GW_ERROR;
+  const m_bool ret = scan0_class_def_inner(env, cdef);
 
-  if (GET_FLAG(cdef, global))
-    env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
-  if (cpy && cdef->base.type) {
-    c->base.type = cdef->base.type;
-    c->base.type->info->cdef = cdef;
-    set_tflag(c->base.type, tflag_cdef);
-  }
+  if (cpy && cdef->base.type) c->base.type = cdef->base.type;
   if(env->context) {
-    if(!tmpl_base(c->base.tmpl) && env->context->extend) cdef->body = spread_class(env, cdef->body);
+    if(!tmpl_base(c->base.tmpl) && env->context->extend)
+      cdef->body = spread_class(env, cdef->body);
     env->context->extend = old_extend;
   }
   if(cflag(cdef, cflag_struct)) scan0_struct_assign(env, cdef->base.type);
+  if (GET_FLAG(cdef, global)) env_pop(env, 0);
   return ret;
 }
 
