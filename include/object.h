@@ -60,13 +60,12 @@ static inline void struct_addref(const Gwion gwion, const Type type,
                                  const m_bit *ptr) {
   for (m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
     const Type t = (Type)vector_at(&type->info->tuple->types, i);
-    if (isa(t, gwion->type[et_object]) > 0) {
-      const M_Object o =
+    if (tflag(t, tflag_compound)) {
+      if (!tflag(t, tflag_struct)) {
+        const M_Object o =
           *(M_Object *)(ptr + vector_at(&type->info->tuple->offset, i));
-      ++o->ref;
-    } else if (tflag(t, tflag_struct)) {
-      struct_addref(
-          gwion, t,
+        if(o) o->ref++;
+      } else struct_addref(gwion, t,
           *(m_bit **)(ptr + vector_at(&type->info->tuple->offset, i)));
     }
   }
