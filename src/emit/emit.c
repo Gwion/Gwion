@@ -555,7 +555,7 @@ ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
   const Instr instr =
       emit_add_instr(emit, !emit_var ? StructRegAddRef : StructRegAddRefAddr);
   instr->m_val2  = (m_uint)t;
-  instr->m_val = size;
+  instr->m_val = !emit_var ? size : (m_int)-SZ_INT;
   return instr;
 }
 
@@ -1033,7 +1033,7 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
     if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
       emit_object_addref(emit, 0, emit_addr);
   } else if (tflag(v->type, tflag_struct))
-      CHECK_BB(struct_finish(emit, decl));
+    CHECK_BB(struct_finish(emit, decl));
   return GW_OK;
 }
 
@@ -1057,8 +1057,8 @@ ANN static m_bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     assign->m_val      = emit_var;
     (void)emit_object_addref(emit, -SZ_INT, emit_var);
   } else if (tflag(v->type, tflag_struct)) {
+//    (void)emit_struct_addref(emit, v->type, -v->type->size, emit_var);
     struct_finish(emit, decl);
-    (void)emit_struct_addref(emit, v->type, -v->type->size, emit_addr);
   }
   return GW_OK;
 }
@@ -1344,9 +1344,12 @@ ANN static m_bool emit_exp_call(const Emitter emit, const Exp_Call *exp_call) {
   CHECK_BB(_emit_exp_call(emit, exp_call));
   const Exp e = exp_self(exp_call);
   if (exp_getvar(e)) {
-    emit_regmove(emit, -exp_self(exp_call)->type->size);
-    const Instr instr = emit_add_instr(emit, RegPushMem4);
-    instr->m_val  = emit_local_exp(emit, e);
+    const m_uint size = exp_self(exp_call)->type->size;
+    emit_regmove(emit, -size);
+    const Local *l = e->ref ? e->ref->data : NULL;
+    const m_uint offset  = l ? l->offset : emit_local_exp(emit, e);
+    emit_regtomem4(emit, offset, size);
+    emit_regpushmem4(emit, offset, 0);
   }
   return GW_OK;
 }
@@ -1940,7 +1943,6 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
   Exp exp = e;
   do {
-    e->start = emit_code_size(emit);
     if (emit->info->debug && emit->status.line < e->pos.first.line) {
       const Instr instr = emit_add_instr(emit, DebugLine);
       instr->m_val = emit->status.line = e->pos.first.line;
