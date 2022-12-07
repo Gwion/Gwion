@@ -113,7 +113,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
     set_vflag(value, vflag_member);
   value->d.func_ref  = func;
   value->from->owner = t->info->value->from->owner;
-  //  value->from->owner_class = t->info->owner_class;
+  value->from->owner_class = t->info->value->from->owner_class;
   func->value_ref = value;
   func->def->base->tmpl =
       mk_tmpl(env, t->info->func->def->base->tmpl, td->types);
