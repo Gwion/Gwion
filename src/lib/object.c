@@ -112,11 +112,30 @@ static ID_EMIT(opem_this) {
       tflag(exp_self(prim)->type, tflag_struct)) {
     const Instr instr = emit_add_instr(emit, RegPushMemDeref);
     instr->m_val2     = emit->env->class_def->size;
-    return (Instr)GW_OK;
+    return GW_OK;
   }
   const Instr instr = emit_add_instr(emit, RegPushMem);
   instr->m_val      = emit->status.this_offset;
-  return instr;
+  return GW_OK;
+}
+
+static ID_CHECK(opck_super) {
+  const Exp self = exp_self(prim);
+  if(!env->func)
+    ERR_O(self->pos, "can't use 'super' outside of constructor");
+// move in emit?
+//  if(!self->is_call)
+//    ERR_O(self->pos, "'super' can only be used as a call");
+  const Type parent = env->class_def->info->parent;
+  DECL_OO(const Value, v, = find_value(parent, insert_symbol("new")));
+  SET_FLAG(env->func, const);
+  return v->type;
+}
+
+static ID_EMIT(opem_super) {
+  emit_regpushmem(emit, 0, SZ_INT, false);
+  emit_pushimm(emit, (m_uint)exp_self(prim)->type);
+  return GW_OK;
 }
 
 GWION_IMPORT(object) {
@@ -124,7 +143,9 @@ GWION_IMPORT(object) {
   gwi_set_global_type(gwi, t_object, et_object);
   set_tflag(t_object, tflag_compound);
   t_object->nspc = new_nspc(gwi->gwion->mp, "Object");
-  struct SpecialId_ spid = {.ck = opck_this, .em = opem_this, .is_const = 1};
-  gwi_specialid(gwi, "this", &spid);
+  struct SpecialId_ spid_this = {.ck = opck_this, .em = opem_this, .is_const = 1};
+  gwi_specialid(gwi, "this", &spid_this);
+  struct SpecialId_ spid_super = {.ck = opck_super, .em = opem_super, .is_const = 1};
+  gwi_specialid(gwi, "super", &spid_super);
   return GW_OK;
 }

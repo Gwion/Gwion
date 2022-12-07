@@ -731,18 +731,18 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {
   return GW_OK;
 }
 
-ANN static inline Instr specialid_instr(const Emitter      emit,
+ANN static m_bool specialid_instr(const Emitter      emit,
                                         struct SpecialId_ *spid,
                                         const Exp_Primary *prim) {
-  return spid->exec ? emit_add_instr(emit, spid->exec) : spid->em(emit, prim);
+  if(spid->exec) emit_add_instr(emit, spid->exec);
+  else if (spid->em) spid->em(emit, prim);
+  return GW_OK;
 }
 
-ANN static m_bool    emit_prim_id(const Emitter emit, const Symbol *data) {
-  const Exp_Primary *prim = prim_self(data);
+ANN static m_bool emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ *spid = specialid_get(emit->gwion, *data);
   if (unlikely(spid))
-    return specialid_instr(emit, spid, prim_self(data)) ? GW_OK : GW_ERROR;
-  if(vflag(prim->value, vflag_fglobal)) exp_self(prim)->acquire = 1;
+    return specialid_instr(emit, spid, prim_self(data));
   return emit_symbol(emit, prim_self(data));
 }
 

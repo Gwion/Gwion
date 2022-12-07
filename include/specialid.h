@@ -2,7 +2,7 @@
 #define __SPECIALID
 
 typedef Type (*idck)(const Env, const Exp_Primary *);
-typedef struct Instr_ *(*idem)(const Emitter, const Exp_Primary *);
+typedef m_bool (*idem)(const Emitter, const Exp_Primary *);
 
 struct SpecialId_ {
   Type    type;
@@ -15,7 +15,7 @@ struct SpecialId_ {
 #define ID_CHECK(a)                                                            \
   ANN Type a(const Env env NUSED, const Exp_Primary *prim NUSED)
 #define ID_EMIT(a)                                                             \
-  ANN Instr a(const Emitter emit NUSED, const Exp_Primary *prim NUSED)
+  ANN m_bool a(const Emitter emit NUSED, const Exp_Primary *prim NUSED)
 
 ANN static inline Type specialid_type(const Env env, struct SpecialId_ *spid,
                                       const Exp_Primary *prim) {
