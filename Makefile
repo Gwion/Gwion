@@ -155,7 +155,7 @@ uninstall: translation-uninstall
 	@rm ${DESTDIR}/${PREFIX}/include/gwion/*.h
 	@rmdir --ignore-fail-on-non-empty ${DESTDIR}/${PREFIX}/include/gwion
 
-test: ${PRG}
+test: prg
 	@bash scripts/test.sh ${test_dir}
 
 scan:
