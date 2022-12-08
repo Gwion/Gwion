@@ -123,9 +123,6 @@ static ID_CHECK(opck_super) {
   const Exp self = exp_self(prim);
   if(!env->func)
     ERR_O(self->pos, "can't use 'super' outside of constructor");
-// move in emit?
-//  if(!self->is_call)
-//    ERR_O(self->pos, "'super' can only be used as a call");
   const Type parent = env->class_def->info->parent;
   DECL_OO(const Value, v, = find_value(parent, insert_symbol("new")));
   SET_FLAG(env->func, const);
@@ -133,6 +130,10 @@ static ID_CHECK(opck_super) {
 }
 
 static ID_EMIT(opem_super) {
+  const Env env = emit->env;
+  const Exp self = exp_self(prim);
+  if(!self->is_call)
+    ERR_B(self->pos, "can only use 'super' as a function call");
   emit_regpushmem(emit, 0, SZ_INT, false);
   emit_pushimm(emit, (m_uint)exp_self(prim)->type);
   return GW_OK;
