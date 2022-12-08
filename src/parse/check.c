@@ -332,10 +332,6 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   return op_check(env, &opi);
 }
 
-static inline Nspc value_owner(const Env env, const Value v) {
-  return v ? v->from->owner : env->curr;
-}
-
 ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Value v) {
   if(not_upvalue(env, v))
     return GW_OK;
@@ -379,7 +375,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     }
     gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
-    did_you_mean_nspc(v ? value_owner(env, v) : env->curr, s_name(sym));
+    did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(sym));
     env_set_error(env, true);
     return NULL;
   }
@@ -568,7 +564,7 @@ ANN static Func call2ufcs(const Env env, Exp_Call *call, const Value v) {
   return call->func->type->info->func;
 }
 
-ANN Func ufcs(const Env env, const Func up, Exp_Call *const call) {
+ANN static Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   const Value v = nspc_lookup_value1(env->curr, up->def->base->xid);
   if (v && is_func(env->gwion, v->type) && !v->from->owner_class) // is_callable
     return call2ufcs(env, call, v);
@@ -865,11 +861,8 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
 }
 
 ANN m_bool func_check(const Env env, Exp_Call *const exp) {
-  if(exp->func->exp_type == ae_exp_dot)
-    exp->func->d.exp_dot.is_call = exp;
+  exp->func->is_call = true;
   CHECK_OB(check_exp(env, exp->func));
-  if(exp->func->exp_type == ae_exp_dot)
-    exp->func->d.exp_dot.is_call = exp;
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->pos, _("Can't call late function pointer at declaration "
                             "site. did you meant to use `:=>`?"))
@@ -913,6 +906,28 @@ ANN Type call_type(const Env env, Exp_Call *const exp) {
   return op_check(env, &opi);
 }
 
+ANN static inline bool is_super(const Exp func) {
+  return func->exp_type == ae_exp_primary &&
+         func->d.prim.prim_type == ae_prim_id &&
+         !strcmp(s_name(func->d.prim.d.var), "super");
+}
+
+ANN static Type call_return(const Env env, Exp_Call *const exp,
+       const Func func) {
+  const Value v = func->value_ref;
+  exp->func->type = v->type;
+  call_add_effect(env, func, exp->func->pos);
+  if(func->def->base->ret_type != env->gwion->type[et_auto])
+    return func->def->base->ret_type;
+  if(tflag(v->from->owner_class, tflag_struct))
+    return v->from->owner_class;
+  if(exp->func->exp_type == ae_exp_dot)
+    return exp->func->d.exp_dot.base->type;
+  if(is_super(exp->func))
+    return exp->func->type;
+  return NULL;
+}
+
 ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_OO(const Type, t, = call_type(env, exp));
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
@@ -927,20 +942,9 @@ ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   if (tflag(t, tflag_ftmpl))
     return check_exp_call_template(env, (Exp_Call *)exp); // TODO: effects?
   const Func func = find_func_match(env, t->info->func, exp);
-  if (func) {
-    exp->func->type = func->value_ref->type;
-    call_add_effect(env, func, exp->func->pos);
-    if(func->def->base->ret_type != env->gwion->type[et_auto])
-      return func->def->base->ret_type;
-    if(tflag(func->value_ref->from->owner_class, tflag_struct))
-      return func->value_ref->from->owner_class;
-    return exp->func->d.exp_dot.base->type;
-  }
-  if(exp->func->exp_type == ae_exp_lambda) {
-    const Type tt = partial_type(env, exp);
-    if(tt) return tt;
-  }
-  return NULL;
+  if (func) return call_return(env, exp, func);
+  return exp->func->exp_type != ae_exp_lambda
+    ? NULL : partial_type(env, exp);
 }
 
 ANN static Type check_static(const Env env, const Exp e) {
@@ -959,8 +963,7 @@ ANN static Type check_static(const Env env, const Exp e) {
 ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_BO(const m_bool, ret, = func_check(env, exp));
   if (!ret) return exp_self(exp)->type;
-//  const Type t = actual_type(env->gwion, exp->func->type);
-/*  const */Type t = exp->func->type;
+  const Type t = exp->func->type;
   CHECK_OO(check_static(env, exp->func));
   const Type _ret = _check_exp_call1(env, exp);
   if(_ret) return _ret;
