@@ -39,10 +39,9 @@ enum tflag {
   tflag_contract = 1 << 19,
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
-  tflag_enum     = 1 << 22,
-  tflag_ref      = 1 << 23,
-  tflag_packed   = 1 << 24,
-  tflag_compound = 1 << 25,
+  tflag_ref      = 1 << 22,
+  tflag_packed   = 1 << 23,
+  tflag_compound = 1 << 24,
 } __attribute__((packed));
 
 struct Type_ {
@@ -134,6 +133,7 @@ typedef enum {
   et_char,
   et_float,
   et_error,
+  et_enum,
   et_compound,
   et_object,
   et_shred,

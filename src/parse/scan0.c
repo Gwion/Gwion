@@ -17,14 +17,6 @@ static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
 }
 
-static inline void context_global(const Env env) {
-  if (env->context) env->context->global = true;
-}
-
-static inline Type scan0_type(const Env env, const m_str name, const Type t) {
-  return new_type(env->gwion->mp, name, t);
-}
-
 ANN static inline m_bool scan0_defined(const Env env, const Symbol s,
                                        const loc_t pos) {
   if (nspc_lookup_type1(env->curr, s))
@@ -35,20 +27,15 @@ ANN static inline m_bool scan0_defined(const Env env, const Symbol s,
 ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
   if(env->class_def && !GET_FLAG(fptr->base, static)) {
     Arg arg = { .td = type2td(env->gwion, env->class_def, fptr->base->td->pos) };
-    if(fptr->base->args) {
-      Arg_List args = new_mp_vector(env->gwion->mp, Arg, fptr->base->args->len + 1);
-      mp_vector_set(args, Arg, 0, arg);
-      for(uint32_t i = 0; i < fptr->base->args->len; i++) {
-        Arg *base  = mp_vector_at(fptr->base->args, Arg, i);
-        Arg arg = { .td = cpy_type_decl(env->gwion->mp, base->td) };
-        mp_vector_set(args, Arg, i+1, arg);
-      }
-      return args;
-    } else {
-      Arg_List args = new_mp_vector(env->gwion->mp, Arg, 1);
-      mp_vector_set(args, Arg, 0, arg);
-      return args;
+    const uint32_t len = mp_vector_len(fptr->base->args);
+    Arg_List args = new_mp_vector(env->gwion->mp, Arg, len + 1);
+    mp_vector_set(args, Arg, 0, arg);
+    for(uint32_t i = 0; i < len; i++) {
+      Arg *base  = mp_vector_at(fptr->base->args, Arg, i);
+      Arg arg = { .td = cpy_type_decl(env->gwion->mp, base->td) };
+      mp_vector_set(args, Arg, i+1, arg);
     }
+    return args;
   } else if(fptr->base->args)
     return cpy_arg_list(env->gwion->mp, fptr->base->args);
   return NULL;
@@ -61,7 +48,7 @@ ANN static inline m_bool scan0_global(const Env env, const ae_flag flag,
   if (!global) return global;
   if (!env->class_def) {
     env_push_global(env);
-    context_global(env);
+    if (env->context) env->context->global = true;
     return GW_OK;
   }
   ERR_B(loc, _("can't declare as global in class def"))
@@ -139,7 +126,7 @@ ANN static void scan0_explicit_distinct(const Env env, const Type lhs,
 
 ANN static void typedef_simple(const Env env, const Type_Def tdef,
                                const Type base) {
-  const Type t    = scan0_type(env, s_name(tdef->xid), base);
+  const Type t    = new_type(env->gwion->mp, s_name(tdef->xid), base);
   t->size         = base->size;
   const Nspc nspc = (!env->class_def && GET_FLAG(tdef->ext, global))
                         ? env->global_nspc
@@ -202,27 +189,12 @@ ANN m_bool scan0_type_def(const Env env, const Type_Def tdef) {
   return GW_OK;
 }
 
-#include "gack.h"
-static GACK(gack_enum) {
-  const Map m = &t->nspc->info->value->map;
-  const m_uint value = *(m_uint*)VALUE;
-  if(value < map_size(m)) {
-    const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
-    INTERP_PRINTF("%s", v->name);
-  } else
-    INTERP_PRINTF("%s", t->name);
-}
-
 ANN static Type enum_type(const Env env, const Enum_Def edef) {
-  const Type   t    = type_copy(env->gwion->mp, env->gwion->type[et_int]);
+  const Type   t    = type_copy(env->gwion->mp, env->gwion->type[et_enum]);
   t->name           = s_name(edef->xid);
-  t->info->parent   = env->gwion->type[et_int];
+  t->info->parent   = env->gwion->type[et_enum];
   add_type(env, env->curr, t);
   mk_class(env, t, edef->pos);
-  set_tflag(t, tflag_enum);
-  CHECK_BO(mk_gack(env->gwion->mp, t, gack_enum));
-//  scan0_implicit_similar(env, t, env->gwion->type[et_int]);
-//  scan0_implicit_similar(env, env->gwion->type[et_int], t);
   return t;
 }
 
@@ -334,7 +306,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
     return NULL;
   }
   if (cdef->traits) CHECK_BO(find_traits(env, cdef->traits, cdef->pos));
-  const Type t = scan0_type(env, s_name(cdef->base.xid), parent);
+  const Type t = new_type(env->gwion->mp, s_name(cdef->base.xid), parent);
   if (cflag(cdef, cflag_struct)) {
     t->size = 0;
     set_tflag(t, tflag_struct);

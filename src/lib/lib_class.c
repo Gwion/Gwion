@@ -48,7 +48,6 @@ static OP_EMIT(opem_implicit_class) {
 static OP_CHECK(opck_implicit_class) {
   struct Implicit *imp = (struct Implicit*)data;
   const Type t = actual_type(env->gwion, imp->e->type);
-  if(tflag(t, tflag_enum)) return env->gwion->type[et_int];
   return env->gwion->type[et_error];
 }
 

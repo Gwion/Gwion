@@ -51,8 +51,7 @@ ANN static m_bool scan2_args(const Func_Def f) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Value v   = arg->var_decl.value;
     v->from->offset = f->stack_depth;
-    // when can there be no type?
-    f->stack_depth += v->type ? v->type->size : SZ_INT;
+    f->stack_depth += v->type->size;
     set_vflag(v, vflag_arg);
   }
   return GW_OK;
@@ -68,8 +67,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
   } else {
     if (GET_FLAG(d->base, static))
       SET_FLAG(v, static);
-    else
-      set_vflag(v, vflag_member);
+    else set_vflag(v, vflag_member);
     SET_ACCESS(d->base, v)
   }
   d->base->func = v->d.func_ref = f;
@@ -104,11 +102,6 @@ ANN static m_bool scan2_range(const Env env, Range *range) {
 ANN static inline m_bool scan2_prim(const Env env, const Exp_Primary *prim) {
   if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
     CHECK_BB(scan2_exp(env, prim->d.exp));
-  /*  else if(prim->prim_type == ae_prim_id) {
-      const Value v = prim_value(env, prim->d.var);
-      if(v)
-        v->vflag |= used;
-    } */
   else if (prim->prim_type == ae_prim_array && prim->d.array->exp)
     return scan2_exp(env, prim->d.array->exp);
   else if (prim->prim_type == ae_prim_range)
@@ -452,7 +445,7 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
     vector_add(&v, (vtype)t);
     tlen += strlen(t->name); // this can be improved to use fully qualified name
     ++tlen;
-  } //while ((id = id->next) && ++tlen);
+  }
 
   if(spread && f->base->tmpl->call) {
     Type_List tl   = f->base->tmpl->call;

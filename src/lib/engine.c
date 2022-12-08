@@ -104,6 +104,9 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   gwi_specialid(gwi, "@predicate", &predicate);
 
   gwidoc(gwi, "internal base of all objects and structures.");
+
+  GWI_BB(import_enum(gwi));
+
   const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
