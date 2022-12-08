@@ -296,6 +296,12 @@ ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
 ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   if (cflag(cdef, cflag_struct)) return env->gwion->type[et_compound];
   if (!cdef->base.ext) return env->gwion->type[et_object];
+  Exp e = cdef->base.ext->array ? cdef->base.ext->array->exp : NULL;
+  while(e) {
+    if(!is_prim_int(e))
+      ERR_O(e->pos, "non null array type extension must be literal");
+    e = e->next;
+  }
   if (tmpl_base(cdef->base.tmpl)) return get_parent_base(env, cdef->base.ext);
   const bool tmpl = !!cdef->base.tmpl;
   if (tmpl) template_push_types(env, cdef->base.tmpl);
