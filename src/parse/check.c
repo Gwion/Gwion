@@ -1817,10 +1817,17 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
 
 ANN static m_bool check_ctor(const Env env, const Func func) {
   if(!func->def->builtin && !GET_FLAG(func, const)) {
-    const Value v = nspc_lookup_value0(env->class_def->info->parent->nspc, insert_symbol("new"));
-    if(v && !GET_FLAG(v, abstract))
-      ERR_B(func->def->base->pos, "missing call to parent constructor");
+    const Type_Decl *td = env->class_def->info->cdef->base.ext;
+    const m_uint depth = !td || !td->array
+      ? 1 : td->array->exp->d.prim.d.num;
+    if(depth) { // check if size is 0
+      const Type parent = env->class_def->info->parent;
+      const Value v = nspc_lookup_value0(parent->nspc, insert_symbol("new"));
+      if(v && !GET_FLAG(v->d.func_ref->def->base, abstract))
+        ERR_B(func->def->base->pos, "missing call to parent constructor");
+    }
   }
+
   return GW_OK;
 }
 
