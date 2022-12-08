@@ -974,15 +974,6 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       if(t) return t;
     }
   }
-//puts(t->name);
-//  if(!is_func(env->gwion, t)) {
-//    if(is_class(env->gwion, t)) {
-//      const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
-//      if(v) t = v->type;
-//    }
-// else
-//  }
-//exit(3);
   if(is_func(env->gwion, exp->func->type))
     function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;

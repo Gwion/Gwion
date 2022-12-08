@@ -1,0 +1,12 @@
+#! [contains] outside of constructor
+class C {
+  operator new() { <<< __func__ >>>; }
+}
+class D extends C {
+}
+
+class E extends D {
+  super;
+}
+
+new D();

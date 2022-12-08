@@ -1,3 +1,4 @@
+#! [contains] statement inside constructor function should have no expression
 class C {
   operator new() { return this; }
 }
