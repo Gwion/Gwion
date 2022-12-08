@@ -735,7 +735,7 @@ ANN static m_bool specialid_instr(const Emitter      emit,
                                         struct SpecialId_ *spid,
                                         const Exp_Primary *prim) {
   if(spid->exec) emit_add_instr(emit, spid->exec);
-  else if (spid->em) spid->em(emit, prim);
+  else if (spid->em) return spid->em(emit, prim);
   return GW_OK;
 }
 
