@@ -417,8 +417,8 @@ if(info->is_var) {
   const m_uint grow_pc = emit_code_size(emit);
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
-  emit_exp(emit, call.d.exp_call.func);
-  emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true);
+  CHECK_BB(emit_exp(emit, call.d.exp_call.func));
+  CHECK_BB(emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true));
   emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);
   regrow->m_val = grow_pc;
@@ -511,8 +511,9 @@ static OP_EMIT(opem_dict_access) {
   const Array_Sub array = &info->array;
   const Exp enext = array->exp->next;
   array->exp->next = NULL;
-  _opem_dict_access(emit, data);
+  const m_bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
+  CHECK_BB(ret);
   return !enext ? GW_OK : emit_next_access(emit, info);
 }
 
