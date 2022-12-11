@@ -1618,10 +1618,9 @@ ANN m_bool emit_exp_call1(const Emitter emit, const Func f,
                           const bool is_static) {
   const EmitterStatus status = emit->status;
   emit->status =  (EmitterStatus){};
-  const int tmpl             = fflag(f, fflag_tmpl);
   if(unlikely(fflag(f, fflag_fptr))) emit_fptr_call(emit, f);
   else if (unlikely(!f->code && emit->env->func != f)) {
-    if (tmpl) CHECK_BB(emit_template_code(emit, f));
+    if (fflag(f, fflag_tmpl)) CHECK_BB(emit_template_code(emit, f));
     else CHECK_BB(emit_ensure_func(emit, f));
   } else if(is_static)
     push_func_code(emit, f);
