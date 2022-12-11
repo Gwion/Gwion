@@ -1,0 +1,13 @@
+#! [contains] StackOverflow
+class D {
+  operator new() {
+    new C();
+  }
+}
+
+class final C {
+  12 :=> var int i;
+  operator new() { new D(); }
+}
+
+new C();
