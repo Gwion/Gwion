@@ -1569,7 +1569,9 @@ _other:
     instr->opcode = (m_uint)&&noop;
   else if(exec == SetFunc)
     instr->opcode = (m_uint)&&regpushimm;
-  prepare_code += BYTECODE_SZ;\
+  else if(exec == SetCtor)
+    instr->opcode = (m_uint)&&regsetimm;
+  prepare_code += BYTECODE_SZ;
   goto *_dispatch[*(m_bit*)prepare_code];
 }
     PREPARE(vmin);
