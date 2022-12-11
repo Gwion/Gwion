@@ -21,4 +21,9 @@ ANN2(1,4) static inline void gwerr_basic_from(const m_str msg, const m_str expla
 ANN static inline void gwerr_secondary_from(const m_str msg, const ValueFrom *from) {
   gwerr_secondary(msg, from->filename, from->loc);
 }
+
+ANN static inline void declared_here(const Value v) {
+  gwerr_secondary_from("declared here", v->from);
+}
 #endif
+

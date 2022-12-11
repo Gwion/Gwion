@@ -285,7 +285,7 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f,
   const Func obase = overload->d.func_ref;
   if (GET_FLAG(obase->def->base, final) && (!env->class_def || (obase->value_ref->from->owner_class != env->class_def))) {
     env_err(env, f->base->pos, _("can't overload final function `{G}%s{0}`"), s_name(f->base->xid));
-    env_warn(env, obase->def->base->pos, _("first declared here"));
+    declared_here(obase->value_ref);
     return GW_ERROR;
   }
   const m_bool base = tmpl_base(f->base->tmpl);

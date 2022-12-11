@@ -336,7 +336,7 @@ ANN static m_bool check_upvalue(const Env env, const Exp_Primary *prim, const Va
   if(not_upvalue(env, v))
     return GW_OK;
   gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->pos, 4242);
-  gwerr_secondary_from("declared here", v->from);
+  declared_here(v);
   gw_err("{-}hint:{0} try adding it to capture list");
   env_set_error(env,  true);
   return GW_ERROR;
@@ -954,9 +954,7 @@ ANN static Type check_static(const Env env, const Exp e) {
      !GET_FLAG(t->info->func->def->base, abstract) ||
      !is_static_call(env->gwion, e)) return t;
   env_err(env, e->pos, "making a static call to an abstract function");
-  env->context->error = false;
-  gwerr_secondary_from("declared here", t->info->value->from);
-  env->context->error = true;
+  declared_here(t->info->value);
   return NULL;
 }
 

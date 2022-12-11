@@ -300,8 +300,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   DECL_OO(const Type, parent, = cdef_parent(env, cdef));
   if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->pos : cdef->base.pos, 0);
-    const Value v = parent->info->value;
-    gwerr_warn("declared here", NULL, NULL, v->from->filename, v->from->loc);
+    declared_here(parent->info->value);
     env_set_error(env,  true);
     return NULL;
   }
