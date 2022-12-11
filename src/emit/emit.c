@@ -615,10 +615,10 @@ ANN static inline m_bool emit_exp_pop_next(const Emitter emit, Exp e);
 
 ANN static m_bool emit_range(const Emitter emit, Range *range) {
   if (range->start)
-    CHECK_BB(emit_exp(emit, range->start));
+    CHECK_BB(emit_exp_pop_next(emit, range->start));
   else emit_pushimm(emit, 0);
   if (range->end)
-    CHECK_BB(emit_exp(emit, range->end));
+    CHECK_BB(emit_exp_pop_next(emit, range->end));
   else emit_pushimm(emit, -1);
   return GW_OK;
 }
