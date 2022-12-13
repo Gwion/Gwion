@@ -41,13 +41,13 @@ static OP_CHECK(opck_ctrl) {
   const Exp call = new_exp_call(mp, dot, NULL, func->pos);
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
-  traverse_exp(env, func);
+  CHECK_BN(traverse_exp(env, func));
   struct Stmt_ one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
 
   Exp samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->pos);
   Exp _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->pos);
   Exp time = new_exp_binary(mp, samp, chuck, _now, func->pos);
-  traverse_exp(env, time);
+  CHECK_BN(traverse_exp(env, time));
   struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
 
   free_exp(mp, bin->lhs);
