@@ -2039,28 +2039,25 @@ ANN static inline m_bool emit_jump_index(const Emitter emit, const Vector v,
   return GW_ERROR;
 }
 
-ANN static inline m_bool emit_stmt_continue(const Emitter    emit,
-                                            const Stmt_Index stmt) {
+ANN static inline m_bool emit_jump(const Emitter    emit, const Stmt_Index stmt,
+  const Vector v) {
   CHECK_BB(emit_defers2(emit));
   if (stmt->idx == -1 || stmt->idx == 1)
-    vector_add(&emit->code->stack_cont, (vtype)emit_add_instr(emit, Goto));
+    vector_add(v, (vtype)emit_add_instr(emit, Goto));
   else if (stmt->idx) {
-    if (emit_jump_index(emit, &emit->code->stack_cont, stmt->idx) < 0)
+    if (emit_jump_index(emit, v, stmt->idx) < 0)
       ERR_B(stmt_self(stmt)->pos, _("too many jumps required."))
   }
   return GW_OK;
 }
 
+ANN static inline m_bool emit_stmt_continue(const Emitter    emit,
+                                            const Stmt_Index stmt) {
+  return emit_jump(emit, stmt, &emit->code->stack_cont);
+}
 ANN static inline m_bool emit_stmt_break(const Emitter         emit,
                                          const Stmt_Index stmt NUSED) {
-  CHECK_BB(emit_defers2(emit));
-  if (stmt->idx == -1 || stmt->idx == 1)
-    vector_add(&emit->code->stack_break, (vtype)emit_add_instr(emit, Goto));
-  else if (stmt->idx) {
-    if (emit_jump_index(emit, &emit->code->stack_break, stmt->idx) < 0)
-      ERR_B(stmt_self(stmt)->pos, _("too many jumps required."))
-  }
-  return GW_OK;
+  return emit_jump(emit, stmt, &emit->code->stack_break);
 }
 
 ANN static inline void emit_push_stack(const Emitter emit) {
