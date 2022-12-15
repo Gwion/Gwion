@@ -583,7 +583,7 @@ ANN static m_bool class_internal(const Env env, const Func_Base *base) {
 
 ANN static inline m_bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
-  if (base->args->len == 1) return GW_OK;
+  if (mp_vector_len(base->args) == 1) return GW_OK;
   assert(base->td);
   ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"),
         s_name(base->xid))
