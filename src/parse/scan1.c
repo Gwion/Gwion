@@ -134,7 +134,8 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
           env->class_def->size += t->size;
         }
       }
-    } else set_vflag(v, vflag_fglobal); // file global
+    } else if(env->context)
+      set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
   nspc_add_value(env->curr, vd->xid, v);
