@@ -476,6 +476,8 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
     DECL_OB(const Type, t, = known_type(env, um->td));
     if (nspc_lookup_value0(env->curr, um->vd.xid))
       ERR_B(um->vd.pos, _("'%s' already declared in union"), s_name(um->vd.xid))
+    if(tflag(t, tflag_ref))
+      ERR_B(um->vd.pos, _("can't declare ref type in union"));
     const Value v = new_value(env, t, s_name(um->vd.xid), um->vd.pos);
     tuple_contains(env, v);
     valuefrom(env, v->from);
