@@ -43,9 +43,12 @@ ANN m_bool check_subscripts(Env env, const Array_Sub array,
   CHECK_OB(check_exp(env, array->exp));
   m_uint depth = 0;
   Exp    e     = array->exp;
-  do
-    if (is_decl) CHECK_BB(check_implicit(env, e, env->gwion->type[et_int]));
-  while (++depth && (e = e->next));
+  do {
+    if (is_decl) {
+      if(check_implicit(env, e, env->gwion->type[et_int]) < 0)
+        ERR_B(array->exp->pos, _("invalid array declaration index type."))
+    }
+  } while (++depth && (e = e->next));
   if (depth != array->depth)
     ERR_B(array->exp->pos, _("invalid array access expression."))
   return GW_OK;
@@ -108,8 +111,11 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   const Var_Decl *vd = &decl->vd;
   CHECK_BB(check_var(env, vd));
   CHECK_BB(check_var_td(env, vd, decl->td));
-  if(decl->td->array && decl->td->array->exp && !decl->args && GET_FLAG(array_base(decl->type), abstract))
-    ERR_B(decl->td->pos, "declaration of abstract type arrays needs lambda");
+  if(decl->td->array && decl->td->array->exp) {
+    CHECK_BB(check_subscripts(env, decl->td->array, true));
+    if(!decl->args && GET_FLAG(array_base(decl->type), abstract))
+      ERR_B(decl->td->pos, "declaration of abstract type arrays needs lambda");
+  }
   valid_value(env, vd->xid, vd->value);
   // set_vflag(var->value, vflag_used));
   return GW_OK;
