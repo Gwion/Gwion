@@ -1120,6 +1120,8 @@ ANN static m_bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
 
 ANN /*static */ m_bool emit_exp_decl(const Emitter emit, Exp_Decl *const decl) {
   const Type t = decl->type;
+  if(decl->args && !strncmp(decl->args->type->name, "partial:", 8))
+    ERR_B(decl->args->pos, "unresolved partial");
   CHECK_BB(ensure_emit(emit, t));
   const m_bool global = GET_FLAG(decl->td, global);
   const m_uint scope =
