@@ -741,7 +741,7 @@ static OP_CHECK(opck_array_scan) {
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
-  (void)scan0_class_def(env, cdef);
+  CHECK_BN(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))
     SET_FLAG(t, abstract);

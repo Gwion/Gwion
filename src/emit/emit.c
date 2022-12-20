@@ -867,7 +867,7 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   const M_Object string = new_string(emit->gwion, s_name(*id));
   emit_pushimm(emit, (m_uint)string);
   emit_pushimm(emit, (m_uint)emit->locale->code);
-  emit_exp_call1(emit, emit->locale, true);
+  CHECK_BB(emit_exp_call1(emit, emit->locale, true));
   emit_regmove(emit, -emit->locale->def->base->ret_type->size);
   const VM_Code code = finalyze(emit, EOC);
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
@@ -1750,7 +1750,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .type = emit->env->class_def,
       .exp_type = ae_exp_primary
     };
-    emit_exp(emit, &exp);
+    CHECK_BB(emit_exp(emit, &exp));
     offset += SZ_INT;
   }
   if(sporker.captures) {
@@ -1769,7 +1769,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       };
       if(cap->is_ref) exp_setvar(&exp, true);
       offset += exp_size(&exp);
-      emit_exp(emit, &exp);
+      CHECK_BB(emit_exp(emit, &exp));
 //      emit_exp_addref(emit, &exp, -exp_size(&exp));
     }
   }
@@ -1995,7 +1995,7 @@ ANN static m_bool emit_stmt_code(const Emitter emit, const Stmt_Code stmt) {
 
 ANN static m_bool optimize_tail_call(const Emitter emit, const Exp_Call *e) {
   if (e->args) {
-    emit_func_args(emit, e);
+    CHECK_BB(emit_func_args(emit, e));
     const Func f = e->func->type->info->func;
     emit_regmove(emit, -f->def->stack_depth);
     emit_args(emit, f);
