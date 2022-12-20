@@ -72,7 +72,7 @@ ANEW static Frame *new_frame(MemPool p) {
 
 ANN static void release_maybe_stack(const MemPool mp, MP_Vector * ms) {
   for (vtype i = ms->len + 1; --i;) {
-    const MaybeVal *mv = mp_vector_at(ms, MaybeVal, i);
+    const MaybeVal *mv = mp_vector_at(ms, MaybeVal, i - 1);
     struct M_Vector_ v = { .ptr = mv->ptr };
     m_vector_release(&v);
   }
