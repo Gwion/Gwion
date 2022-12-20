@@ -130,7 +130,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
         e->d.prim.value = cap->orig;
         e->type = cap->orig->type;
         exp_setvar(e, cap->is_ref);
-        emit_exp(emit, e);
+        CHECK_BB(emit_exp(emit, e));
         if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
           emit_compound_addref(emit, cap->temp->type, cap->temp->type->size, 0);
         offset += cap->temp->type->size;
@@ -623,7 +623,7 @@ static OP_CHECK(opck_op_cast) {
 
 static OP_CHECK(opck_func_partial) {
   Exp_Call *call = (Exp_Call*)data;
-  return partial_type(env, call);
+  return partial_type(env, call) ?: env->gwion->type[et_error];
 }
 
 static OP_CHECK(opck_class_partial) {
