@@ -619,6 +619,7 @@ static OP_CHECK(opck_dict_each_val) {
 
 static OP_CHECK(opck_dict_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
+  if(ts->t->info->cdef->base.tmpl->call) return ts->t;
   struct tmpl_info     info = {
       .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
   const Type  exists = tmpl_exists(env, &info);
@@ -635,7 +636,7 @@ static OP_CHECK(opck_dict_scan) {
 
   const bool is_global = tmpl_global(env, ts->td->types);
   const m_uint scope = is_global ?  env_push_global(env) : env->scope->depth;
-  (void)scan0_class_def(env, cdef);
+  CHECK_BN(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   t->nspc->class_data_size = sizeof(struct HMapInfo);
   const m_bool ret = traverse_cdef(env, t);
@@ -673,17 +674,11 @@ static OP_CHECK(opck_dict_scan) {
 }
 
 GWION_IMPORT(dict) {
-//  gwidoc(gwi, "Ref: take a reference from a variable.");
-//  gwinote(gwi, "used just as the variable it reference.");
-//  gwinote(gwi, "can only be used as argument.");
-//  gwinote(gwi, "and cannot be returned.");
-
-
   DECL_OB(const Type, t_dict, = gwi_class_ini(gwi, "Dict:[Key,Val]", "Object"));
   gwi_class_xtor(gwi, dict_ctor, dict_dtor);
   t_dict->nspc->offset += sizeof(struct HMap);
   gwi->gwion->type[et_dict] = t_dict;
-
+  set_tflag(t_dict, tflag_infer);
   GWI_BB(gwi_func_ini(gwi, "bool",   "remove"));
   GWI_BB(gwi_func_arg(gwi, "Key",    "key"));
   GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
