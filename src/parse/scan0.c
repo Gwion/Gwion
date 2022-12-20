@@ -141,7 +141,8 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
   if (tdef->ext->array && !tdef->ext->array->exp) {
     set_tflag(t, tflag_empty);
     SET_FLAG(t, abstract);
-  }
+  } else if(tflag(base, tflag_union))
+    set_tflag(t, tflag_union);
 }
 
 ANN static m_bool typedef_complex(const Env env, const Type_Def tdef,
