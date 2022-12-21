@@ -401,6 +401,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
 ANN Type check_prim_str(const Env env, const struct AstString *data) {
   if (!prim_self(data)->value)
     prim_self(data)->value = global_string(env, data->data, prim_pos(data));
+  exp_setmeta(prim_exp(data), true);
   return env->gwion->type[et_string]; // prim->value
 }
 
@@ -432,6 +433,7 @@ ANN static Type check_prim_hack(const Env env, const Exp *data) {
 }
 
 ANN static Type check_prim_locale(const Env env, const Symbol *data NUSED) {
+  exp_setmeta(prim_exp(data), true);
   return env->gwion->type[et_float];
 }
 
@@ -465,6 +467,7 @@ ANN Type check_array_access(const Env env, const Array_Sub array) {
 static ANN Type check_exp_array(const Env env, const Exp_Array *array) {
   CHECK_OO((array->array->type = check_exp(env, array->base)));
   CHECK_BO(check_subscripts(env, array->array, 0));
+  if(exp_getmeta(array->base)) exp_setmeta(exp_self(array), true);
   return check_array_access(env, array->array);
 }
 
