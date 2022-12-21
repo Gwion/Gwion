@@ -64,7 +64,9 @@ static OP_CHECK(opck_union_is) {
   const Exp       e    = (Exp)data;
   const Exp_Call *call = &e->d.exp_call;
   const Exp       exp  = call->args;
-  if (exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
+  if(!exp)
+    ERR_N(e->pos, "Union.is() takes one argument of form id");
+  if (exp->exp_type != ae_exp_primary || exp->d.prim.prim_type != ae_prim_id)
     ERR_N(exp->pos, "Union.is() argument must be of form id");
   const Type  t = call->func->d.exp_dot.base->type;
   const Value v = find_value(t, exp->d.prim.d.var);
@@ -109,7 +111,7 @@ static OP_CHECK(opck_union_new) {
     ERR_N(call->func->pos, "Union constructor takes two arguments, "
                            "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
-    return NULL;
+    return env->gwion->type[et_error];
   const Exp  val  = name->next;
   const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
@@ -131,7 +133,7 @@ static OP_CHECK(opck_union_new) {
       return base;
     }
   }
-  return NULL;
+  return env->gwion->type[et_error];
 }
 
 ANN GWION_IMPORT(union) {
