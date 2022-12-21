@@ -222,7 +222,8 @@ OP_CHECK(opck_object_dot) {
   }
   CHECK_BN(not_from_owner_class(env, the_base, value, self->pos));
   CHECK_BN(member_access(env, self, value));
-  if (base_static && vflag(value, vflag_member))
+  if ((base_static && vflag(value, vflag_member)) ||
+      (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
     ERR_N(self->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
@@ -399,6 +400,7 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_end(gwi, "@unconditional", NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_cond_object))
   GWI_BB(gwi_oper_end(gwi, "@conditional", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_emi(gwi, opem_not_object))
   GWI_BB(gwi_oper_end(gwi, "!", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
