@@ -18,6 +18,7 @@ struct VM_Code_ {
   m_str            name;
   struct Map_      handlers;
   struct M_Vector_ live_values;
+  uint32_t wait;
   uint16_t         stack_depth;
   uint16_t         ref;
 //  bool             is_prepared;

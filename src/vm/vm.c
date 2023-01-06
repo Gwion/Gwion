@@ -912,6 +912,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH();
     setcode:
       a.code = *(VM_Code *)(reg - SZ_INT);
+if(a.code->wait) {
+handle(shred, "FuncWithGlobalUninit");
+break;
+}
+
       if (!a.code->builtin) {
         register const uint push =
             *(m_uint *)reg /*+ code->stack_depth*/ + sizeof(frame_t);

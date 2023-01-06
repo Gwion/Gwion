@@ -93,8 +93,7 @@ static OP_EMIT(opem_ref_contract_similar) {
   emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  emit_exp(emit, imp->e);
-  return GW_OK;
+  return emit_exp(emit, imp->e);
 }
 
 ANN static void base2ref(Env env, const Type lhs, const Type rhs) {

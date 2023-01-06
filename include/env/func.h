@@ -17,6 +17,7 @@ struct Func_ {
   Value            value_ref;
   Func             next;
   m_str            name;
+  uint32_t         wait;
   float            inline_mult;
   uint16_t         weight;  // used to mark gack use in scan1
   uint16_t         memoize; // used to mark return in scan1

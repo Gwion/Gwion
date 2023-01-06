@@ -305,6 +305,12 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   char c[len - 1];
   strncpy(c, op, len - 2);
   c[len - 2] = '\0';
+  // are there other expressions that would need such a test?
+  if(!strcmp(c, "$")) {
+    env_err(env, opi->pos, "can't rewrite cast operations");
+    env_set_error(env,  true);
+    return NULL;
+  }
   const Exp bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->pos);
   base->lhs = bin;
   base->op = insert_symbol(env->gwion->st, "=>");

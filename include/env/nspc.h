@@ -18,7 +18,7 @@ struct Nspc_ {
   m_str             name;
   NspcInfo       *info;
   uint16_t       offset;
-  uint16_t          ref;
+  uint16_t       ref;
   uint16_t       class_data_size;
 };
 

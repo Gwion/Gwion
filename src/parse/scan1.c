@@ -37,17 +37,15 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const ValueFrom *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
-  if(!GET_FLAG(t, global) && !from_global_nspc(env, from->owner)) {
-    if(from->owner_class && type_global(env, from->owner_class))
+  if(from_global_nspc(env, from->owner) ||
+    (from->owner_class && type_global(env, from->owner_class)))
       return true;
-    gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
-    gwerr_secondary_from("not declared global", from);
-    const ValueFrom *ownerFrom = env->class_def->info->value->from;
-    gwerr_secondary_from("is global", ownerFrom);
-    env_set_error(env, true);
-    return false;
-  }
-  return true;
+  gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
+  gwerr_secondary_from("not declared global", from);
+  const ValueFrom *ownerFrom = env->class_def->info->value->from;
+  gwerr_secondary_from("is global", ownerFrom);
+  env_set_error(env, true);
+  return false;
 }
 
 ANN static Type scan1_type(const Env env, Type_Decl *td) {
@@ -81,10 +79,11 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
 static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
   if (var->value) // from an auto declaration
     return GW_OK;
-  if (((!env->class_def || !GET_FLAG(env->class_def, final) ||
+  const Value v = ((!env->class_def || !GET_FLAG(env->class_def, final) ||
         env->scope->depth)
            ? nspc_lookup_value1
-           : nspc_lookup_value2)(env->curr, var->xid))
+           : nspc_lookup_value2)(env->curr, var->xid);
+  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class) > 0))
     ERR_B(var->pos,
           _("variable %s has already been defined in the same scope..."),
           s_name(var->xid))

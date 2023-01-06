@@ -304,9 +304,13 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
   const Symbol var   = *data;
   const Value  value = get_value(env, var);
   if (env->class_def) {
-    if (value && value->from->owner_class)
-      CHECK_BO(
-          not_from_owner_class(env, env->class_def, value, prim_pos(data)));
+    if (value) {
+      if(value->from->owner_class)
+      CHECK_BO(not_from_owner_class(env,
+        env->class_def, value, prim_pos(data)));
+      else if(safe_vflag(value, vflag_fglobal) && !env->scope->depth)
+        env->class_def->wait++;
+    }
     const Value v = value ?: find_value(env->class_def, var);
     if (v) {
       if (env->func && GET_FLAG(env->func->def->base, static) &&
@@ -388,7 +392,29 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   prim_self(data)->value = v;
   if (v->from->owner_class) return prim_owned(env, data);
   if (GET_FLAG(v, const)) exp_setmeta(prim_exp(data), 1);
-  if (env->func) {
+
+  if (env->func && strcmp(env->func->name, "in spork")) {
+    if(vflag(v, vflag_fglobal) /*&& !vflag(v, vflag_builtin) */&& !is_func(env->gwion, v->type)) {
+      if (!v->used_by) {
+        v->used_by = new_mp_vector(env->gwion->mp, Func, 1);
+        mp_vector_set(v->used_by, Func, 0, env->func);
+        env->func->wait++;
+      } else {
+        bool found = false;
+        for(uint32_t i = 0; i < v->used_by->len; i++) {
+          const Func f = *mp_vector_at(v->used_by, Func, i);
+          if(f == env->func) {
+            found = true;
+            break;
+          }
+        }
+        if(!found) {
+          env->func->wait++;
+          mp_vector_add(env->gwion->mp, &v->used_by, Func, env->func);
+        }
+      }
+    }
+
     if (!GET_FLAG(v, const) && v->from->owner)
       unset_fflag(env->func, fflag_pure);
     if (fbflag(env->func->def->base, fbflag_lambda))
@@ -886,7 +912,8 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
                           .rhs  = t,
                           .pos  = e->pos,
                           .data = (uintptr_t)e};
-  CHECK_NB(op_check(env, &opi)); // doesn't really return NULL
+  if(op_get(env, &opi))
+    CHECK_OB(op_check(env, &opi));
   if (e->exp_type != ae_exp_call) return 0;
   return e->type != env->gwion->type[et_error] ? GW_OK : GW_ERROR;
 }

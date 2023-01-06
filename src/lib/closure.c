@@ -51,9 +51,9 @@ ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
 }
 
 ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp args) {
-  Exp_Call    call = {.func = func, .args = args };
-  e->exp_type      = ae_exp_call;
-  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  Exp_Call call = {.func = func, .args = args };
+  e->exp_type   = ae_exp_call;
+  e->d.exp_call = call;
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 

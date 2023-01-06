@@ -51,7 +51,9 @@ struct Type_ {
   uint64_t          size;
   uint64_t          actual_size;
   struct Vector_    effects; // pre-ctor effects
-  uint32_t            array_depth;
+//  struct MP_Vector  *wait;
+  uint32_t wait;
+  uint32_t          array_depth;
   uint16_t          ref;
   uint16_t          weight;
   ae_flag           flag;
