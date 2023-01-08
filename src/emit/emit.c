@@ -476,12 +476,6 @@ ANN static m_bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
 
 ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
   const Value v = prim_self(data)->value;
-
-//else
-if(emit->env->class_def && safe_vflag(v, vflag_fglobal) && !emit->env->scope->depth) {
-emit->env->class_def->wait--;
-printf("=> %s\n", s_name(*data));
-  }
   if (is_class(emit->gwion, v->type)) {
     emit_pushimm(emit, (m_uint)actual_type(emit->gwion, v->type));
     return GW_OK;
@@ -539,7 +533,6 @@ ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
 
 ANN static VM_Code finalyze_func(const Emitter emit, const f_instr exec, const Func f) {
   const VM_Code code = finalyze(emit, exec);
-  code->wait = f->wait;
   return code;
 }
 
@@ -786,7 +779,8 @@ ANN static m_bool emit_prim_char(const Emitter emit, const m_str *str) {
 
 ANN static m_bool emit_prim_str(const Emitter emit, const struct AstString *str) {
   const Value v = prim_self(str)->value;
-  if (!v->d.obj) {
+  bool has_obj = v->d.obj;
+  if (!has_obj) {
     const size_t sz = strlen(str->data);
     char c[sz + 1];
     if (sz) {
@@ -797,7 +791,7 @@ ANN static m_bool emit_prim_str(const Emitter emit, const struct AstString *str)
     v->d.obj = new_string(emit->gwion, c);
   }
   emit_pushimm(emit, (m_uint)v->d.obj);
-//  emit_object_addref(emit, -SZ_INT, 0);
+  emit_object_addref(emit, -SZ_INT, 0);
   return GW_OK;
 }
 
