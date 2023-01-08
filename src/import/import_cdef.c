@@ -72,6 +72,7 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
   if(t->info->cdef && t->info->cdef->base.ext &&
      t->info->cdef->base.ext->array)
     set_tflag(t, tflag_typedef);
+  set_tflag(t, tflag_compound);
   return t;
 }
 
