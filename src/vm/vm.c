@@ -912,11 +912,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH();
     setcode:
       a.code = *(VM_Code *)(reg - SZ_INT);
-if(a.code->wait) {
-handle(shred, "FuncWithGlobalUninit");
-break;
-}
-
       if (!a.code->builtin) {
         register const uint push =
             *(m_uint *)reg /*+ code->stack_depth*/ + sizeof(frame_t);
@@ -1093,8 +1088,10 @@ break;
       DISPATCH()
     structreleaseregaddr:
       struct_release(shred, (Type)VAL2, *(m_bit**)(reg + IVAL));
+      DISPATCH();
     structreleasemem:
       struct_release(shred, (Type)VAL2, mem + IVAL);
+      DISPATCH();
     except:
       /* TODO: Refactor except instruction             *
        * so that                                       *
