@@ -70,7 +70,13 @@ static OP_CHECK(opck_func_call) {
 
 static OP_CHECK(opck_fptr_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
-  return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
+  const Type t = mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
+  if (t == env->gwion->type[et_error]) {
+    gwerr_basic("no matching argument of funptr call", "invalid call", "did you mean to use {+}:=>{0}", env->name, exp_self(bin)->pos, 0);
+    env->context->error = true;
+    return env->gwion->type[et_error];
+  }
+  return t;
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
