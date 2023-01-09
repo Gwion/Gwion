@@ -352,9 +352,34 @@ describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_
 describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->sym, stmt->idx->pos)) < 0 ||
     scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
-    scan1_stmt(env, stmt->if_body) < 0 ||
-    (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
+
+ANN static inline bool if_stmt_is_return(const Stmt stmt) {
+  if (stmt->stmt_type == ae_stmt_return) return true;
+  if (stmt->stmt_type == ae_stmt_code) {
+    if (mp_vector_len(stmt->d.stmt_code.stmt_list)) {
+      Stmt s = mp_vector_back(stmt->d.stmt_code.stmt_list, struct Stmt_);
+      if (s->stmt_type == ae_stmt_return) return true;
+    }
+  }
+  return false;
+}
+
+ANN static inline m_bool _scan1_stmt_if(const Env env, const Stmt_If stmt) {
+  CHECK_BB(scan1_exp(env, stmt->cond));
+  CHECK_BB(scan1_stmt(env, stmt->if_body));
+  if(stmt->else_body) {
+    const bool is_ret = if_stmt_is_return(stmt->if_body);
+    if(is_ret) env->scope->depth--;
+    CHECK_BB(scan1_stmt(env, stmt->else_body));
+    if(is_ret) env->scope->depth++;
+  }
+  return GW_OK;
+}
+
+ANN static inline m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) {
+  RET_NSPC(_scan1_stmt_if(env, stmt));
+  return GW_OK;
+}
 
 ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) {
   if (stmt->stmt_list) { RET_NSPC(scan1_stmt_list(env, stmt->stmt_list)) }
@@ -556,9 +581,9 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
 
 ANN static inline bool end_flow(Stmt s) {
   const ae_stmt_t t = s->stmt_type;
-    return t == ae_stmt_continue ||
-           t == ae_stmt_break    ||
-           t == ae_stmt_return;
+  return t == ae_stmt_continue ||
+         t == ae_stmt_break    ||
+         t == ae_stmt_return;
 }
 
 ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
