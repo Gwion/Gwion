@@ -310,7 +310,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   if (cflag(cdef, cflag_struct)) {
     t->size = 0;
     set_tflag(t, tflag_struct);
-  }
+  } else set_tflag(t, tflag_release);
   set_tflag(t, tflag_compound);
   t->info->tuple  = new_tupleform(env->gwion->mp, parent);
   t->nspc         = new_nspc(env->gwion->mp, t->name);
@@ -487,9 +487,11 @@ static OP_EMIT(opem_struct_assign) {
   const Type t = bin->lhs->type;
   const Exp e = exp_self(bin);
 
-  const Instr release = emit_add_instr(emit, StructReleaseRegAddr);
-  release->m_val = -SZ_INT;
-  release->m_val2 = (m_uint)t;
+  if(tflag(t, tflag_release)) {
+    const Instr release = emit_add_instr(emit, StructReleaseRegAddr);
+    release->m_val = -SZ_INT;
+    release->m_val2 = (m_uint)t;
+  }
 
   const Instr instr = emit_add_instr(emit, StructAssign);
   instr->m_val  = -t->size - SZ_INT;

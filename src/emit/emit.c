@@ -139,7 +139,8 @@ ANN void emit_object_release(const Emitter emit, const m_uint offset) {
 ANN void emit_compound_release(const Emitter emit, const Type t, const m_uint offset) {
   if(tflag(t, tflag_compound))
     return emit_object_release(emit, offset);
-  emit_struct_release(emit, t, offset);
+  if(tflag(t, tflag_release))
+    emit_struct_release(emit, t, offset);
 }
 
 ANN void emit_struct_release(const Emitter emit, const Type type,
@@ -544,21 +545,20 @@ ANN static inline m_uint exp_totalsize(Exp e) {
   return size;
 }
 
-ANN Instr emit_object_addref(const Emitter emit, const m_int size,
+ANN void emit_object_addref(const Emitter emit, const m_int size,
                              const bool emit_var) {
   const f_instr exec  = !emit_var ? RegAddRef : RegAddRefAddr;
   const Instr   instr = emit_add_instr(emit, exec);
   instr->m_val        = size;
-  return instr;
 }
 
-ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
+ANN void emit_struct_addref(const Emitter emit, const Type t, const m_int size,
                              const bool emit_var) {
+  if(!tflag(t, tflag_release)) return;
   const Instr instr =
       emit_add_instr(emit, !emit_var ? StructRegAddRef : StructRegAddRefAddr);
   instr->m_val2  = (m_uint)t;
   instr->m_val = !emit_var ? size : (m_int)-SZ_INT;
-  return instr;
 }
 
 ANN2(1)

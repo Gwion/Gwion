@@ -42,6 +42,7 @@ enum tflag {
   tflag_ref      = 1 << 22,
   tflag_packed   = 1 << 23,
   tflag_compound = 1 << 24,
+  tflag_release  = 1 << 25, // mark structs that need release
 } __attribute__((packed));
 
 struct Type_ {

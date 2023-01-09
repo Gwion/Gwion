@@ -130,6 +130,8 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
       if (env->class_def->info->tuple) tuple_contains(env, v);
       if (!GET_FLAG(decl->td, static)) {
         set_vflag(v, vflag_member);
+        if(tflag(t, tflag_release))
+          set_tflag(env->class_def, tflag_release);
         if(isa(t, env->gwion->type[et_object]) > 0)
           set_vflag(v, vflag_release);
         if (tflag(env->class_def, tflag_struct)) {
