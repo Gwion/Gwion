@@ -121,7 +121,7 @@ static ID_EMIT(opem_this) {
 
 static ID_CHECK(opck_super) {
   const Exp self = exp_self(prim);
-  if(!env->func)
+  if(!env->func || is_ctor(env->func->def))
     ERR_O(self->pos, "can't use 'super' outside of constructor");
   const Type parent = env->class_def->info->parent;
   DECL_OO(const Value, v, = find_value(parent, insert_symbol("new")));

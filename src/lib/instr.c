@@ -141,6 +141,21 @@ INSTR(SetCtor) {
   VAL2 = SZ_INT;
 }
 
+INSTR(FuncWait) {
+  const Func f = (Func)instr->m_val;
+  if(f->_wait->len - instr->m_val2) {
+    if(!handle(shred, "UninitValue")) {
+      gw_err("{-}some values are not instantiated yet{0}\n");
+      for(uint32_t i = instr->m_val2; i < f->_wait->len; i++) {
+        Value v = *mp_vector_at(f->_wait, Value, i);
+        defined_here(v);
+      }
+    }
+  } else {
+    BYTE(eNoOp);
+  }
+}
+
 INSTR(fast_except) {
   struct FastExceptInfo *info = (struct FastExceptInfo *)instr->m_val2;
   if(*(m_uint*)REG(-SZ_INT)) {

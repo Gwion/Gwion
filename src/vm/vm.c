@@ -156,7 +156,7 @@ ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const str
   shreduler_remove(shred->tick->shreduler, shred, true);
 }
 
-ANN void handle(VM_Shred shred, const m_str effect) {
+ANN bool handle(VM_Shred shred, const m_str effect) {
   shreduler_remove(shred->tick->shreduler, shred, false);
   // store trace info
   struct TraceStart ts = {
@@ -167,8 +167,11 @@ ANN void handle(VM_Shred shred, const m_str effect) {
   const m_uint size =
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
   // maybe we should use a string to avoid the insert_symbol call
-  if (!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size))
+  if (!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size)) {
     handle_fail(shred, effect, &ts);
+    return false;
+  }
+  return true;
 }
 
 ANN bool vm_remove(const VM *vm, const m_uint index) {
@@ -1567,7 +1570,7 @@ _other:
   const f_instr exec = *(f_instr*)(prepare_code + SZ_INT *2);
   if(exec == DTOR_EOC)return;
   const Instr instr = *(Instr*)(prepare_code + SZ_INT);
-  if(exec == fast_except)
+  if(exec == fast_except || exec == FuncWait)
     instr->opcode = (m_uint)&&noop;
   else if(exec == SetFunc)
     instr->opcode = (m_uint)&&regpushimm;

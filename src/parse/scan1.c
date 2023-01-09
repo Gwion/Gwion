@@ -5,6 +5,10 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "object.h"
+#include "operator.h"
+#include "instr.h"
+#include "import.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -133,7 +137,9 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
           env->class_def->size += t->size;
         }
       }
-    } else if(env->context)
+    } else if (GET_FLAG(decl->td, global))
+      SET_FLAG(v, global);
+    else if(env->context)
       set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
@@ -317,7 +323,12 @@ ANN static inline m_bool shadow_arg(const Env env, const Symbol sym,
   Nspc nspc = env->curr;
   do {
     const Value v = nspc_lookup_value0(nspc, sym);
-    if (v && !env->func->def->builtin) return shadow_err(env, v, loc);
+    if (v && !env->func->def->builtin) {
+      const Type owner = v->from->owner_class;
+      if (owner && env->class_def && isa(env->class_def, owner) < 0)
+        continue;
+      return shadow_err(env, v, loc);
+    }
   } while ((nspc = nspc->parent));
   return GW_OK;
 }
@@ -644,7 +655,10 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
     CHECK_BB(scan_internal(env, fdef->base));
   else if (fbflag(fdef->base, fbflag_op) && env->class_def)
     SET_FLAG(fdef->base, static);
-  RET_NSPC(scan1_fbody(env, fdef))
+  if(!is_ctor(fdef)) {
+    RET_NSPC(scan1_fbody(env, fdef))
+  } else if(!fdef->builtin)
+      CHECK_BB(scan1_stmt_list(env, fdef->d.code));
   return GW_OK;
 }
 
@@ -742,6 +756,34 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
+ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
+  if(!tmpl_base(cdef->base.tmpl) && isa(cdef->base.type, env->gwion->type[et_closure]) < 0 &&
+   isa(cdef->base.type, env->gwion->type[et_dict]) < 0) {
+    MemPool mp = env->gwion->mp;
+    Ast base = cdef->body;
+    Stmt_List ctor = new_mp_vector(mp, struct Stmt_, 0);
+    Ast body = new_mp_vector(mp, Section, 1); // room for ctor
+    for(uint32_t i = 0; i < base->len; i++) {
+      Section section = *mp_vector_at(base, Section, i);
+      if(section.section_type == ae_section_stmt) {
+        Stmt_List list = section.d.stmt_list;
+        for(uint32_t j = 0; j < list->len; j++) {
+          Stmt stmt = mp_vector_at(list, struct Stmt_, j);
+          mp_vector_add(mp, &ctor, struct Stmt_, *stmt);
+        }
+      } else mp_vector_add(mp, &body, Section, section);
+    }
+    Type_Decl *td = type2td(env->gwion, env->gwion->type[et_void], cdef->base.pos);
+    Symbol sym = insert_symbol("@ctor");
+    Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.pos);
+    Func_Def  fdef = new_func_def(mp, fb, ctor);
+    mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
+    free_mp_vector(mp, Section, base);
+    cdef->body = body;
+  }
+  return env_body(env, cdef, scan1_section);
+}
+
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
@@ -749,7 +791,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   set_tflag(t, tflag_scan1);
   const Class_Def c = t->info->cdef;
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
-  if (c->body) CHECK_BB(env_body(env, c, scan1_section));
+  if (c->body) CHECK_BB(scan1_class_def_body(env, c));
   return GW_OK;
 }
 

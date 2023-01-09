@@ -17,13 +17,10 @@
 #include "specialid.h"
 #include "template.h"
 
-ANN static m_bool mk_xtor(MemPool p, const Type type, const m_uint d,
-                          const enum tflag e) {
-  VM_Code *code = e == tflag_ctor ? &type->nspc->pre_ctor : &type->nspc->dtor;
-  const m_str name     = type->name;
-  *code                = new_vmcode(p, NULL, NULL, name, SZ_INT, true, false);
-  (*code)->native_func = (m_uint)d;
-  type->tflag |= e;
+ANN static m_bool mk_dtor(MemPool p, const Type t, const m_uint d) {
+  VM_Code code = t->nspc->dtor = new_vmcode(p, NULL, NULL, t->name, SZ_INT, true, false);
+  code->native_func = (m_uint)d;
+  set_tflag(t, tflag_dtor);
   return GW_OK;
 }
 
@@ -46,8 +43,16 @@ ANN2(1) void add_template(const Env env, const Type t) {
 ANN2(1)
 void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor) {
   const Type t = gwi->gwion->env->class_def;
-  if (ctor) mk_xtor(gwi->gwion->mp, t, (m_uint)ctor, tflag_ctor);
-  if (dtor) mk_xtor(gwi->gwion->mp, t, (m_uint)dtor, tflag_dtor);
+  if (dtor) mk_dtor(gwi->gwion->mp, t, (m_uint)dtor);
+  if (ctor) {
+    gwi_func_ini(gwi, "void", "@ctor");
+    gwi_func_end(gwi, ctor, ae_flag_none);
+    if(t->nspc->vtable.ptr) {
+      set_tflag(t, tflag_ctor);
+      const Func f = (Func)vector_front(&t->nspc->vtable);
+      t->nspc->pre_ctor = f->code;
+    }
+  }
 }
 
 ANN static inline void gwi_type_flag(const Type t) {
@@ -141,11 +146,14 @@ ANN m_int gwi_class_end(const Gwi gwi) {
     --gwi->tmpls;
     nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   }
+/*
+// we need to use @ctor
   if (gwi->effects.ptr) {
     vector_init(&t->effects);
     vector_copy2(&gwi->effects, &t->effects);
     vector_release(&gwi->effects);
   }
+*/
   env_pop(gwi->gwion->env, 0);
   return GW_OK;
 }

@@ -83,14 +83,22 @@ ANN static m_uint get_decl_size(const Env env, const Value v) {
 describe_check_decl(member, offset, v->vflag |= vflag_member);
 describe_check_decl(static, class_data_size, SET_FLAG(v, static));
 
+ANN static void var_effects(const Env env, const Type t, const Symbol sym, const loc_t loc) {
+  if (t->info->parent) var_effects(env, t->info->parent, sym, loc);
+  if(!tflag(t, tflag_ctor)) return;
+  const Value ctor = nspc_lookup_value0(t->nspc, sym);
+  if(!ctor) return; // bit sus
+  const Func f = ctor->d.func_ref;
+  const Vector v = &f->def->base->effects;
+  if(!v->ptr) return;
+  for (m_uint i = 0; i < vector_size(v); i++)
+    env_add_effect(env, (Symbol)vector_at(v, i), loc);
+}
+
 ANN static m_bool check_var(const Env env, const Var_Decl *var) {
   if (env->class_def && !env->scope->depth && env->class_def->info->parent)
     CHECK_BB(check_exp_decl_parent(env, var));
-  if (var->value->type->effects.ptr) {
-    const Vector v = &var->value->type->effects;
-    for (m_uint i = 0; i < vector_size(v); i++)
-      env_add_effect(env, (Symbol)vector_at(v, i), var->pos);
-  }
+  var_effects(env, var->value->type, insert_symbol("@ctor"), var->pos);
   return GW_OK;
 }
 
@@ -308,8 +316,6 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
       if(value->from->owner_class)
       CHECK_BO(not_from_owner_class(env,
         env->class_def, value, prim_pos(data)));
-      else if(safe_vflag(value, vflag_fglobal) && !env->scope->depth)
-        env->class_def->wait++;
     }
     const Value v = value ?: find_value(env->class_def, var);
     if (v) {
@@ -394,11 +400,14 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   if (GET_FLAG(v, const)) exp_setmeta(prim_exp(data), 1);
 
   if (env->func && strcmp(env->func->name, "in spork")) {
-    if(vflag(v, vflag_fglobal) /*&& !vflag(v, vflag_builtin) */&& !is_func(env->gwion, v->type)) {
+//    if(vflag(v, vflag_fglobal) /*&& !vflag(v, vflag_builtin) */&& !is_func(env->gwion, v->type)) {
+    if((GET_FLAG(v, global) || vflag(v, vflag_fglobal)) && !vflag(v, vflag_builtin) && !is_func(env->gwion, v->type)) {
+      if(!env->func->_wait)
+        env->func->_wait = new_mp_vector(env->gwion->mp, Value, 0);
       if (!v->used_by) {
         v->used_by = new_mp_vector(env->gwion->mp, Func, 1);
         mp_vector_set(v->used_by, Func, 0, env->func);
-        env->func->wait++;
+        mp_vector_add(env->gwion->mp, &env->func->_wait, Value, v);
       } else {
         bool found = false;
         for(uint32_t i = 0; i < v->used_by->len; i++) {
@@ -409,8 +418,8 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
           }
         }
         if(!found) {
-          env->func->wait++;
           mp_vector_add(env->gwion->mp, &v->used_by, Func, env->func);
+          mp_vector_add(env->gwion->mp, &env->func->_wait, Value, v);
         }
       }
     }
@@ -1812,14 +1821,6 @@ ANN static m_bool check_func_def_override(const Env env, const Func_Def fdef,
   return GW_OK;
 }
 
-ANN static bool effect_find(const MP_Vector *v, const Symbol sym) {
-  for(m_uint i = 0; i < v->len; i++) {
-    struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-    if(eff->sym == sym) return true;
-  }
-  return false;
-}
-
 ANN static m_bool check_fdef_effects(const Env env, const Func_Def fdef) {
   MP_Vector *v = (MP_Vector*)vector_back(&env->scope->effects);
   if (v) {
@@ -1829,7 +1830,7 @@ ANN static m_bool check_fdef_effects(const Env env, const Func_Def fdef) {
     if (!base->ptr) vector_init(base);
     for (uint32_t i = 0; i < v->len; i++) {
       struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
-      if(!effect_find(v, eff->sym))
+      if(vector_find(base, (m_uint)eff->sym) == -1)
         vector_add(base, (m_uint)eff->sym);
     }
     free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
@@ -1841,11 +1842,16 @@ ANN m_bool check_fdef(const Env env, const Func_Def fdef) {
   if (fdef->base->args) CHECK_BB(check_func_args(env, fdef->base->args));
   if(fdef->builtin) return GW_OK;
   if (fdef->d.code && fdef->d.code) {
-    env->scope->depth++;
-    nspc_push_value(env->gwion->mp, env->curr);
+    const bool ctor = is_ctor(fdef);
+    if(!ctor) {
+      env->scope->depth++;
+      nspc_push_value(env->gwion->mp, env->curr);
+    }
     const m_bool ret = check_stmt_list(env, fdef->d.code);
-    nspc_pop_value(env->gwion->mp, env->curr);
-    env->scope->depth--;
+    if(!ctor) {
+      nspc_pop_value(env->gwion->mp, env->curr);
+      env->scope->depth--;
+    }
     CHECK_BB(check_fdef_effects(env, fdef));
     return ret;
   }
@@ -2033,7 +2039,7 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   }
   return !err ? GW_OK : GW_ERROR;
 }
-
+/*
 ANN static inline void ctor_effects(const Env env) {
   const Vector v  = &env->scope->effects;
   MP_Vector *const w = (MP_Vector*)vector_back(v);
@@ -2046,33 +2052,32 @@ ANN static inline void ctor_effects(const Env env) {
   free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
   vector_pop(v);
 }
-
+*/
 ANN static m_bool check_body(const Env env, Section *const section) {
   const m_bool ret = check_section(env, section);
-  ctor_effects(env);
+//  ctor_effects(env);
   return ret;
 }
 
 ANN static bool class_def_has_body(Ast ast) {
-  for(m_uint i = 0; i < ast->len; i++) {
-    const Section *section = mp_vector_at(ast, Section, i);
-    if (section->section_type == ae_section_stmt) {
-      Stmt_List l = section->d.stmt_list;
-      for(m_uint i = 0; i < l->len; i++) {
-        const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
-        if (stmt->stmt_type == ae_stmt_pp) continue;
-        if (stmt->stmt_type == ae_stmt_exp) {
-          const Exp exp = stmt->d.stmt_exp.val;
-          if (!exp) continue;
-          if (exp->exp_type != ae_exp_decl) return true;
-          if (GET_FLAG(exp->d.exp_decl.td, late)) continue;
-          Var_Decl vd = exp->d.exp_decl.vd;
-          if (GET_FLAG(vd.value, late)) continue;
-          if (tflag(vd.value->type, tflag_compound))
-              return true;
-        } else return true;
-      }
-    }
+  const Section *section = mp_vector_at(ast, Section, 0);
+  if(section->section_type != ae_section_func) return false;
+  Func_Def f = section->d.func_def;
+  if(strcmp(s_name(f->base->xid), "@ctor"))return false;
+  Stmt_List l = f->d.code;
+  for(m_uint i = 0; i < l->len; i++) {
+    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    if (stmt->stmt_type == ae_stmt_pp) continue;
+    if (stmt->stmt_type == ae_stmt_exp) {
+      const Exp exp = stmt->d.stmt_exp.val;
+      if (!exp) continue;
+      if (exp->exp_type != ae_exp_decl) return true;
+      if (GET_FLAG(exp->d.exp_decl.td, late)) continue;
+      Var_Decl vd = exp->d.exp_decl.vd;
+      if (GET_FLAG(vd.value, late)) continue;
+      if (tflag(vd.value->type, tflag_compound))
+        return true;
+    } else return true;
   }
   return false;
 }
@@ -2160,6 +2165,7 @@ ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   if (cdef->body) {
     CHECK_BB(env_body(env, cdef, check_body));
     if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
+//    if (class_def_has_body(cdef->body))
       set_tflag(t, tflag_ctor);
   }
   if (!GET_FLAG(cdef, abstract)) CHECK_BB(check_abstract(env, cdef));

@@ -357,7 +357,7 @@ static OP_CHECK(opck_dict_remove_toop) {
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
   if(isa(args->type, hinfo->key) < 0 || args->next)
     ERR_N(e->pos, "dict.remove must be called with one Key argument");
-  return e->type = hinfo->val;
+  return e->type = env->gwion->type[et_void];
 }
 
 ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
@@ -640,6 +640,7 @@ static OP_CHECK(opck_dict_scan) {
   const Type   t   = cdef->base.type;
   t->nspc->class_data_size = sizeof(struct HMapInfo);
   const m_bool ret = traverse_cdef(env, t);
+    set_tflag(t, tflag_cdef);
   if(is_global) {
     env_pop(env, scope);
     type_addref(t);
@@ -659,7 +660,7 @@ static OP_CHECK(opck_dict_scan) {
   add_op(env->gwion, &opi);
 
   {
-  const Func             f      = (Func)vector_front(&t->nspc->vtable);
+  const Func             f      = (Func)vector_at(&t->nspc->vtable, 1);
   const struct Op_Func   opfunc = {.ck = opck_dict_remove_toop};
   const struct Op_Import opi    = {
       .rhs  = f->value_ref->type,
@@ -669,7 +670,6 @@ static OP_CHECK(opck_dict_scan) {
   CHECK_BN(add_op(env->gwion, &opi));
 
   }
-
   return ret > 0 ? t : NULL;
 }
 
@@ -679,7 +679,7 @@ GWION_IMPORT(dict) {
   t_dict->nspc->offset += sizeof(struct HMap);
   gwi->gwion->type[et_dict] = t_dict;
   set_tflag(t_dict, tflag_infer);
-  GWI_BB(gwi_func_ini(gwi, "bool",   "remove"));
+  GWI_BB(gwi_func_ini(gwi, "void",   "remove"));
   GWI_BB(gwi_func_arg(gwi, "Key",    "key"));
   GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
 

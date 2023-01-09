@@ -8,6 +8,7 @@
 ANN void free_func(Func a, Gwion gwion) {
   if (fflag(a, fflag_tmpl)) func_def_cleaner(gwion, a->def);
   if (a->code) vmcode_remref(a->code, gwion);
+  if (a->_wait) free_mp_vector(gwion->mp, Value, a->_wait);
   mp_free(gwion->mp, Func, a);
 }
 

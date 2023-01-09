@@ -687,7 +687,7 @@ static OP_CHECK(opck_closure_scan) {
 }
 
 static CTOR(fptr_ctor) {
-  *(VM_Code*)o->data = ((Func)vector_front(&o->type_ref->nspc->vtable))->code;
+  *(VM_Code*)o->data = ((Func)vector_at(&o->type_ref->nspc->vtable, 1))->code;
 }
 
 ANN m_bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {

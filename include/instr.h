@@ -69,6 +69,7 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Valu
 
 INSTR(SetFunc);
 INSTR(SetCtor);
+INSTR(FuncWait);
 #include "opcode.h"
 
 INSTR(dict_ctor_alt);

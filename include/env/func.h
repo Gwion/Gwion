@@ -17,12 +17,11 @@ struct Func_ {
   Value            value_ref;
   Func             next;
   m_str            name;
-  uint32_t         wait;
+  MP_Vector       *_wait;
   float            inline_mult;
   uint16_t         weight;  // used to mark gack use in scan1
   uint16_t         memoize; // used to mark return in scan1
   uint16_t         ref;
-//  uint16_t         vt_index;
   ae_flag          flag;
   enum fflag       fflag;
 };
@@ -45,7 +44,11 @@ ANN static inline Value upvalues_lookup(const Upvalues *upvalues, const Symbol s
 }
 
 ANN static inline m_uint captures_sz(const Capture_List captures) {
-  const Capture *cap = mp_vector_at(captures, Capture, (captures->len - 1));
+  const Capture *cap = mp_vector_back(captures, Capture);
   return cap->temp->from->offset + cap->temp->type->size;
+}
+
+ANN static inline bool is_ctor(const Func_Def fdef) {
+  return !strcmp(s_name(fdef->base->xid), "@ctor");
 }
 #endif
