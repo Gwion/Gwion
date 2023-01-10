@@ -213,7 +213,7 @@ static OP_EMIT(opem_array_sr) {
     return emit_array_shift(emit, ArrayConcatRight);
   emit_regmove(emit, -SZ_INT);
   if (tflag(bin->lhs->type, tflag_compound))
-    emit_compound_addref(emit, bin->lhs->type, -SZ_INT*2, false);
+    emit_compound_addref(emit, bin->lhs->type, -SZ_INT - bin->lhs->type->size, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
@@ -223,7 +223,7 @@ static OP_EMIT(opem_array_sl) {
   if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
   if (tflag(bin->rhs->type, tflag_compound))
-    emit_compound_addref(emit, bin->rhs->type, -SZ_INT, false);
+    emit_compound_addref(emit, bin->rhs->type, -bin->rhs->type->size, false);
   emit_regmove(emit, -bin->rhs->type->size);
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
@@ -1107,4 +1107,21 @@ INSTR(ArrayAlloc) {
     *(m_uint *)REG(-SZ_INT * 2)    = 0;
     *(m_uint *)REG(-SZ_INT)        = num_obj;
   }
+}
+
+ANN static bool last_is_zero(Exp e) {
+  while(e->next) e = e->next;
+  return exp_is_zero(e);
+}
+
+ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, const Exp args) {
+  if (!last_is_zero(td->array->exp)) {
+    if (!args)
+      ERR_B(td->pos, "declaration of abstract type arrays needs lambda");
+  } else {
+    if(args)
+      gwerr_warn("array is empty", "no need to provide a lambda",
+          NULL, env->name, td->array->exp->pos);
+  }
+  return GW_OK;
 }

@@ -10,6 +10,7 @@
 #include "parse.h"
 #include "operator.h"
 #include "import.h"
+#include "array.h"
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
@@ -120,7 +121,10 @@ OP_CHECK(opck_new) {
   DECL_ON(const Type, t, = known_type(env, unary->ctor.td));
   if(array && !unary->ctor.exp) {
     const Type base = array_base(t);
-    if(GET_FLAG(base, abstract)) CHECK_BN(abstract_array(env, array));
+    if(GET_FLAG(base, abstract))
+      CHECK_BN(abstract_array(env, array));
+    if(GET_FLAG(base, abstract))
+      CHECK_BN(check_array_instance(env, unary->ctor.td, unary->ctor.exp));
   }
   CHECK_BN(ensure_traverse(env, t));
   if (type_ref(t))
@@ -128,7 +132,9 @@ OP_CHECK(opck_new) {
   if (tflag(t, tflag_infer))
     ERR_N(unary->ctor.td->pos, _("can't use 'new' on '%s'\n"),
           t->name);
-  if (array) CHECK_BN(check_subscripts(env, array, 1));
+  if (array) {
+    CHECK_BN(check_subscripts(env, array, 1));
+  }
   if(unary->ctor.exp) {
     const Exp self   = exp_self(unary);
     const Exp args   = cpy_exp(env->gwion->mp, unary->ctor.exp);

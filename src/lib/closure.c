@@ -71,11 +71,8 @@ static OP_CHECK(opck_func_call) {
 static OP_CHECK(opck_fptr_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   const Type t = mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
-  if (t == env->gwion->type[et_error]) {
-    gwerr_basic("no matching argument of funptr call", "invalid call", "did you mean to use {+}:=>{0}", env->name, exp_self(bin)->pos, 0);
-    env->context->error = true;
-    return env->gwion->type[et_error];
-  }
+  if (t == env->gwion->type[et_error])
+    gw_err("{-}did you mean to use {0}{+}:=>{0}{-}?{0}\n");
   return t;
 }
 

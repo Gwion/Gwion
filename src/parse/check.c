@@ -16,6 +16,7 @@
 #include "tmp_resolve.h"
 #include "partial.h"
 #include "spread.h"
+#include "array.h"
 
 ANN m_bool check_stmt_list(const Env env, Stmt_List list);
 ANN m_bool        check_class_def(const Env env, const Class_Def class_def);
@@ -119,10 +120,10 @@ ANN static m_bool check_decl(const Env env, const Exp_Decl *decl) {
   const Var_Decl *vd = &decl->vd;
   CHECK_BB(check_var(env, vd));
   CHECK_BB(check_var_td(env, vd, decl->td));
-  if(decl->td->array && decl->td->array->exp) {
+  if (decl->td->array && decl->td->array->exp) {
     CHECK_BB(check_subscripts(env, decl->td->array, true));
-    if(!decl->args && GET_FLAG(array_base(decl->type), abstract))
-      ERR_B(decl->td->pos, "declaration of abstract type arrays needs lambda");
+    if (GET_FLAG(array_base(decl->type), abstract))
+      CHECK_BB(check_array_instance(env, decl->td, decl->args));
   }
   valid_value(env, vd->xid, vd->value);
   // set_vflag(var->value, vflag_used));
@@ -681,7 +682,8 @@ static void function_alternative(const Env env, const Type t, const Exp args,
     return;
   gwerr_basic("Argument type mismatch", "call site",
               "valid alternatives:", env->name, pos, 0);
-  Func up = isa(t, env->gwion->type[et_closure]) < 0
+  const bool is_closure = isa(t, env->gwion->type[et_closure]) < 0;
+  Func up = is_closure
           ?  t->info->func : closure_def(t)->base->func;
   do print_signature(up);
   while ((up = up->next));
@@ -1020,8 +1022,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       if(t) return t;
     }
   }
-  if(is_func(env->gwion, exp->func->type))
-    function_alternative(env, exp->func->type, exp->args, exp->func->pos);
+  function_alternative(env, exp->func->type, exp->args, exp->func->pos);
   return NULL;
 }
 
