@@ -312,11 +312,12 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     for(uint32_t i = 0; i < bases->len; i++) {
       Arg *base = mp_vector_at(bases, Arg, i);
       Arg *arg  = mp_vector_at(args, Arg, i);
-      arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
+      DECL_OB(const Type, arg_type, = known_type(env, base->td));
+      arg->td = type2td(env->gwion, arg_type, exp_self(l)->pos);
     }
   }
-  l->def->base->td =
-      type2td(env->gwion, known_type(env, fdef->base->td), exp_self(l)->pos);
+  DECL_OB(const Type, ret_type, = known_type(env, fdef->base->td));
+  l->def->base->td = type2td(env->gwion, ret_type, exp_self(l)->pos);
   /*Type*/ owner = fdef->base->func->value_ref->from->owner_class;
 
   Upvalues upvalues = {
@@ -349,7 +350,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   if(ret < 0) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
-      Arg *arg  = mp_vector_at(args, Arg, i);
+        Arg *arg  = mp_vector_at(args, Arg, i);
         free_value(arg->var_decl.value, env->gwion);
         arg->var_decl.value = NULL;
       }
