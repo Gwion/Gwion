@@ -134,13 +134,6 @@ INSTR(SetFunc) {
   shred->reg += SZ_INT;
 }
 
-INSTR(SetCtor) {
-  BYTE(eRegSetImm)
-  const Type t = (Type)instr->m_val;
-  VAL = *(m_uint *)(shred->reg + SZ_INT) = (m_uint)t->nspc->pre_ctor;
-  VAL2 = SZ_INT;
-}
-
 INSTR(FuncWait) {
   const Func f = (Func)instr->m_val;
   if(f->_wait->len - instr->m_val2) {

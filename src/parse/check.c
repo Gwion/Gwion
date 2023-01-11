@@ -19,7 +19,7 @@
 #include "array.h"
 
 ANN m_bool check_stmt_list(const Env env, Stmt_List list);
-ANN m_bool        check_class_def(const Env env, const Class_Def class_def);
+ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN static Type check_internal(const Env env, const Symbol sym, const Exp e,
                                const Type t) {

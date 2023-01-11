@@ -406,24 +406,14 @@ static ArrayInfo *emit_array_extend_inner(const Emitter emit, const Type t,
   return info;
 }
 
+ANN static void call_finish(const Emitter emit, const Func f,const bool);
 ANN void emit_ext_ctor(const Emitter emit, const Type t) {
   const Instr cpy = emit_add_instr(emit, Reg2Reg);
   cpy->m_val2     = -SZ_INT;
-  if (t->nspc->pre_ctor)
-    emit_setimm(emit, (m_uint)t->nspc->pre_ctor, SZ_INT);
-  else {
-    const Instr instr = emit_add_instr(emit, SetCtor);
-    instr->m_val      = (m_uint)t;
-  }
-  const m_uint offset = emit_code_offset(emit);
-  emit_setimm(emit, offset, SZ_INT*2);
-  emit_regmove(emit, SZ_INT*2);
-  const Instr prelude = emit_add_instr(emit, SetCode);
-  prelude->m_val      = -SZ_INT * 2;
-  prelude->udata.one  = 2;
-  (void)emit_regtomem(emit, 0, 0);
-  const Instr next = emit_add_instr(emit, Overflow);
-  next->m_val2     = offset;
+  const Func f = (Func)vector_front(&t->nspc->vtable);
+  emit_regmove(emit, SZ_INT);
+  emit_pushfunc(emit, f);
+  call_finish(emit, f, false);
 }
 
 ANN static inline void emit_notpure(const Emitter emit) {
