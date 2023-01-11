@@ -2723,8 +2723,6 @@ ANN static inline VM_Code _emit_func_def_code(const Emitter emit,
   }
   const VM_Code code = !fbflag(func->def->base, fbflag_internal) ? finalyze(emit, FuncReturn)
                                                    : emit_internal(emit, func);
-  if(is_ctor(func->def) && !emit->env->class_def->nspc->pre_ctor)
-    emit->env->class_def->nspc->pre_ctor = code;
   return code;
 }
 
@@ -2848,8 +2846,6 @@ ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
   if(fdef->builtin)  {
     fdef->base->func->code = new_vmcode(emit->gwion->mp, NULL, NULL, func->name, fdef->stack_depth, true, false);
     fdef->base->func->code->native_func = (m_uint)fdef->d.dl_func_ptr;
-    if(is_ctor(fdef))
-      emit->env->class_def->nspc->pre_ctor = fdef->base->func->code;
     return GW_OK;
   }
   if ((vflag(func->value_ref, vflag_builtin) &&

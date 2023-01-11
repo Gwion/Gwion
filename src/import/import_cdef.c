@@ -47,11 +47,7 @@ void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor) {
   if (ctor) {
     gwi_func_ini(gwi, "void", "@ctor");
     gwi_func_end(gwi, ctor, ae_flag_none);
-    if(t->nspc->vtable.ptr) {
-      set_tflag(t, tflag_ctor);
-      const Func f = (Func)vector_front(&t->nspc->vtable);
-      t->nspc->pre_ctor = f->code;
-    }
+    if(t->nspc->vtable.ptr) set_tflag(t, tflag_ctor);
   }
 }
 

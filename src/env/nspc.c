@@ -71,14 +71,16 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   nspc_free_value(a, gwion);
   nspc_free_func(a, gwion);
   nspc_free_trait(a, gwion);
-  if (a->info->op_map.ptr) free_op_map(&a->info->op_map, gwion);
-  if (a->info->op_tmpl.ptr) free_op_tmpl(&a->info->op_tmpl, gwion);
+  if(a->operators) {
+    if (a->operators->map.ptr) free_op_map(&a->operators->map, gwion);
+    if (a->operators->tmpl.ptr) free_op_tmpl(&a->operators->tmpl, gwion);
+    mp_free(gwion->mp, NspcOp, a->operators);
+  }
   nspc_free_type(a, gwion);
   if (a->class_data && a->class_data_size)
     mp_free2(gwion->mp, a->class_data_size, a->class_data);
   if (a->vtable.ptr) vector_release(&a->vtable);
   mp_free(gwion->mp, NspcInfo, a->info);
-  if (a->pre_ctor) vmcode_remref(a->pre_ctor, gwion);
   if (a->dtor) vmcode_remref(a->dtor, gwion);
   mp_free(gwion->mp, Nspc, a);
 }

@@ -1,19 +1,22 @@
 #ifndef __NSPC
 #define __NSPC
 typedef struct NspcInfo_ {
-  struct Map_    op_map;
   Scope          value;
   Scope          type;
   Scope          func;
   Scope          trait;
-  struct Vector_ op_tmpl;
 } NspcInfo;
+
+typedef struct NspcOp_ {
+  struct Map_    map;
+  struct Vector_ tmpl;
+} NspcOp;
 
 struct Nspc_ {
   struct Vector_    vtable;
   m_bit *           class_data;
-  struct VM_Code_ * pre_ctor;
   struct VM_Code_ * dtor;
+  NspcOp         *operators;
   Nspc              parent;
   m_str             name;
   NspcInfo       *info;

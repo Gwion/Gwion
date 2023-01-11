@@ -478,7 +478,9 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
     if (!arg->td->next && spec && arg->td->xid == spec->xid) { j++; }
   }
   if (j < sl->len) ERR_B(base->pos, "too many template types for operator");
-  const Vector v = &env->curr->info->op_tmpl;
+  if (!env->curr->operators)
+  env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
+  const Vector v = &env->curr->operators->tmpl;
   if (!v->ptr) vector_init(v);
   vector_add(v, (m_uint)cpy_func_def(env->gwion->mp, fdef));
   return GW_OK;
