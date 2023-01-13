@@ -144,7 +144,8 @@ ANN static inline Instr emit_##name(const Emitter emit, const m_uint value, cons
   instr->m_val2 = value2;                                                                          \
   return instr;                                                                                    \
  }
-mk_emit_instr(setimm, RegSetImm);
+mk_emit_instr(memsetimm, MemSetImm);
+mk_emit_instr(regsetimm, RegSetImm);
 mk_emit_instr(regtomem, Reg2Mem);
 mk_emit_instr(regtomem4, Reg2Mem4);
 mk_emit_instr(regpushmem4, RegPushMem4);
