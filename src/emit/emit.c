@@ -951,9 +951,10 @@ ANN static m_bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
     CHECK_BB(decl_static(emit, decl, var_decl, 0));
   CHECK_BB(emit_dot_static_data(emit, v, !struct_ctor(v) ? emit_addr : 1));
   if (tflag(v->type, tflag_struct)) CHECK_BB(struct_finish(emit, decl));
-  if (isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref)
-  if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
-    emit_object_addref(emit, 0, emit_addr);
+  if (isa(v->type, emit->gwion->type[et_object]) > 0 && !is_ref) {
+    if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
+      emit_object_addref(emit, 0, emit_addr);
+  }
   return GW_OK;
 }
 
