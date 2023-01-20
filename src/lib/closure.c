@@ -51,9 +51,9 @@ ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
 }
 
 ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp args) {
-  Exp_Call    call = {.func = func, .args = args };
-  e->exp_type      = ae_exp_call;
-  memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
+  Exp_Call call = {.func = func, .args = args };
+  e->exp_type   = ae_exp_call;
+  e->d.exp_call = call;
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];
 }
 
@@ -70,7 +70,10 @@ static OP_CHECK(opck_func_call) {
 
 static OP_CHECK(opck_fptr_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
-  return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
+  const Type t = mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
+  if (t == env->gwion->type[et_error])
+    gw_err("{-}did you mean to use {0}{+}:=>{0}{-}?{0}\n");
+  return t;
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
@@ -84,15 +87,15 @@ ANN Type upvalue_type(const Env env, Capture *cap) {
 }
 
 ANN void free_captures(const VM_Shred shred, m_bit *const caps) {
-  uint32_t sz = 0;
+  uint32_t sz = SZ_INT;
   const Capture_List captures = (*(Func_Def*)caps)->captures;
   for(m_uint i = 0; i < captures->len; i++) {
     Capture *const cap = mp_vector_at(captures, Capture, i);
-    if(isa(cap->temp->type, shred->info->vm->gwion->type[et_compound]) > 0)
-      compound_release(shred, cap->temp->type, caps + SZ_INT + sz);
+    if(tflag(cap->temp->type, tflag_compound))
+      compound_release(shred, cap->temp->type, caps + sz);
     sz += cap->temp->type->size;
   }
-  mp_free2(shred->info->mp, sz + SZ_INT, caps);
+  mp_free2(shred->info->mp, sz, caps);
 }
 
 static INSTR(fptr_capture) {
@@ -117,7 +120,7 @@ static INSTR(fptr_assign) {
 ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Type rhs) {
   const Instr instr = emit_add_instr(emit, fptr_assign);
   if(rhs->info->cdef && rhs->info->cdef->base.tmpl)
-    instr->m_val = SZ_INT*2;
+    instr->m_val = SZ_INT * 2;
   if(!lhs->info->func) {
     const Func_Def fdef = lhs->info->func->def;
     const Capture_List captures = fdef->captures;
@@ -130,8 +133,8 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
         e->d.prim.value = cap->orig;
         e->type = cap->orig->type;
         exp_setvar(e, cap->is_ref);
-        emit_exp(emit, e);
-        if(!cap->is_ref && isa(cap->temp->type, emit->gwion->type[et_compound]) > 0)
+        CHECK_BB(emit_exp(emit, e));
+        if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
           emit_compound_addref(emit, cap->temp->type, cap->temp->type->size, 0);
         offset += cap->temp->type->size;
       }
@@ -306,11 +309,12 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     for(uint32_t i = 0; i < bases->len; i++) {
       Arg *base = mp_vector_at(bases, Arg, i);
       Arg *arg  = mp_vector_at(args, Arg, i);
-      arg->td = type2td(env->gwion, known_type(env, base->td), exp_self(l)->pos);
+      DECL_OB(const Type, arg_type, = known_type(env, base->td));
+      arg->td = type2td(env->gwion, arg_type, exp_self(l)->pos);
     }
   }
-  l->def->base->td =
-      type2td(env->gwion, known_type(env, fdef->base->td), exp_self(l)->pos);
+  DECL_OB(const Type, ret_type, = known_type(env, fdef->base->td));
+  l->def->base->td = type2td(env->gwion, ret_type, exp_self(l)->pos);
   /*Type*/ owner = fdef->base->func->value_ref->from->owner_class;
 
   Upvalues upvalues = {
@@ -343,7 +347,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   if(ret < 0) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
-      Arg *arg  = mp_vector_at(args, Arg, i);
+        Arg *arg  = mp_vector_at(args, Arg, i);
         free_value(arg->var_decl.value, env->gwion);
         arg->var_decl.value = NULL;
       }
@@ -518,8 +522,7 @@ static OP_EMIT(opem_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   if(!impl->e->type->info->func->code)
     emit_ensure_func(emit, impl->e->type->info->func);
-  const Instr instr = emit_add_instr(emit, RegPushImm);
-  instr->m_val = (m_uint)impl->e->type->info->func->code;
+  emit_pushimm(emit, (m_uint)impl->e->type->info->func->code);
   return emit_fptr_assign(emit, impl->e->type, impl->t);
 }
 
@@ -624,7 +627,7 @@ static OP_CHECK(opck_op_cast) {
 
 static OP_CHECK(opck_func_partial) {
   Exp_Call *call = (Exp_Call*)data;
-  return partial_type(env, call);
+  return partial_type(env, call) ?: env->gwion->type[et_error];
 }
 
 static OP_CHECK(opck_class_partial) {
@@ -688,7 +691,17 @@ static OP_CHECK(opck_closure_scan) {
 }
 
 static CTOR(fptr_ctor) {
-  *(VM_Code*)o->data = ((Func)vector_front(&o->type_ref->nspc->vtable))->code;
+  *(VM_Code*)o->data = ((Func)vector_at(&o->type_ref->nspc->vtable, 1))->code;
+}
+
+ANN m_bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
+  fptr->cdef->base.type->nspc->offset += SZ_INT * 3;
+  env_push_type(env, fptr->cdef->base.type);
+  CHECK_BB(traverse_func_def(env, fdef));
+  builtin_func(env->gwion, fdef->base->func, fptr_ctor);
+  set_tflag(fdef->base->func->value_ref->type, tflag_ftmpl);
+  env_pop(env, 0);
+  return GW_OK;
 }
 
 static DTOR(fptr_dtor) {
@@ -723,7 +736,7 @@ GWION_IMPORT(func) {
 
   GWI_BB(gwi_oper_ini(gwi, "funptr", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_closure_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "function", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_func_call))

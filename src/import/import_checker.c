@@ -310,14 +310,16 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t,
                         const loc_t pos NUSED) {
-  GwText     text  = {.mp = gwion->mp};
+  GwText     text;
+  text_init(&text, gwion->mp);
   td_fullname(gwion->env, &text, t);
   return text.str;
 }
 
 ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl,
                       const loc_t pos NUSED) {
-  struct td_info info = {.tl = tl, {.mp = gwion->mp}};
+  struct td_info info = {.tl = tl};
+  text_init(&info.text, gwion->mp);
   CHECK_BO(td_info_run(gwion->env, &info));
   return info.text.str;
 }

@@ -1,3 +1,0 @@
-#! [contains] keyword 'this' must be associated with object instance
-class C {}
-C.this;

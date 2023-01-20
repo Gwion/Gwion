@@ -68,9 +68,11 @@ struct dottmpl_ {
 ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value v);
 
 INSTR(SetFunc);
-INSTR(SetCtor);
+INSTR(FuncWait);
 #include "opcode.h"
 
 INSTR(dict_ctor_alt);
 INSTR(dict_lit_ctor);
+
+INSTR(DotTmplVal);
 #endif

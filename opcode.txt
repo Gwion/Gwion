@@ -15,7 +15,6 @@ RegPushBase3~p
 RegPushBase4~p
 Reg2Reg~u~u
 Reg2RegOther~u~u
-Reg2RegOther2~u~u
 Reg2RegAddr~u~u
 Reg2RegDeref~u~u
 StructMember~u
@@ -154,7 +153,6 @@ FuncMemberEnd~u~↓
 SporkIni~p
 ForkIni~p~i
 SporkFunc
-SporkMemberFptr~u
 SporkExp~u
 SporkCode~u
 ForkEnd
@@ -180,8 +178,9 @@ ObjectAssign
 Assign
 ObjectRelease~u
 ObjectRelease2~p
+StructReleaseRegAddr~u~t
+StructReleaseMem~u~t
 GWOP_EXCEPT~u
-AllocMember4~u
 DotMemberMem~u
 DotMemberMem2~u
 DotMemberMem4~u
@@ -211,6 +210,5 @@ DebugValue
 DebugPush
 DebugPop
 EOC
-Unroll2
-OP_MAX~p
-DotTmplVal
+VM_IN
+OP_MAX

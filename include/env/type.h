@@ -39,9 +39,10 @@ enum tflag {
   tflag_contract = 1 << 19,
   tflag_float    = 1 << 20,
   tflag_union    = 1 << 21,
-  tflag_enum     = 1 << 22,
-  tflag_ref      = 1 << 23,
-  tflag_packed   = 1 << 24,
+  tflag_ref      = 1 << 22,
+  tflag_packed   = 1 << 23,
+  tflag_compound = 1 << 24,
+  tflag_release  = 1 << 25, // mark structs that need release
 } __attribute__((packed));
 
 struct Type_ {
@@ -50,8 +51,8 @@ struct Type_ {
   struct TypeInfo_ *info;
   uint64_t          size;
   uint64_t          actual_size;
-  struct Vector_    effects; // pre-ctor effects
-  uint32_t            array_depth;
+//  struct Vector_    effects; // pre-ctor effects
+  uint32_t          array_depth;
   uint16_t          ref;
   uint16_t          weight;
   ae_flag           flag;
@@ -133,6 +134,7 @@ typedef enum {
   et_char,
   et_float,
   et_error,
+  et_enum,
   et_compound,
   et_object,
   et_shred,

@@ -69,7 +69,7 @@ ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
   const Value v = nspc_lookup_value0(env->curr, s);
   if (!v || is_class(env->gwion, v->type)) return GW_OK;
   gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, pos, 0);
-  gwerr_secondary_from("declared here", v->from);
+  declared_here(v);
   env_error_footer(env);
   return GW_ERROR;
 }
@@ -103,7 +103,7 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   if (v) return v;
   const Value value =
       new_value(env, env->gwion->type[et_string], s_name(sym), loc);
-  nspc_add_value_front(env->global_nspc, sym, value);
+  _nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }
 

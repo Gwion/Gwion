@@ -161,8 +161,7 @@ static OP_CHECK(opck_array_sr) {
 
 ANN static inline m_bool emit_array_shift(const Emitter emit,
                                           const f_instr exec) {
-  const Instr pop = emit_add_instr(emit, RegMove);
-  pop->m_val      = -SZ_INT;
+  emit_regmove(emit, -SZ_INT);
   (void)emit_add_instr(emit, exec);
   return GW_OK;
 }
@@ -212,10 +211,9 @@ static OP_EMIT(opem_array_sr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->lhs->type, bin->rhs->type))
     return emit_array_shift(emit, ArrayConcatRight);
-  const Instr pop = emit_add_instr(emit, RegMove);
-  pop->m_val      = -SZ_INT;
-  if (isa(bin->lhs->type, emit->gwion->type[et_compound]) > 0)
-    emit_compound_addref(emit, bin->lhs->type, -SZ_INT*2, false);
+  emit_regmove(emit, -SZ_INT);
+  if (tflag(bin->lhs->type, tflag_compound))
+    emit_compound_addref(emit, bin->lhs->type, -SZ_INT - bin->lhs->type->size, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
   return GW_OK;
 }
@@ -224,10 +222,9 @@ static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
     return emit_array_shift(emit, ArrayConcatLeft);
-  if (isa(bin->rhs->type, emit->gwion->type[et_compound]) > 0)
-    emit_compound_addref(emit, bin->rhs->type, -SZ_INT, false);
-  const Instr pop = emit_add_instr(emit, RegMove);
-  pop->m_val      = -bin->rhs->type->size;
+  if (tflag(bin->rhs->type, tflag_compound))
+    emit_compound_addref(emit, bin->rhs->type, -bin->rhs->type->size, false);
+  emit_regmove(emit, -bin->rhs->type->size);
   emit_add_instr(emit, ArrayAppend);
   return GW_OK;
 }
@@ -310,8 +307,7 @@ static OP_CHECK(opck_array) {
 }
 
 ANN static void array_loop(const Emitter emit, const m_uint depth) {
-  const Instr pre_pop = emit_add_instr(emit, RegMove);
-  pre_pop->m_val      = -depth * SZ_INT;
+  emit_regmove(emit, -depth * SZ_INT);
   for (m_uint i = 0; i < depth - 1; ++i) {
     const Instr access = emit_add_instr(emit, ArrayAccess);
     access->m_val      = i * SZ_INT;
@@ -322,8 +318,7 @@ ANN static void array_loop(const Emitter emit, const m_uint depth) {
     const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
     ex->m_val          = -SZ_INT;
   }
-  const Instr post_pop = emit_add_instr(emit, RegMove);
-  post_pop->m_val      = -SZ_INT;
+  emit_regmove(emit, -SZ_INT);
   const Instr access   = emit_add_instr(emit, ArrayAccess);
   access->m_val        = depth * SZ_INT;
 }
@@ -336,8 +331,7 @@ ANN static void array_finish(const Emitter emit, const Array_Sub array, const m_
       emit_add_instr(emit, GWOP_EXCEPT);
   }
   get->m_val      = array->depth * SZ_INT;
-  const Instr push = emit_add_instr(emit, RegMove);
-  push->m_val      = is_var ? SZ_INT : t->size;
+  emit_regmove(emit, is_var ? SZ_INT : t->size);
 }
 
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
@@ -747,7 +741,7 @@ static OP_CHECK(opck_array_scan) {
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
-  (void)scan0_class_def(env, cdef);
+  CHECK_BN(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))
     SET_FLAG(t, abstract);
@@ -762,12 +756,12 @@ static OP_CHECK(opck_array_scan) {
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);
   set_tflag(t, tflag_cdef | tflag_tmpl);
-  void *rem = isa(base, env->gwion->type[et_compound]) > 0
+  void *rem = tflag(base, tflag_compound)
                   ? !tflag(base, tflag_struct) ? vm_vector_rem_obj
                                                : vm_vector_rem_struct
                   : vm_vector_rem;
   builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), rem);
-  void *insert = isa(base, env->gwion->type[et_compound]) > 0
+  void *insert = tflag(base, tflag_compound)
                      ? !tflag(base, tflag_struct) ? vm_vector_insert_obj
                                                   : vm_vector_insert_struct
                      : vm_vector_insert;
@@ -785,7 +779,7 @@ static OP_CHECK(opck_array_scan) {
   array_func(env, t, "foldr", vm_vector_foldr);
 //  array_func(env, t, "new", vm_vector_new);
 
-  if (isa(base, env->gwion->type[et_compound]) > 0) {
+  if (tflag(base, tflag_compound)) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
                                "array component dtor", SZ_INT, true, false);
     set_tflag(t, tflag_dtor);
@@ -978,11 +972,11 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_ini(gwi, "int", "Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))
   GWI_BB(gwi_oper_emi(gwi, opem_array_slice))
-  GWI_BB(gwi_oper_end(gwi, "@slice", NULL))
+  GWI_BB(gwi_oper_end(gwi, "[:]", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array))
   GWI_BB(gwi_oper_emi(gwi, opem_array_access))
-  GWI_BB(gwi_oper_end(gwi, "@array", NULL))
+  GWI_BB(gwi_oper_end(gwi, "[]", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Array", NULL, "void"))
   GWI_BB(gwi_oper_emi(gwi, opem_array_each_init))
   GWI_BB(gwi_oper_end(gwi, "@each_init", NULL))
@@ -996,7 +990,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Array", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, NULL, "bool"))
   GWI_BB(gwi_oper_end(gwi, "@array_init", NoOp))
@@ -1113,4 +1107,21 @@ INSTR(ArrayAlloc) {
     *(m_uint *)REG(-SZ_INT * 2)    = 0;
     *(m_uint *)REG(-SZ_INT)        = num_obj;
   }
+}
+
+ANN static bool last_is_zero(Exp e) {
+  while(e->next) e = e->next;
+  return exp_is_zero(e);
+}
+
+ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, const Exp args) {
+  if (!last_is_zero(td->array->exp)) {
+    if (!args)
+      ERR_B(td->pos, "declaration of abstract type arrays needs lambda");
+  } else {
+    if(args)
+      gwerr_warn("array is empty", "no need to provide a lambda",
+          NULL, env->name, td->array->exp->pos);
+  }
+  return GW_OK;
 }

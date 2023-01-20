@@ -28,7 +28,7 @@ provide-module -override gwion %{
 		types='auto int float bool dur time void Object Shred Event'
 		values='true false none this now me adc dac maybe'
 		builtins='__file__ __line__ __func__'
-		entities='class struct trait union enum'
+		entities='class struct trait union enum primitive'
 		operators='\\\? : \$ @ \\\+ - \\\* / % \~ \< \> \\\^ \\\| \& ! ='
 
 		join() { sep=$2; eval set -- $1; IFS="$sep"; echo "$*"; }

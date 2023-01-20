@@ -103,7 +103,7 @@ ANN static m_bit *tobytecode(MemPool p, const VM_Code code) {
           instr->m_val = next->m_val;
           next->opcode = eNoOp;
         }
-      } else if (instr->opcode == eUnroll2) {
+      } else if (instr->opcode == eVM_IN) {
         const Instr  unroll     = (Instr)instr->m_val;
         const m_uint pc         = vector_find(v, (m_uint)unroll);
         m_uint       reduce_pre = 0, reduce = 0;
@@ -182,8 +182,8 @@ VM_Code new_vmcode(MemPool p, const Vector instr, const M_Vector live_values,
   VM_Code code = mp_calloc(p, VM_Code);
   code->name   = mstrdup(p, name);
   if (instr) {
-    vector_init(&code->instr);
-    vector_copy2(instr, &code->instr);
+    code->instr.ptr = instr->ptr;
+    instr->ptr = NULL;
     code->bytecode = tobytecode(p, code);
   }
   if (live_values) code->live_values.ptr = live_values->ptr;

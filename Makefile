@@ -69,9 +69,9 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
-all: options-show ${PRG}
+all: options-show prg
 
-${PRG}: ${GWLIBS} src/main.o
+prg: ${GWLIBS} src/main.o
 	@$(info link ${PRG})
 	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
 
@@ -109,9 +109,9 @@ ast: ast/libgwion_ast.a
 afl: gwion-fuzz
 
 gwion-fuzz:
-	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
+	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c src/vm/vm.c
 	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ ${MAKE}
-	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c
+	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c src/vm/vm.c
 
 clean_core:
 	@rm -f core.* *vgcore.*
@@ -155,7 +155,7 @@ uninstall: translation-uninstall
 	@rm ${DESTDIR}/${PREFIX}/include/gwion/*.h
 	@rmdir --ignore-fail-on-non-empty ${DESTDIR}/${PREFIX}/include/gwion
 
-test: ${PRG}
+test: prg
 	@bash scripts/test.sh ${test_dir}
 
 scan:

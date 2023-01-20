@@ -10,12 +10,15 @@
 #include "import.h"
 
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
+  const Array_Sub array = td->array;
+  td->array = NULL;
   Type_List tl  = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
   mp_vector_set(tl, Type_Decl*, 0, td);
   Type_Decl         tmp = {
       .xid = insert_symbol("Option"), .types = tl, .pos = td->pos};
   const Type t = !(n - 1) ? known_type(env, &tmp) : _option(env, &tmp, n - 1);
   free_mp_vector(env->gwion->mp, Type_Decl*, tl);
+  td->array = array;
   return t;
 }
 
@@ -44,7 +47,8 @@ ANN static inline Type ref(const Env env, Type_Decl *td) {
 }
 
 ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
-  GwText text = { .mp = env->gwion->mp };
+  GwText text;
+  text_init(&text, env->gwion->mp);
   text_add(&text, "(");
   DECL_OO(const Type, t, = known_type(env, base->td));
   DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->pos));

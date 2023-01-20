@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -6,6 +5,10 @@
 #include "traverse.h"
 #include "template.h"
 #include "parse.h"
+#include "object.h"
+#include "operator.h"
+#include "instr.h"
+#include "import.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
@@ -38,17 +41,15 @@ ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
   const ValueFrom *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
-  if(!GET_FLAG(t, global) && !from_global_nspc(env, from->owner)) {
-    if(from->owner_class && type_global(env, from->owner_class))
+  if(from_global_nspc(env, from->owner) ||
+    (from->owner_class && type_global(env, from->owner_class)))
       return true;
-    gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
-    gwerr_secondary_from("not declared global", from);
-    const ValueFrom *ownerFrom = env->class_def->info->value->from;
-    gwerr_secondary_from("is global", ownerFrom);
-    env_set_error(env, true);
-    return false;
-  }
-  return true;
+  gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
+  gwerr_secondary_from("not declared global", from);
+  const ValueFrom *ownerFrom = env->class_def->info->value->from;
+  gwerr_secondary_from("is global", ownerFrom);
+  env_set_error(env, true);
+  return false;
 }
 
 ANN static Type scan1_type(const Env env, Type_Decl *td) {
@@ -82,18 +83,15 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
 static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
   if (var->value) // from an auto declaration
     return GW_OK;
-  if (((!env->class_def || !GET_FLAG(env->class_def, final) ||
+  const Value v = ((!env->class_def || !GET_FLAG(env->class_def, final) ||
         env->scope->depth)
            ? nspc_lookup_value1
-           : nspc_lookup_value2)(env->curr, var->xid))
+           : nspc_lookup_value2)(env->curr, var->xid);
+  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class) > 0))
     ERR_B(var->pos,
           _("variable %s has already been defined in the same scope..."),
           s_name(var->xid))
   return GW_OK;
-}
-
-static inline bool array_ref(const Array_Sub array) {
-  return array && !array->exp;
 }
 
 ANN m_bool abstract_array(const Env env, const Array_Sub array) {
@@ -107,7 +105,7 @@ ANN m_bool abstract_array(const Env env, const Array_Sub array) {
 }
 
 ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
-  const bool    decl_ref = array_ref(decl->td->array);
+  const bool decl_ref = decl->td->array && !decl->td->array->exp;
   Var_Decl *const vd = &decl->vd;
   CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
   Type t = decl->type;
@@ -132,6 +130,8 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
       if (env->class_def->info->tuple) tuple_contains(env, v);
       if (!GET_FLAG(decl->td, static)) {
         set_vflag(v, vflag_member);
+        if(tflag(t, tflag_release))
+          set_tflag(env->class_def, tflag_release);
         if(isa(t, env->gwion->type[et_object]) > 0)
           set_vflag(v, vflag_release);
         if (tflag(env->class_def, tflag_struct)) {
@@ -139,7 +139,10 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
           env->class_def->size += t->size;
         }
       }
-    } else set_vflag(v, vflag_fglobal); // file global
+    } else if (GET_FLAG(decl->td, global))
+      SET_FLAG(v, global);
+    else if(env->context)
+    set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
   nspc_add_value(env->curr, vd->xid, v);
@@ -181,6 +184,7 @@ ANN static inline m_bool scan1_prim(const Env env, const Exp_Primary *prim) {
     return scan1_exp(env, prim->d.exp);
   if (prim->prim_type == ae_prim_hack) {
     if(env->func) env->func->weight = 1; // mark function has having gack
+    // we should use effects when typechecking for that
     return scan1_exp(env, prim->d.exp);
   }
   if (prim->prim_type == ae_prim_array && prim->d.array->exp)
@@ -230,7 +234,7 @@ ANN static inline m_bool scan1_exp_dot(const Env env, const Exp_Dot *member) {
 
 ANN static m_bool scan1_exp_if(const Env env, const Exp_If *exp_if) {
   CHECK_BB(scan1_exp(env, exp_if->cond));
-  CHECK_BB(scan1_exp(env, exp_if->if_exp ?: exp_if->cond));
+  if(exp_if->if_exp) CHECK_BB(scan1_exp(env, exp_if->if_exp));
   return scan1_exp(env, exp_if->else_exp);
 }
 
@@ -301,15 +305,14 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env,
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"),
           s_name(stmt->sym))
   if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->sym))
-    ERR_B(stmt_self(stmt)->pos, _("foreach index '%s' is already defined"),
+    ERR_B(stmt->idx->pos, _("foreach index '%s' is already defined"),
           s_name(stmt->idx->sym))
   return GW_OK;
 }
 
 ANN static inline m_bool shadow_err(const Env env, const Value v,
                                     const loc_t loc) {
-  if(env->scope->shadowing)
-    return GW_OK;
+  if(env->scope->shadowing) return GW_OK;
   gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
               env->name, loc, 0);
   defined_here(v);
@@ -322,7 +325,12 @@ ANN static inline m_bool shadow_arg(const Env env, const Symbol sym,
   Nspc nspc = env->curr;
   do {
     const Value v = nspc_lookup_value0(nspc, sym);
-    if (v && !env->func->def->builtin) return shadow_err(env, v, loc);
+    if (v && !env->func->def->builtin) {
+      const Type owner = v->from->owner_class;
+      if (owner && env->class_def && isa(env->class_def, owner) < 0)
+        continue;
+      return shadow_err(env, v, loc);
+    }
   } while ((nspc = nspc->parent));
   return GW_OK;
 }
@@ -346,9 +354,34 @@ describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_
 describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->sym, stmt->idx->pos)) < 0 ||
     scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(if, Stmt_If,, !(scan1_exp(env, stmt->cond) < 0 ||
-    scan1_stmt(env, stmt->if_body) < 0 ||
-    (stmt->else_body && scan1_stmt(env, stmt->else_body) < 0)) ? 1 : -1)
+
+ANN static inline bool if_stmt_is_return(const Stmt stmt) {
+  if (stmt->stmt_type == ae_stmt_return) return true;
+  if (stmt->stmt_type == ae_stmt_code) {
+    if (mp_vector_len(stmt->d.stmt_code.stmt_list)) {
+      Stmt s = mp_vector_back(stmt->d.stmt_code.stmt_list, struct Stmt_);
+      if (s->stmt_type == ae_stmt_return) return true;
+    }
+  }
+  return false;
+}
+
+ANN static inline m_bool _scan1_stmt_if(const Env env, const Stmt_If stmt) {
+  CHECK_BB(scan1_exp(env, stmt->cond));
+  CHECK_BB(scan1_stmt(env, stmt->if_body));
+  if(stmt->else_body) {
+    const bool is_ret = if_stmt_is_return(stmt->if_body);
+    if(is_ret) env->scope->depth--;
+    CHECK_BB(scan1_stmt(env, stmt->else_body));
+    if(is_ret) env->scope->depth++;
+  }
+  return GW_OK;
+}
+
+ANN static inline m_bool scan1_stmt_if(const Env env, const Stmt_If stmt) {
+  RET_NSPC(_scan1_stmt_if(env, stmt));
+  return GW_OK;
+}
 
 ANN static inline m_bool scan1_stmt_code(const Env env, const Stmt_Code stmt) {
   if (stmt->stmt_list) { RET_NSPC(scan1_stmt_list(env, stmt->stmt_list)) }
@@ -445,26 +478,26 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
     if (!arg->td->next && spec && arg->td->xid == spec->xid) { j++; }
   }
   if (j < sl->len) ERR_B(base->pos, "too many template types for operator");
-  const Vector v = &env->curr->info->op_tmpl;
+  if (!env->curr->operators)
+  env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
+  const Vector v = &env->curr->operators->tmpl;
   if (!v->ptr) vector_init(v);
   vector_add(v, (m_uint)cpy_func_def(env->gwion->mp, fdef));
   return GW_OK;
 }
 
-#include "object.h"
-#include "instr.h"
-#include "operator.h"
-#include "import.h"
-
 ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
-  if(GET_FLAG(fptr->cdef, global))env_push_global(env);
+  const bool global = GET_FLAG(fptr->cdef, global);
+  if(global) env_push_global(env);
   const m_bool ret = scan1_class_def(env, fptr->cdef);
-  if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
+  if(global) env_pop(env, 0);
   return ret;
 }
 
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
+  if(tflag(tdef->type->info->parent, tflag_ref))
+    ERR_B(tdef->pos, "can't typedef a reference type");
   if (tflag(tdef->type, tflag_cdef))
     return scan1_class_def(env, tdef->type->info->cdef);
   return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
@@ -483,6 +516,8 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
     DECL_OB(const Type, t, = known_type(env, um->td));
     if (nspc_lookup_value0(env->curr, um->vd.xid))
       ERR_B(um->vd.pos, _("'%s' already declared in union"), s_name(um->vd.xid))
+    if(tflag(t, tflag_ref))
+      ERR_B(um->vd.pos, _("can't declare ref type in union"));
     const Value v = new_value(env, t, s_name(um->vd.xid), um->vd.pos);
     tuple_contains(env, v);
     valuefrom(env, v->from);
@@ -521,7 +556,7 @@ ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
     ERR_B(stmt_self(stmt)->pos,
           _("'return' statement found outside function definition"))
   if (env->scope->depth == 1) env->func->memoize = 1;
-  if(stmt->val) scan1_exp(env, stmt->val);
+  if(stmt->val) CHECK_BB(scan1_exp(env, stmt->val));
   return GW_OK;
 }
 
@@ -548,31 +583,29 @@ ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
   return scan1_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
+ANN static inline bool end_flow(Stmt s) {
+  const ae_stmt_t t = s->stmt_type;
+  return t == ae_stmt_continue ||
+         t == ae_stmt_break    ||
+         t == ae_stmt_return;
+}
+
+ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
+  for(uint32_t i = len; i < l->len; i++) {
+    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    free_stmt(env->gwion->mp, s);
+  }
+  l->len = len;
+}
+
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
-  for(m_uint i = 0; i < l->len; i++) {
+  uint32_t i;
+  for(i = 0; i < l->len; i++) {
     const Stmt s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt(env, s));
+    if(end_flow(s)) break;
   }
-/*
-  do {
-    CHECK_BB(scan1_stmt(env, l->stmt));
-    if (l->next) {
-      if (l->stmt->stmt_type != ae_stmt_return) {
-        if (l->next->stmt->stmt_type == ae_stmt_exp &&
-            !l->next->stmt->d.stmt_exp.val) {
-          Stmt_List next = l->next;
-          l->next        = l->next->next;
-          next->next     = NULL;
-          free_stmt_list(env->gwion->mp, next);
-        }
-      } else {
-        Stmt_List tmp = l->next;
-        l->next       = NULL;
-        free_stmt_list(env->gwion->mp, tmp);
-      }
-    }
-  } while ((l = l->next));
-*/
+  if(++i < l->len) dead_code(env, l, i);
   return GW_OK;
 }
 
@@ -589,7 +622,7 @@ ANN static m_bool class_internal(const Env env, const Func_Base *base) {
 
 ANN static inline m_bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
-  if (base->args->len == 1) return GW_OK;
+  if (mp_vector_len(base->args) == 1) return GW_OK;
   assert(base->td);
   ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"),
         s_name(base->xid))
@@ -616,6 +649,13 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
   if (op == insert_symbol("@conditional") ||
       op == insert_symbol("@unconditional"))
     return scan_internal_int(env, base);
+  if(op == insert_symbol("@array_init") ||
+     op == insert_symbol("@each")       ||
+     op == insert_symbol("@each_idx")   ||
+     op == insert_symbol("@each_init")  ||
+     op == insert_symbol("@each_val")   ||
+     op == insert_symbol("@partial"))
+      ERR_B(base->pos, "operator '%s' not allowed", s_name(op));
   return GW_OK;
 }
 
@@ -644,7 +684,10 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
     CHECK_BB(scan_internal(env, fdef->base));
   else if (fbflag(fdef->base, fbflag_op) && env->class_def)
     SET_FLAG(fdef->base, static);
-  RET_NSPC(scan1_fbody(env, fdef))
+  if(!is_ctor(fdef)) {
+    RET_NSPC(scan1_fbody(env, fdef))
+  } else if(!fdef->builtin)
+      CHECK_BB(scan1_stmt_list(env, fdef->d.code));
   return GW_OK;
 }
 
@@ -665,11 +708,10 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if(GET_FLAG(fdef->base, abstract) && !env->class_def)
     ERR_B(fdef->base->pos, "file scope function can't be abstract");
+  CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->pos));
+  CHECK_BB(scan1_fdef_defined(env, fdef));
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
-  if (fdef->base->td)
-    CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->td->pos));
-  CHECK_BB(scan1_fdef_defined(env, fdef));
   if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef);
   struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
                                                              env->func;
@@ -742,6 +784,34 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
+ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
+  if(!tmpl_base(cdef->base.tmpl) && isa(cdef->base.type, env->gwion->type[et_closure]) < 0 &&
+   isa(cdef->base.type, env->gwion->type[et_dict]) < 0) {
+    MemPool mp = env->gwion->mp;
+    Ast base = cdef->body;
+    Stmt_List ctor = new_mp_vector(mp, struct Stmt_, 0);
+    Ast body = new_mp_vector(mp, Section, 1); // room for ctor
+    for(uint32_t i = 0; i < base->len; i++) {
+      Section section = *mp_vector_at(base, Section, i);
+      if(section.section_type == ae_section_stmt) {
+        Stmt_List list = section.d.stmt_list;
+        for(uint32_t j = 0; j < list->len; j++) {
+          Stmt stmt = mp_vector_at(list, struct Stmt_, j);
+          mp_vector_add(mp, &ctor, struct Stmt_, *stmt);
+        }
+      } else mp_vector_add(mp, &body, Section, section);
+    }
+    Type_Decl *td = type2td(env->gwion, env->gwion->type[et_void], cdef->base.pos);
+    Symbol sym = insert_symbol("@ctor");
+    Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.pos);
+    Func_Def  fdef = new_func_def(mp, fb, ctor);
+    mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
+    free_mp_vector(mp, Section, base);
+    cdef->body = body;
+  }
+  return env_body(env, cdef, scan1_section);
+}
+
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
@@ -749,7 +819,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   set_tflag(t, tflag_scan1);
   const Class_Def c = t->info->cdef;
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
-  if (c->body) CHECK_BB(env_body(env, c, scan1_section));
+  if (c->body) CHECK_BB(scan1_class_def_body(env, c));
   return GW_OK;
 }
 

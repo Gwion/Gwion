@@ -1,17 +1,12 @@
 #ifndef __GWIONPASS
 #define __GWIONPASS
 
-typedef union __attribute__((__transparent_union__)) {
-  Ast    *ast;
-  m_bool *     ret;
-} PassArg;
-
 struct Passes_ {
   struct Map_    map;
   struct Vector_ vec;
 };
 // change this to gwion ?
-typedef m_bool (*compilation_pass)(const Env, PassArg);
+typedef m_bool (*compilation_pass)(const Env, Ast*);
 
 ANEW ANN struct Passes_ *new_passes(const Gwion);
 ANN void                 free_passes(MemPool mp, struct Passes_ *);

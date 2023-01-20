@@ -164,9 +164,8 @@ ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_i
   d->tmp->d.prim.value = d->val;
   d->tmp->type = d->val->type;
   check_deep_equal_exp(emit->env, d->exp, &d->vec);
-  const Instr instr = emit_add_instr(emit, Reg2Mem);
-  instr->m_val2 = offset;
-  d->val->from->offset = instr->m_val = emit_localn(emit, d->val->type);
+  d->val->from->offset = emit_localn(emit, d->val->type);
+  emit_regtomem(emit, d->val->from->offset, offset);
 }
 
 ANN static void deep_emit_release(const Emitter emit, struct DeepEmit *d) {
@@ -183,7 +182,7 @@ struct DeepEmits {
 };
 
 static void deep_emits_init(const Emitter emit, struct DeepEmits *ds) {
-  emit_add_instr(emit, RegMove)->m_val = -SZ_INT;
+  emit_regmove(emit, -SZ_INT);
   deep_emit_init(emit, ds->lhs, -SZ_INT);
   deep_emit_init(emit, ds->rhs, 0);
   vector_init(&ds->acc);
@@ -212,10 +211,6 @@ ANN static bool deep_emit(const Emitter emit, struct DeepEmits *ds) {
     struct Exp_ rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
     struct Exp_ temp = MK_BIN(lexp, rexp, ds->bin);
     temp.type=emit->gwion->type[et_bool];
-    if(tflag(lexp.type, tflag_struct))
-      exp_setvar(&lexp, true);
-    if(tflag(rexp.type, tflag_struct))
-      exp_setvar(&rexp, true);
     if(emit_exp(emit, &temp) < 0) return false;
     vector_add(&ds->acc, (m_uint)emit_add_instr(emit, BranchEqInt));
   }

@@ -34,6 +34,7 @@ struct Value_ {
   Type               type;
   m_str              name;
   ValueFrom *from;
+  MP_Vector *used_by; // list of functions using this global
   union value_data   d;
   uint16_t           ref;
   ae_flag            flag;
@@ -53,6 +54,6 @@ ANN static inline void defined_here(const Value v) {
 
 ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
   set_vflag(v, vflag_valid);
-  nspc_add_value(env->curr, xid, v);
+  _nspc_add_value(env->curr, xid, v);
 }
 #endif

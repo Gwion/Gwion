@@ -25,12 +25,14 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Build Gwion
-      run: make
+      run: make USE_COVERAGE=1
       env:
         USE_COVERAGE: 1
         
     - name: Test Gwion
       run: make test
+      env:
+        USE_COVERAGE: 1
 
     - uses: actions/setup-python@v1
       with:

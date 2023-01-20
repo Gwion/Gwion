@@ -13,11 +13,12 @@ static inline enum Kind kindof(const m_uint size, const uint emit_var) {
   return size == SZ_INT ? KIND_INT : size == SZ_FLOAT ? KIND_FLOAT : KIND_OTHER;
 }
 
-ANN Instr emit_kind(Emitter emit, const m_uint size, const bool addr,
+ANN Instr emit_kind(Emitter emit, const m_uint val, const m_uint size, const bool addr,
                     const f_instr func[]) {
   const enum Kind kind  = kindof(size, addr);
-  const Instr     instr = emit_add_instr(emit, func[kind]);
-  instr->m_val2         = size;
+  const Instr instr = emit_add_instr(emit, func[kind]);
+  instr->m_val = val;
+  if(kind == KIND_OTHER) instr->m_val2 = size;
   return instr;
 }
 
@@ -43,9 +44,9 @@ static const f_instr unionmember[KIND_END] = {UnionMember, UnionMember2,
                                               UnionMember3, UnionMember4};
 
 // function factory
-#define kind_func(name)                                                        \
-  ANN Instr emit_##name(Emitter emit, const m_uint size, const bool addr) {    \
-    return emit_kind(emit, size, addr, name);                                  \
+#define kind_func(name)                                                                       \
+  ANN Instr emit_##name(Emitter emit, const m_uint val, const m_uint size, const bool addr) { \
+    return emit_kind(emit, val, size, addr, name);                                            \
   }
 
 kind_func(regpushimm);

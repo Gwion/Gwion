@@ -1,0 +1,4 @@
+#! [contains] invalid array declaration
+class C {}
+
+var int[C] i;

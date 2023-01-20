@@ -113,7 +113,7 @@ static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
     set_vflag(value, vflag_member);
   value->d.func_ref  = func;
   value->from->owner = t->info->value->from->owner;
-  //  value->from->owner_class = t->info->owner_class;
+  value->from->owner_class = t->info->value->from->owner_class;
   func->value_ref = value;
   func->def->base->tmpl =
       mk_tmpl(env, t->info->func->def->base->tmpl, td->types);
@@ -169,7 +169,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
       while(d->next) d = d->next;
       if(!d->types) {
         if(!single_variadic)
-          ERR_N(td->pos, _("you must provide template types for type '%s' !!!"), t->name);
+          ERR_O(td->pos, _("you must provide template types for type '%s'"), t->name);
         d->types = new_mp_vector(env->gwion->mp, Type_Decl*, 0);
       }
       const Type ret = _scan_type(env, t, d);
@@ -182,7 +182,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
         ? t->info->cdef->base.tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(t->info->cdef->base.tmpl);
     if(!single_variadic) CHECK_BO(check_tmpl(env, tl, sl, td->pos, is_spread));
-    struct Op_Import opi = {.op   = insert_symbol("@scan"),
+    struct Op_Import opi = {.op   = insert_symbol("class"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,
                             .pos  = td->pos};
@@ -196,7 +196,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
   if (td->next) {
     Type_Decl *next        = td->next;
     td->next               = NULL;
-    const Type maybe_array = known_type(env, td);
+    DECL_OO(const Type, maybe_array, = known_type(env, td));
     const Type owner       = array_base_simple(maybe_array);
     td->next               = next;
     CHECK_OO(owner);
@@ -205,11 +205,17 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
                         .data  = env,
                         .scope = env->scope->depth,
                         .flag  = tflag_none};
+    const Context ctx = env->context;
+    const m_str name = env->name;
     envset_push(&es, owner, owner->nspc);
     (void)env_push(env, owner, owner->nspc); // TODO: is this needed?
+    env->context = owner->info->value->from->ctx;
+    env->name = owner->info->value->from->filename;
     const Type ret = known_type(env, td->next);
     env_pop(env, es.scope);
     envset_pop(&es, owner);
+    env->context = ctx;
+    env->name = name;
     if (!td->array) return ret;
     return array_type(env, ret, td->array->depth);
   }

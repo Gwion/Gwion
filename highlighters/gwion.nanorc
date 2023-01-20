@@ -42,7 +42,7 @@ color lightred "\<(second|ms|day|samp|minute|hour)\>"
 color brightcyan "\<(maybe)\>"
 color cyan "\<(adc|blackhole)\>"
 
-color brightgreen "\<(try|handle|perform|retry|class|struct|trait|union|enum|fun|locale|operator|funptr|typedef|distinct|new)\>"
+color brightgreen "\<(try|handle|perform|retry|class|struct|trait|union|enum|primitive|fun|locale|operator|funptr|typedef|distinct|new)\>"
 color italic,red start="#\<(pragma|include|define|ifdef|ifndef|undef|endif|import|locale)\>" end="$"
 color italic,red "#locale"
 color italic,yellow "extends"

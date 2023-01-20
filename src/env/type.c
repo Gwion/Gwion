@@ -24,7 +24,6 @@ ANN void free_type(const Type a, struct Gwion_ *const gwion) {
   }
 //  if (tflag(a, tflag_cdef) && a->info->parent)
 //    type_remref(a->info->parent, gwion);
-  if (a->effects.ptr) vector_release(&a->effects);
   if (a->nspc) nspc_remref(a->nspc, gwion);
   if (a->info->tuple) free_tupleform(a->info->tuple, gwion);
   mp_free(gwion->mp, TypeInfo, a->info);
@@ -98,7 +97,7 @@ ANN Type array_type(const Env env, const Type src, const m_uint depth) {
   const size_t tdepth     = depth + src->array_depth;
   const Type   base       = tdepth > 1 ? array_type(env, src, tdepth - 1) : src;
   struct TemplateScan ts  = {.t = base, /*.td=td*/ };
-  struct Op_Import    opi = {.op   = insert_symbol("@scan"),
+  struct Op_Import    opi = {.op   = insert_symbol("class"),
                           .lhs  = env->gwion->type[et_array],
                           .data = (uintptr_t)&ts};
   return op_check(env, &opi);

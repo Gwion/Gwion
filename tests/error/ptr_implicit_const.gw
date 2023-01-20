@@ -1,3 +1,0 @@
-#! [contains] can't cast non-mutable value to Ptr
-fun void test(Ptr:[int] i) { <<< *i>>>; }
-1 => test;

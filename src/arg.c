@@ -113,6 +113,15 @@ ANN static inline void get_cdoc(const Gwion gwion, const char *cdoc) {
   gwion_set_cdoc(gwion, is_cdoc);
 }
 
+ANN static inline void load_plugin(const Gwion gwion, const char *plug_name) {
+  char c[1024];
+  sprintf(c, "#import %s\n", plug_name);
+  const bool cdoc = gwion->data->cdoc;
+  gwion->data->cdoc = true;
+  compile_string(gwion, "<command-line>", c);
+  gwion->data->cdoc = cdoc;
+}
+
 ANN void arg_compile(const Gwion gwion, CliArg *arg) {
   const Vector v = &arg->add;
   for (m_uint i = 0; i < vector_size(v); i++) {
@@ -124,15 +133,8 @@ ANN void arg_compile(const Gwion gwion, CliArg *arg) {
       compile_file(gwion, "stdin", stdin);
       break;
     case ARG_LOAD_PLUGIN:
-{
-      char c[1024];
-      sprintf(c, "#import %s\n", (m_str)VPTR(v, ++i));
-      const bool cdoc = gwion->data->cdoc;
-      gwion->data->cdoc = true;
-      compile_string(gwion, "<command-line>", c);
-      gwion->data->cdoc = cdoc;
+      load_plugin(gwion, (m_str)VPTR(v, ++i));
       break;
-}
     case ARG_DEFINE:
       pparg_add(gwion->ppa, (m_str)VPTR(v, ++i));
       break;

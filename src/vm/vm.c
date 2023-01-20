@@ -156,7 +156,7 @@ ANN static inline void handle_fail(VM_Shred shred, const m_str effect, const str
   shreduler_remove(shred->tick->shreduler, shred, true);
 }
 
-ANN void handle(VM_Shred shred, const m_str effect) {
+ANN bool handle(VM_Shred shred, const m_str effect) {
   shreduler_remove(shred->tick->shreduler, shred, false);
   // store trace info
   struct TraceStart ts = {
@@ -167,8 +167,11 @@ ANN void handle(VM_Shred shred, const m_str effect) {
   const m_uint size =
       shred->info->frame.ptr ? vector_size(&shred->info->frame) : 0;
   // maybe we should use a string to avoid the insert_symbol call
-  if (!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size))
+  if (!unwind(shred, insert_symbol(shred->info->vm->gwion->st, effect), size)) {
     handle_fail(shred, effect, &ts);
+    return false;
+  }
+  return true;
 }
 
 ANN bool vm_remove(const VM *vm, const m_uint index) {
@@ -244,7 +247,7 @@ ANN static inline bool overflow_(const m_bit *mem, const VM_Shred c) {
                 (SIZEOF_MEM));
 }
 
-ANN /*static inline */ VM_Shred init_spork_shred(const VM_Shred shred,
+ANN static VM_Shred init_spork_shred(const VM_Shred shred,
                                                  const VM_Code  code) {
   const VM_Shred sh = new_shred_base(shred, code);
   vm_add_shred(shred->info->vm, sh);
@@ -423,7 +426,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&regsetimm, &&regpushimm, &&regpushfloat, &&regpushother, &&regpushaddr,
       &&regpushmem, &&regpushmemfloat, &&regpushmemother, &&regpushmemaddr,
       &&regpushmemderef, &&pushnow, &&baseint, &&basefloat, &&baseother,
-      &&baseaddr, &&regtoreg, &&regtoregother, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
+      &&baseaddr, &&regtoreg, &&regtoregother2, &&regtoregaddr, &&regtoregderef,
       &&structmember, &&structmemberfloat, &&structmemberother,
       &&structmemberaddr, &&memsetimm, &&memaddimm, &&repeatidx, &&repeat,
       &&regpushme, &&regpushmaybe, &&funcreturn, &&_goto, &&allocint,
@@ -454,20 +457,21 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&regtomem, &&regtomemother,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
-      &&sporkini, &&forkini, &&sporkfunc, &&sporkmemberfptr, &&sporkexp, &&sporkcode,
+      &&sporkini, &&forkini, &&sporkfunc, &&sporkexp, &&sporkcode,
       &&forkend, &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
-      &&remref, &&remref2, &&except, &&allocmemberaddr,
+      &&_remref, &&_remref2, &&_structreleaseregaddr, &&structreleasemem,
+      &&_except,
       &&dotmembermem, &&dotmembermem2, /*&&dotmembermem3, */&&dotmembermem4,
       &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
       &&unioncheck, &&unionint, &&unionfloat,
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&dotfunc, &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
-      &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&unroll2, &&other,
-      &&regpushimm};
+      &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&vmin, &&other};
+//      &&regpushimm};
 
   if(!prepare_code) {
     PRAGMA_PUSH()
@@ -564,9 +568,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     regtoreg:
       *(m_uint *)(reg + IVAL) = *(m_uint *)(reg + IVAL2);
       DISPATCH()
-    regtoregother:
-      memcpy(*(m_bit **)(reg - SZ_INT), reg + IVAL, VAL2);
-      DISPATCH()
     regtoregother2:
       memcpy(reg - VAL2, reg + IVAL, VAL2);
       DISPATCH()
@@ -608,7 +609,12 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += SZ_INT;
       DISPATCH()
     regpushmaybe:
+
+#ifndef __AFL_HAVE_MANUAL_CONTROL
       *(m_uint *)reg = gw_rand((uint32_t *)vm->rand) > (UINT32_MAX / 2);
+#else
+      *(m_uint *)reg = 0;
+#endif
       reg += SZ_INT;
       DISPATCH();
     funcreturn : {
@@ -897,7 +903,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       *(m_float *)(reg - SZ_FLOAT) += vm->bbq->pos;
       VM_OUT
       break;
-    recurs : {
+    recurs:
+    {
       register const uint push = SVAL2;
       mem += push;
       *(frame_t *)(mem - sizeof(frame_t)) =
@@ -961,14 +968,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       for (m_uint i = 0; i < VAL; i += SZ_INT)
         *(m_uint *)(child->reg + i) = *(m_uint *)(reg + i + IVAL2);
       child->reg += VAL;
-      DISPATCH()
-    sporkmemberfptr:
-      for (m_uint i = SZ_INT; i < VAL; i += SZ_INT)
-        *(m_uint *)(child->reg + i) = *(m_uint *)(reg - VAL + i);
-      *(M_Object *)(child->reg + VAL) = *(M_Object *)(reg + VAL + SZ_INT);
-      *(m_uint *)(child->reg + VAL + SZ_INT) =
-          *(m_uint *)(reg + VAL - SZ_INT * 2);
-      child->reg += VAL + SZ_INT * 2;
       DISPATCH()
     sporkexp:
       //  LOOP_OPTIM
@@ -1067,10 +1066,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     }
       DISPATCH()
     structaddref:
-      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
+      struct_addref(vm->gwion, (Type)VAL2, (reg + IVAL));
       DISPATCH()
     structaddrefaddr:
-      struct_addref(vm->gwion, (Type)VAL2, **(m_bit ***)(reg + IVAL));
+      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
       DISPATCH()
     objassign : {
       const M_Object o = **(M_Object **)(reg - SZ_INT);
@@ -1090,6 +1089,12 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         release(*(M_Object *)(mem + vector_at(&v, i)), shred);
 }
       DISPATCH()
+    structreleaseregaddr:
+      struct_release(shred, (Type)VAL2, *(m_bit**)(reg + IVAL));
+      DISPATCH();
+    structreleasemem:
+      struct_release(shred, (Type)VAL2, mem + IVAL);
+      DISPATCH();
     except:
       /* TODO: Refactor except instruction             *
        * so that                                       *
@@ -1101,25 +1106,21 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         continue;
       }
       DISPATCH();
-    allocmemberaddr:
-      *(m_bit **)reg = (*(M_Object *)mem)->data + VAL;
-      reg += SZ_INT;
-      DISPATCH()
     dotmembermem:
-      reg += SZ_INT;
-      *(m_uint *)(reg - SZ_INT) =
+      *(m_uint *)reg =
           *(m_uint *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT;
       DISPATCH()
     dotmembermem2:
-      reg += SZ_INT - SZ_FLOAT;
-      *(m_float *)(reg - SZ_FLOAT) =
+      *(m_float *)(reg + SZ_INT) =
           *(m_float *)((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT - SZ_FLOAT;
       DISPATCH()
 //    dotmembermem3:
     dotmembermem4:
-      reg += SZ_INT;
-      *(m_bit **)(reg - SZ_INT) =
+      *(m_bit **)reg =
           ((*(M_Object *)(mem + VAL2))->data + VAL);
+      reg += SZ_INT;
       DISPATCH()
     dotmember:
       *(m_uint *)(reg - SZ_INT) =
@@ -1195,7 +1196,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       reg += VAL2;
       DISPATCH()
     dotfunc:
-      *(VM_Code *)(reg + (m_uint)VAL2) =
+      *(VM_Code *)(reg + IVAL2) =
           ((Func)(*(M_Object *)(reg - SZ_INT))->type_ref->nspc->vtable.ptr[OFFSET + VAL])->code;
       DISPATCH()
     gacktype : {
@@ -1207,9 +1208,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       m_str str = *(m_str *)(reg - SZ_INT);
       if (!VAL) {
         gw_out("%s\n", str);
-fflush(stdout);
-}
-      else
+        fflush(stdout);
+      } else
         *(M_Object *)(reg - SZ_INT) = new_string(vm->gwion, str);
       if (str) mp_free2(vm->gwion->mp, strlen(str), str);
       DISPATCH();
@@ -1217,7 +1217,7 @@ fflush(stdout);
     gack:
       VM_OUT
       gack(shred, VAL);
-      goto in;
+      goto vmin;
     try_ini:
       if (!shred->info->frame.ptr) // ???
         vector_init(&shred->info->frame);
@@ -1240,8 +1240,7 @@ fflush(stdout);
       DISPATCH();
     other:
       VM_OUT((f_instr)VAL2)(shred, (Instr)VAL);
-    unroll2:
-    in:
+    vmin:
       if (!s->curr) break;
       bytecode = (code = shred->code)->bytecode;
       reg      = shred->reg;
@@ -1279,7 +1278,7 @@ static void *_dispatch[] = {
       &&_regsetimm, &&_regpushimm, &&_regpushfloat, &&_regpushother, &&_regpushaddr,
       &&_regpushmem, &&_regpushmemfloat, &&_regpushmemother, &&_regpushmemaddr,
       &&_regpushmemderef, &&_pushnow, &&_baseint, &&_basefloat, &&_baseother,
-      &&_baseaddr, &&_regtoreg, &&_regtoregother, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
+      &&_baseaddr, &&_regtoreg, &&_regtoregother2, &&_regtoregaddr, &&_regtoregderef,
       &&_structmember, &&_structmemberfloat, &&_structmemberother,
       &&_structmemberaddr, &&_memsetimm, &&_memaddimm, &&_repeatidx, &&_repeat,
       &&_regpushme, &&_regpushmaybe, &&_funcreturn, &&__goto, &&_allocint,
@@ -1310,20 +1309,20 @@ static void *_dispatch[] = {
       &&_regtomem, &&_regtomemother,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
-      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkmemberfptr, &&_sporkexp, &&_sporkcode, &&_forkend,
+      &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkexp, &&_sporkcode, &&_forkend,
       &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
       &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
-      &&_remref, &&_remref2, &&_except, &&_allocmemberaddr,
+      &&_remref, &&_remref2, &&_structreleaseregaddr, &&_structreleasemem,
+      &&_except,
       &&_dotmembermem, &&_dotmembermem2, /*&&_dotmembermem3, */&&_dotmembermem4,
       &&_dotmember, &&_dotfloat, &&_dotother, &&_dotaddr,
       &&_unioncheck, &&_unionint, &&_unionfloat,
       &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
       &&_dotfunc, &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
       &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
-      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_unroll2, &&_other,
-      &&_regpushimm};
+      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_vmin, &&_other};
 
 #define PREPARE(a) \
 _##a: \
@@ -1348,7 +1347,6 @@ goto *_dispatch[*(m_bit*)prepare_code];
     PREPARE(baseother);
     PREPARE(baseaddr);
     PREPARE(regtoreg);
-    PREPARE(regtoregother);
     PREPARE(regtoregother2);
     PREPARE(regtoregaddr);
     PREPARE(regtoregderef);
@@ -1513,7 +1511,6 @@ return;
     PREPARE(sporkini);
     PREPARE(forkini);
     PREPARE(sporkfunc);
-    PREPARE(sporkmemberfptr);
     PREPARE(sporkexp);
     PREPARE(sporkcode);
     PREPARE(forkend);
@@ -1539,8 +1536,9 @@ return;
     PREPARE(assign);
     PREPARE(remref);
     PREPARE(remref2);
+    PREPARE(structreleaseregaddr);
+    PREPARE(structreleasemem);
     PREPARE(except);
-    PREPARE(allocmemberaddr);
     PREPARE(dotmembermem);
     PREPARE(dotmembermem2);
     //PREPARE(dotmembermem3);
@@ -1572,14 +1570,14 @@ _other:
   const f_instr exec = *(f_instr*)(prepare_code + SZ_INT *2);
   if(exec == DTOR_EOC)return;
   const Instr instr = *(Instr*)(prepare_code + SZ_INT);
-  if(exec == fast_except)
+  if(exec == fast_except || exec == FuncWait)
     instr->opcode = (m_uint)&&noop;
   else if(exec == SetFunc)
     instr->opcode = (m_uint)&&regpushimm;
-  prepare_code += BYTECODE_SZ;\
+  prepare_code += BYTECODE_SZ;
   goto *_dispatch[*(m_bit*)prepare_code];
 }
-    PREPARE(unroll2);
+    PREPARE(vmin);
     PREPARE(debugline);
     PREPARE(debugvalue);
     PREPARE(debugpush);

@@ -43,31 +43,35 @@ tmpl_valid(const Env env, const Func_Def fdef, const m_str filename) {
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
                             Exp_Call *const exp, const m_str filename) {
   if (!tmpl_valid(env, fdef, filename)) return NULL;
+  if(env->context && env->context->error) return NULL;
   if (exp->args && !exp->args->type) return NULL;
   const Func f    = fdef->base->func;
   const Tmpl tmpl = {.list = fdef->base->tmpl->list, .call = exp->tmpl->call};
   CHECK_BO(template_push_types(env, &tmpl));
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
-  if (func) {
-    set_fflag(func, fflag_tmpl | fflag_valid);
+  if (func)
     call_add_effect(env, func, exp->func->pos);
-  }
   return func;
 }
 
 ANN static inline Func ensure_fptr(const Env env, struct ResolverArgs *ra,
                                    const Fptr_Def fptr) {
   CHECK_BO(traverse_fptr_def(env, fptr));
-  return find_func_match(env, fptr->base->func, ra->e);
+  const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
+  return find_func_match(env, fdef->base->func, ra->e);
 }
 
 ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   const Value  v = ra->v;
   const Symbol sym =
       func_symbol(env, v->from->owner->name, v->name, ra->tmpl_name, 0);
-  const Type exists = nspc_lookup_type0(v->from->owner, sym);
-  if (exists) return exists->info->func;
+  const Value exists = nspc_lookup_value0(v->from->owner, sym);
+  if(exists) {
+    const Type t = actual_type(env->gwion, exists->type);
+    const Func_Def fdef = mp_vector_at(t->info->cdef->body, struct Section_ , 0)->d.func_def;
+    return find_func_match(env, fdef->base->func, ra->e);
+  }
   const Func_Def base =
       v->d.func_ref ? v->d.func_ref->def : ra->e->func->type->info->func->def;
   const Tmpl tmpl = {.list = base->base->tmpl->list, .call = ra->types};

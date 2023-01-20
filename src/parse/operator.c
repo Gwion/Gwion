@@ -80,8 +80,8 @@ static M_Operator *operator_find2(const Vector v, const restrict Type lhs,
 }
 
 ANN void operator_suspend(const Nspc n, struct Op_Import *opi) {
-  const m_int  idx = map_index(&n->info->op_map, (vtype)opi->op);
-  const Vector v   = (Vector)&VVAL(&n->info->op_map, idx);
+  const m_int  idx = map_index(&n->operators->map, (vtype)opi->op);
+  const Vector v   = (Vector)&VVAL(&n->operators->map, idx);
   for (m_uint i = vector_size(v) + 1; --i;) {
     M_Operator *mo = (M_Operator *)vector_at(v, i - 1);
     if (opi->lhs == mo->lhs && opi->rhs == mo->rhs) {
@@ -125,7 +125,7 @@ op_vector(const struct OpChecker *ock) {
 }
 
 ANN static m_bool _op_exist(const struct OpChecker *ock, const Nspc n) {
-  const m_int idx = map_index(&n->info->op_map, (vtype)ock->opi->op);
+  const m_int idx = map_index(&n->operators->map, (vtype)ock->opi->op);
   if (idx == -1 || !operator_find2((Vector)&VVAL(ock->map, idx), ock->opi->lhs,
                                    ock->opi->rhs))
     return GW_OK;
@@ -137,20 +137,24 @@ ANN static m_bool _op_exist(const struct OpChecker *ock, const Nspc n) {
 }
 
 ANN static m_bool op_exist(const struct OpChecker *ock, const Nspc n) {
-  return n->info->op_map.ptr ? _op_exist(ock, n) : GW_OK;
+  return n->operators->map.ptr ? _op_exist(ock, n) : GW_OK;
 }
 
 ANN m_bool add_op(const Gwion gwion, const struct Op_Import *opi) {
   Nspc n = gwion->env->curr;
   do {
-    struct OpChecker ock = {
-        .env = gwion->env, .map = &n->info->op_map, .opi = opi};
-    CHECK_BB(op_exist(&ock, n));
+    if (n->operators) {
+      struct OpChecker ock = {
+          .env = gwion->env, .map = &n->operators->map, .opi = opi};
+      CHECK_BB(op_exist(&ock, n));
+    }
   } while ((n = n->parent));
-  if (!gwion->env->curr->info->op_map.ptr)
-    map_init(&gwion->env->curr->info->op_map);
+  if (!gwion->env->curr->operators)
+    gwion->env->curr->operators = mp_calloc(gwion->mp, NspcOp);
+  if (!gwion->env->curr->operators->map.ptr)
+    map_init(&gwion->env->curr->operators->map);
   struct OpChecker ock = {
-      .env = gwion->env, .map = &gwion->env->curr->info->op_map, .opi = opi};
+      .env = gwion->env, .map = &gwion->env->curr->operators->map, .opi = opi};
   const Vector      v  = op_vector(&ock);
   const M_Operator *mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
@@ -261,8 +265,8 @@ ANN static Type op_def(const Env env, struct Op_Import *const opi,
 ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
   Nspc nspc = env->curr;
   do {
-    if (!nspc->info->op_tmpl.ptr) continue;
-    const Vector v = &nspc->info->op_tmpl;
+    if (!nspc->operators || !nspc->operators->tmpl.ptr) continue;
+    const Vector v = &nspc->operators->tmpl;
     for (m_uint i = vector_size(v) + 1; --i;) {
       const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
       if (opi->op != fdef->base->xid) continue;
@@ -278,8 +282,9 @@ ANN void* op_get(const Env env, struct Op_Import *opi) {
     Nspc nspc = env->curr;
     do {
       Type l = opi->lhs;
-      if (!nspc->info->op_map.ptr) continue;
-      const Map map = &nspc->info->op_map;
+      if (!nspc->operators) continue;
+      if (!nspc->operators->map.ptr) continue;
+      const Map map = &nspc->operators->map;
       do {
         Type r = opi->rhs;
         do {
@@ -305,14 +310,18 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   char c[len - 1];
   strncpy(c, op, len - 2);
   c[len - 2] = '\0';
+  // are there other expressions that would need such a test?
+  if(!strcmp(c, "$")) {
+    env_err(env, opi->pos, "can't rewrite cast operations");
+    env_set_error(env,  true);
+    return NULL;
+  }
   const Exp bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->pos);
   base->lhs = bin;
-  const Symbol orig = base->op;
   base->op = insert_symbol(env->gwion->st, "=>");
   const Type ret = check_exp(env, exp_self(base));
   if(ret) return ret;
   env_set_error(env,  false);
-  base->op = orig;
   env_warn(env, opi->pos, _("during rewriting operation"));
   env_set_error(env,  true);
   return NULL;
@@ -322,13 +331,14 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = env->curr;
     do {
-      if (!nspc->info->op_map.ptr) continue;
+      if (!nspc->operators) continue;
+      if (!nspc->operators->map.ptr) continue;
       Type l = opi->lhs;
       do {
         struct Op_Import opi2 = {
             .op = opi->op, .lhs = l, .rhs = opi->rhs, .data = opi->data};
         struct OpChecker ock = {
-            .env = env, .map = &nspc->info->op_map, .opi = &opi2};
+            .env = env, .map = &nspc->operators->map, .opi = &opi2};
         const Type ret = op_check_inner(env, &ock, i);
         if (ret) {
           if (ret == env->gwion->type[et_error]) return NULL;
@@ -366,8 +376,8 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
 
 ANN m_bool operator_set_func(const struct Op_Import *opi) {
   const Nspc   nspc = ((Func)opi->data)->value_ref->from->owner;
-  const m_int  idx  = map_index(&nspc->info->op_map, (vtype)opi->op);
-  const Vector v    = (Vector)&VVAL(&nspc->info->op_map, idx);
+  const m_int  idx  = map_index(&nspc->operators->map, (vtype)opi->op);
+  const Vector v    = (Vector)&VVAL(&nspc->operators->map, idx);
   DECL_OB(M_Operator *, mo, = operator_find(v, opi->lhs, opi->rhs));
   mo->func = (Func)opi->data;
   return GW_OK;
@@ -375,9 +385,7 @@ ANN m_bool operator_set_func(const struct Op_Import *opi) {
 
 ANN static m_bool handle_instr(const Emitter emit, const M_Operator *mo) {
   if (mo->func) {
-    const Instr push =
-        emit_add_instr(emit, mo->func->code ? RegPushImm : SetFunc);
-    push->m_val = ((m_uint)mo->func->code ?: (m_uint)mo->func);
+    emit_pushfunc(emit, mo->func);
     CHECK_BB(emit_exp_call1(emit, mo->func, true));
     if (mo->func->def->base->xid ==
         insert_symbol(emit->gwion->st, "@conditional"))
@@ -395,14 +403,15 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = emit->env->curr;
     do {
-      if (!nspc->info->op_map.ptr) continue;
+      if (!nspc->operators) continue;
+      if (!nspc->operators->map.ptr) continue;
       Type l = opi->lhs;
       do {
         Type r = opi->rhs;
         do {
-          const m_int idx = map_index(&nspc->info->op_map, (vtype)opi->op);
+          const m_int idx = map_index(&nspc->operators->map, (vtype)opi->op);
           if (idx == -1) continue;
-          const Vector      v = (Vector)&VVAL(&nspc->info->op_map, idx);
+          const Vector      v = (Vector)&VVAL(&nspc->operators->map, idx);
           const M_Operator *mo =
               !i ? operator_find2(v, l, r) : operator_find(v, l, r);
           if (mo) {
@@ -438,8 +447,9 @@ ANN static M_Operator *cpy_mo(MemPool p, M_Operator *const base,
 }
 #undef CONVERT
 
-ANN static inline Map ensure_map(const Nspc nspc) {
-  const Map map = &nspc->info->op_map;
+ANN static inline Map ensure_map(MemPool mp, const Nspc nspc) {
+  if (!nspc->operators) nspc->operators = mp_calloc(mp, NspcOp);
+  const Map map = &nspc->operators->map;
   if (!map->ptr) map_init(map);
   return map;
 }
@@ -457,9 +467,9 @@ ANN static void op_visit(const MemPool mp, const Nspc nspc,
                          const struct Op_Import *opi, const Vector visited) {
   if (vector_find(visited, (m_uint)nspc) != -1) return;
   vector_add(visited, (m_uint)nspc);
-  if (nspc->info->op_map.ptr) {
-    const Map map      = &nspc->info->op_map;
-    const Map base_map = ensure_map(opi->rhs->info->value->from->owner);
+  if (nspc->operators && nspc->operators->map.ptr) {
+    const Map map      = &nspc->operators->map;
+    const Map base_map = ensure_map(mp, opi->rhs->info->value->from->owner);
     for (m_uint i = 0; i < map_size(map); i++) {
       const Vector v  = (Vector)&VVAL(map, i);
       const m_uint sz = vector_size(v);

@@ -1,3 +1,0 @@
-var int i;
-i :=> var Ptr:[int] pti;
-<<<12 => *pti, " ", *pti>>>;

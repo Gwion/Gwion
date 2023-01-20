@@ -23,8 +23,7 @@ static OP_CHECK(opck_none) {
 }
 
 static OP_EMIT(opem_none) {
-  const Instr instr = emit_add_instr(emit, RegMove);
-  instr->m_val      = -SZ_INT;
+  emit_regmove(emit, -SZ_INT);
   return GW_OK;
 }
 
@@ -33,8 +32,7 @@ static OP_EMIT(opem_union_dot) {
   const Map      map    = &member->base->type->nspc->info->value->map;
   CHECK_BB(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val = (m_uint)exp_self(member)->type->info->func->code;
+    emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
     return GW_OK;
   }
   if (!strcmp(s_name(member->xid), "index")) {
@@ -45,9 +43,7 @@ static OP_EMIT(opem_union_dot) {
     if (VKEY(map, i) == (m_uint)member->xid) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
-      const Instr instr     = emit_unionmember(emit, v->type->size, emit_addr);
-      instr->m_val          = i; // + 1;
-      instr->m_val2         = v->type->size;
+      emit_unionmember(emit, i, v->type->size, emit_addr);
       return GW_OK;
     }
   }
@@ -59,7 +55,7 @@ static DTOR(UnionDtor) {
   if (idx) {
     const Map   map = &o->type_ref->nspc->info->value->map;
     const Value v   = (Value)map_at(map, idx - 1);
-    if (isa(v->type, shred->info->vm->gwion->type[et_compound]) > 0)
+    if (tflag(v->type, tflag_compound))
       compound_release(shred, v->type, (o->data + SZ_INT));
   }
 }
@@ -68,7 +64,9 @@ static OP_CHECK(opck_union_is) {
   const Exp       e    = (Exp)data;
   const Exp_Call *call = &e->d.exp_call;
   const Exp       exp  = call->args;
-  if (exp->exp_type != ae_exp_primary && exp->d.prim.prim_type != ae_prim_id)
+  if(!exp)
+    ERR_N(e->pos, "Union.is() takes one argument of form id");
+  if (exp->exp_type != ae_exp_primary || exp->d.prim.prim_type != ae_prim_id)
     ERR_N(exp->pos, "Union.is() argument must be of form id");
   const Type  t = call->func->d.exp_dot.base->type;
   const Value v = find_value(t, exp->d.prim.d.var);
@@ -113,7 +111,7 @@ static OP_CHECK(opck_union_new) {
     ERR_N(call->func->pos, "Union constructor takes two arguments, "
                            "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
-    return NULL;
+    return env->gwion->type[et_error];
   const Exp  val  = name->next;
   const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
@@ -135,7 +133,7 @@ static OP_CHECK(opck_union_new) {
       return base;
     }
   }
-  return NULL;
+  return env->gwion->type[et_error];
 }
 
 ANN GWION_IMPORT(union) {
@@ -192,7 +190,7 @@ ANN GWION_IMPORT(union) {
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))
-  GWI_BB(gwi_oper_end(gwi, "@dot", NULL))
+  GWI_BB(gwi_oper_end(gwi, ".", NULL))
 
   GWI_BB(gwi_union_ini(gwi, "Option:[A]"))
   GWI_BB(gwi_union_add(gwi, "None", "none"))

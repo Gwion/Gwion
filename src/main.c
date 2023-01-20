@@ -20,13 +20,16 @@ static void sig(int unused NUSED) {
 #include "compile.h"
 
 static void afl_run(const Gwion gwion) {
+  const Env env = gwion->env;
   __AFL_INIT();
-//  while (__AFL_LOOP(128)) {
-  while (__AFL_LOOP(32)) {
-    push_global(gwion, "[afl]");
+  while (__AFL_LOOP(128)) {
+    const Nspc nspc = env->global_nspc;
+    env->curr = env->global_nspc = new_nspc(gwion->mp, "[afl]");
+    env->global_nspc->parent = nspc;
     FILE *f = fdopen(0, "r");
     if (compile_file(gwion, "afl", f)) gwion_run(gwion);
-    pop_global(gwion);
+    free_nspc(env->global_nspc, env->gwion);
+    env->curr = env->global_nspc = nspc;
   }
 }
 

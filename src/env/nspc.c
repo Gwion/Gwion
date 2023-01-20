@@ -46,7 +46,7 @@ static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
 
 static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   if(v->from->ctx && v->from->ctx->error) return; // this is quite a hack
-  if (isa(v->type, gwion->type[et_compound]) > 0 ) {
+  if (tflag(v->type, tflag_compound) ) {
     if (!tflag(v->type, tflag_struct))
       nspc_release_object(a, v, gwion);
     else nspc_release_struct(a, v, gwion);
@@ -71,14 +71,16 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   nspc_free_value(a, gwion);
   nspc_free_func(a, gwion);
   nspc_free_trait(a, gwion);
-  if (a->info->op_map.ptr) free_op_map(&a->info->op_map, gwion);
-  if (a->info->op_tmpl.ptr) free_op_tmpl(&a->info->op_tmpl, gwion);
+  if(a->operators) {
+    if (a->operators->map.ptr) free_op_map(&a->operators->map, gwion);
+    if (a->operators->tmpl.ptr) free_op_tmpl(&a->operators->tmpl, gwion);
+    mp_free(gwion->mp, NspcOp, a->operators);
+  }
   nspc_free_type(a, gwion);
   if (a->class_data && a->class_data_size)
     mp_free2(gwion->mp, a->class_data_size, a->class_data);
   if (a->vtable.ptr) vector_release(&a->vtable);
   mp_free(gwion->mp, NspcInfo, a->info);
-  if (a->pre_ctor) vmcode_remref(a->pre_ctor, gwion);
   if (a->dtor) vmcode_remref(a->dtor, gwion);
   mp_free(gwion->mp, Nspc, a);
 }
@@ -94,3 +96,18 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->ref         = 1;
   return a;
 }
+
+static nspc_add_value_t _add = _nspc_add_value;
+static nspc_add_value_t _front = _nspc_add_value_front;
+ANN void nspc_add_value(const Nspc n, const Symbol s, const Value a) {
+  _add(n, s, a);
+}
+ANN void nspc_add_value_front(const Nspc n, const Symbol s, const Value a) {
+  _front(n, s, a);
+}
+
+ANN void nspc_add_value_set_func(nspc_add_value_t add, nspc_add_value_t front) {
+  _add = add;
+  _front = front;
+}
+

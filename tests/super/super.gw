@@ -1,0 +1,12 @@
+#! [contains] new@0@C
+class C {
+  operator new() { <<< __func__ >>>; }
+}
+class D extends C {
+}
+
+class E extends D {
+  operator new() { super();}
+}
+
+new D();

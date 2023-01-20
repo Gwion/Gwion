@@ -1,7 +1,0 @@
-#! [contains] can't assign to pointer
-class C {}
-
-class D extends C {}
-
-var D d;
-d :=> var Ptr:[int] pd;

@@ -122,33 +122,38 @@ INSTR(DotTmpl) {
 #define VAL  (*(m_uint *)(byte + SZ_INT))
 #define FVAL (*(m_float *)(byte + SZ_INT))
 #define VAL2 (*(m_uint *)(byte + SZ_INT * 2))
-#define BYTE(a)                                                                \
-  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
-  *(m_uint *)byte = a;
+#define BYTE(a)                                                           \
+  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ; \
+  *(m_uint *)byte = instr->opcode;                                        \
+  instr->opcode = a;
 
 INSTR(SetFunc) {
-  m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;
-  *(m_uint *)byte = instr->opcode;
-  instr->opcode = eRegPushImm;
+  BYTE(eRegPushImm);
   const Func f = (Func)instr->m_val;
   VAL = *(m_uint *)(shred->reg) = (m_uint)f->code;
   shred->reg += SZ_INT;
 }
 
-INSTR(SetCtor) {
-  BYTE(eRegSetImm)
-  const Type t = (Type)instr->m_val;
-  VAL = *(m_uint *)(shred->reg + SZ_INT) = (m_uint)t->nspc->pre_ctor;
-  VAL2                                   = SZ_INT;
+INSTR(FuncWait) {
+  const Func f = (Func)instr->m_val;
+  if(f->_wait->len - instr->m_val2) {
+    if(!handle(shred, "UninitValue")) {
+      gw_err("{-}some values are not instantiated yet{0}\n");
+      for(uint32_t i = instr->m_val2; i < f->_wait->len; i++) {
+        Value v = *mp_vector_at(f->_wait, Value, i);
+        defined_here(v);
+      }
+    }
+  } else {
+    BYTE(eNoOp);
+  }
 }
 
 INSTR(fast_except) {
   struct FastExceptInfo *info = (struct FastExceptInfo *)instr->m_val2;
   if(*(m_uint*)REG(-SZ_INT)) {
-    m_bit *byte    = shred->code->bytecode + (shred->pc - 1) * BYTECODE_SZ;       \
-    *(m_uint *)byte = instr->opcode;
+    BYTE(eNoOp);
     VAL = -SZ_INT;
-    instr->opcode = eNoOp;
     if(info) mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
     instr->m_val2 = 0;
     return;
@@ -157,8 +162,6 @@ INSTR(fast_except) {
       gwerr_basic("Object not instantiated", NULL, NULL, info->file, info->loc, 0);
     if(info->file2)
       gwerr_warn("declared here", NULL, NULL, info->file2, info->loc2);
-//    mp_free2(shred->info->mp, sizeof(struct FastExceptInfo), info);
-//    instr->m_val2 = 0;
   }
   handle(shred, "NullPtrException");
 }

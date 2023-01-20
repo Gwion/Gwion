@@ -1,4 +1,4 @@
-#! [contains] declared inside
+#! [contains] recursive type
 class c {
   var c myvar;
 }

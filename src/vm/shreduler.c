@@ -76,7 +76,7 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
   MUTEX_UNLOCK(s->mutex);
 }
 
-ANN void _shredule(const Shreduler s,   struct ShredTick_ *tk,
+ANN static void _shredule(const Shreduler s,   struct ShredTick_ *tk,
                   const m_float wake_time) {
   if(tk->prev == (struct ShredTick_*)-1) return;
   const m_float      time = wake_time + (m_float)s->bbq->pos;
@@ -89,14 +89,13 @@ ANN void _shredule(const Shreduler s,   struct ShredTick_ *tk,
     } while ((curr = curr->next));
     if (!prev) {
       tk->next = s->list;
-      s->list  = (s->list->prev = tk);
+      s->list  = s->list->prev = tk;
     } else {
       if ((tk->next = prev->next)) prev->next->prev = tk;
       tk->prev   = prev;
       prev->next = tk;
     }
-  } else
-    s->list = tk;
+  } else s->list = tk;
   if (tk == s->curr) s->curr = NULL;
 }
 

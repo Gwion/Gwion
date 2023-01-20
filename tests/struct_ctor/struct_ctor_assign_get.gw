@@ -1,0 +1,11 @@
+#! [contains] 42
+
+struct S {
+  12 :=> var int i;
+  var float f;
+  operator new(int i, int j) {
+    <<< i + j :=> this.i >>>;
+  }
+}
+
+<<< (S(21,21) :=> var auto s).i >>>;

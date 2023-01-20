@@ -14,7 +14,7 @@
 static ID_EMIT(spidem) {
   const Instr instr = emit_add_instr(emit, RegPushImm);
   instr->m_val      = 1234;
-  return instr;
+  return GW_OK;
 }
 
 GWION_IMPORT(spid_test) {

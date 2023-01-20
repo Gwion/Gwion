@@ -1,3 +1,4 @@
+
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -100,20 +101,16 @@ static OP_CHECK(opck_struct_scan) {
 ANN static void emit_dot_static_data(const Emitter emit, const Value v,
                                      const bool emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_dotstatic(emit, size, emit_addr);
-  instr->m_val  = (m_uint)(v->from->owner->class_data + v->from->offset);
-  instr->m_val2 = size;
+  const m_uint data = (m_uint)(v->from->owner->class_data + v->from->offset);
+  emit_dotstatic(emit, data, size, emit_addr);
 }
 
 ANN static void emit_dot_static_import_data(const Emitter emit, const Value v,
                                             const bool emit_addr) {
   if (vflag(v, vflag_builtin) /*&& GET_FLAG(v, const)*/) {
     const m_uint size  = v->type->size;
-    const Instr  instr = emit_regpushimm(emit, size, emit_addr);
-    instr->m_val       = (m_uint)v->d.ptr;
-    instr->m_val2      = size;
-  } else
-    emit_dot_static_data(emit, v, emit_addr);
+    emit_regpushimm(emit, (m_uint)v->d.ptr, size, emit_addr);
+  } else emit_dot_static_data(emit, v, emit_addr);
 }
 
 ANN static void emit_dottmpl(const Emitter emit, const Func f) {
@@ -127,50 +124,35 @@ ANN static void emit_dottmpl(const Emitter emit, const Func f) {
 }
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
-  const Func f = exp_self(member)->type->info->func;
+  const Exp self = exp_self(member);
+  const Func f = self->type->info->func;
 
-  if(!strcmp(s_name(f->def->base->xid), "new")) {
-    if(f != emit->env->func) {
-      const Instr instr = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-      instr->m_val = (m_uint)f->code ?: (m_uint)f;
-    }
+  if(is_new(f->def)) {
+    if(f != emit->env->func) emit_pushfunc(emit, f);
     return;
   }
   if (f->def->base->tmpl) {
-    if(member->is_call) emit_dottmpl(emit, f);
+    if(self->is_call) emit_dottmpl(emit, f);
     else {
-      if(vflag(f->value_ref, vflag_member)) {
-        const Instr instr = emit_add_instr(emit, RegMove);
-        instr->m_val = -SZ_INT;
-      }
-      const Instr instr = emit_add_instr(emit, RegPushImm);
-      instr->m_val = (m_uint)f;
+      if(vflag(f->value_ref, vflag_member))
+        emit_regmove(emit, -SZ_INT);
+      emit_pushimm(emit, (m_uint)f);
       return;
     }
-  } else if (is_static_call(emit, exp_self(member))) {
-    if (member->is_call && f == emit->env->func && strcmp(s_name(f->def->base->xid), "new")) return;
-    const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-    func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
-    return;
+  } else if (is_static_call(emit->gwion, exp_self(member))) {
+    if (self->is_call && f == emit->env->func && !is_new(f->def)) return;
+    if(!self->is_call && vflag(f->value_ref, vflag_member)) emit_regmove(emit, -SZ_INT);
+    return emit_pushfunc(emit, f);
   } else {
-    if (tflag(member->base->type, tflag_struct)) {
-      if (!GET_FLAG(f->def->base, static)) {
-        exp_setvar(member->base, 1);
-        emit_exp(emit, member->base);
-      }
-      const Instr func_i = emit_add_instr(emit, f->code ? RegPushImm : SetFunc);
-      func_i->m_val      = (m_uint)f->code ?: (m_uint)f;
-      return;
-    }
+    if (tflag(member->base->type, tflag_struct))
+      return emit_pushfunc(emit, f);
     const Instr instr = emit_add_instr(emit, DotFunc);
     instr->m_val      = f->def->vt_index;
     if (!vflag(f->value_ref, vflag_member))
       instr->m_val2 = -SZ_INT;
     else {
-      if(member->is_call){
-        const Instr instr = emit_add_instr(emit, RegMove);
-        instr->m_val      = SZ_INT;
-      } else instr->m_val2 = -SZ_INT;
+      if(self->is_call) emit_regmove(emit, SZ_INT);
+      else instr->m_val2 = -SZ_INT;
     }
   }
   return;
@@ -179,18 +161,13 @@ ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
 ANN static inline void emit_member(const Emitter emit, const Value v,
                                    const uint emit_addr) {
   const m_uint size  = v->type->size;
-  const Instr  instr = emit_dotmember(emit, size, emit_addr);
-  instr->m_val       = v->from->offset;
+  emit_dotmember(emit, v->from->offset, size, emit_addr);
 }
 
 ANN static inline void emit_struct_data(const Emitter emit, const Value v,
                                         const bool emit_addr) {
-  const Instr instr = emit_structmember(emit, v->type->size, emit_addr);
-  instr->m_val      = v->from->offset;
-  if (!emit_addr) {
-    const Instr instr = emit_add_instr(emit, RegMove);
-    instr->m_val      = v->type->size - SZ_INT;
-  }
+  emit_structmember(emit, v->from->offset, v->type->size, emit_addr);
+  if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
@@ -208,76 +185,49 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
   return NULL;
 }
 
-ANN static Type class_type(const Env env, const Exp_Dot *member, const Type base) {
-  const Type parent = actual_type(env->gwion, base);
-  if(!tflag(parent, tflag_tmpl)) return parent;
-  Type_Decl td = {
-       .xid=insert_symbol(env->gwion->st, parent->name),
-       .types = member->is_call->tmpl ? member->is_call->tmpl->call : NULL
-  };
-  return known_type(env, &td);
-}
-
-OP_CHECK(opck_object_dot) {
-  Exp_Dot *const member      = (Exp_Dot *)data;
-  const m_str    str         = s_name(member->xid);
-  const m_bool   base_static = is_class(env->gwion, member->base->type);
-  const Type     the_base =
-      base_static ? _class_base(member->base->type) : member->base->type;
-  if (member->xid == insert_symbol(env->gwion->st, "this") && base_static)
-    ERR_N(exp_self(member)->pos,
-          _("keyword 'this' must be associated with object instance..."));
-  const Value value = get_value(env, member, the_base);
-  if (!value) {
-/*
-    if(env->class_def != the_base && tflag(the_base, tflag_cdef) && !tflag(the_base, tflag_check))
-      CHECK_BN(ensure_traverse(env, the_base));
-      return check_exp(env, exp_self(member));
-    }
-*/
-    const Value v = nspc_lookup_value1(env->curr, member->xid);
-    if(v) {
-      if (member->is_call) {
-        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
-          return v->type;
-        if (is_class(env->gwion, v->type)) {
-           DECL_OO(const Type, parent, = class_type(env, member, v->type));
-          // allow only direct parent or smth?
-          // mark the function as ctor_ok
-          if (isa(the_base, parent) > 0 && parent->nspc) {
-            const Symbol sym = insert_symbol(env->gwion->st, "new");
-            const Value ret = nspc_lookup_value1(parent->nspc, sym);
-            member->xid = sym;
-            if(ret)
-              return ret->type;
-          }
-        }
-      } else if(is_class(env->gwion, v->type) && the_base == v->type->info->base_type)
-        return v->type->info->base_type;
-    }
-    env_err(env, exp_self(member)->pos, _("class '%s' has no member '%s'"),
-            the_base->name, str);
-    if (member->base->type->nspc) did_you_mean_type(the_base, str);
-    return env->gwion->type[et_error];
-  }
-  CHECK_BN(not_from_owner_class(env, the_base, value, exp_self(member)->pos));
+ANN static m_bool member_access(const Env env, const Exp exp, const Value value) {
   if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
-                  exp_self(member)->pos, 0);
+                  exp->pos, 0);
       env_error_footer(env);
       defined_here(value);
       env_set_error(env, true);
     } else if (GET_FLAG(value, protect))
-      exp_setprot(exp_self(member), 1);
+      exp_setprot(exp, 1);
   }
-  if (base_static && vflag(value, vflag_member))
-    ERR_N(exp_self(member)->pos,
+  return GW_OK;
+}
+
+OP_CHECK(opck_object_dot) {
+  Exp_Dot *const member      = (Exp_Dot *)data;
+  Exp self = exp_self(member);
+  const m_str    str         = s_name(member->xid);
+  const m_bool   base_static = is_class(env->gwion, member->base->type);
+  const Type     the_base =
+      base_static ? _class_base(member->base->type) : member->base->type;
+  const Value value = get_value(env, member, the_base);
+  if (!value) {
+    const Value v = nspc_lookup_value1(env->curr, member->xid);
+    if(v) {
+      if (self->is_call) {
+        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
+          return v->type;
+      }
+    }
+    env_err(env, self->pos, _("class '%s' has no member '%s'"),
+            the_base->name, str);
+    if (member->base->type->nspc) did_you_mean_type(the_base, str);
+    return env->gwion->type[et_error];
+  }
+  CHECK_BN(not_from_owner_class(env, the_base, value, self->pos));
+  CHECK_BN(member_access(env, self, value));
+  if ((base_static && vflag(value, vflag_member)) ||
+      (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
+    ERR_N(self->pos,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
-// if current function is a constructor
-  if (GET_FLAG(value, const)) exp_setmeta(exp_self(member), 1);
-  exp_self(member)->acquire = 1;
+  if (GET_FLAG(value, const)) exp_setmeta(self, true);
   return value->type;
 }
 
@@ -288,40 +238,35 @@ ANN static Type member_type(const Gwion gwion, const Type base) {
 
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
-//  const Type     t_base = actual_type(emit->gwion, member->base->type);
   const Type     t_base = member_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
-  if(!tflag(t_base, tflag_emit) /*&& emit->env->class_def != t_base*/) {
-      ensure_emit(emit, t_base);
-  }
+//  if(!tflag(t_base, tflag_emit) /*&& emit->env->class_def != t_base*/)
+//      ensure_emit(emit, t_base);
   if (is_class(emit->gwion, value->type)) {
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val      = (m_uint)value->type;
+    emit_pushimm(emit, (m_uint)value->type);
     return GW_OK;
+  }
+  if (tflag(t_base, tflag_struct) && !GET_FLAG(value, static)) {
+    exp_setvar(member->base, true);
+    CHECK_BB(emit_exp(emit, member->base));
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
        (is_func(emit->gwion, exp_self(member)->type)))) {
-    if (!tflag(t_base, tflag_struct) && vflag(value, vflag_member))
+    if (!tflag(t_base, tflag_struct))
       CHECK_BB(emit_exp(emit, member->base));
   }
-  if (is_func(emit->gwion, exp_self(member)->type) && // is_func
+  if (is_func(emit->gwion, exp_self(member)->type) &&
       !fflag(exp_self(member)->type->info->func, fflag_fptr))
     emit_member_func(emit, member);
   else if (vflag(value, vflag_member)) {
     if (!tflag(t_base, tflag_struct))
       emit_member(emit, value, exp_getvar(exp_self(member)));
-    else {
-      exp_setvar(member->base, 1);
-      CHECK_BB(emit_exp(emit, member->base));
+    else
       emit_struct_data(emit, value, exp_getvar(exp_self(member)));
-    }
   } else if (GET_FLAG(value, static))
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
-  else { // member type
-    const Instr instr = emit_add_instr(emit, RegPushImm);
-    instr->m_val      = (m_uint)value->type;
-  }
+  else exit(3); //emit_pushimm(emit, (m_uint)value->type);
   if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
@@ -387,32 +332,10 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   CHECK_BO(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
   if(local && env->context) env_push(env, NULL, env->context->nspc);
-  // these context and env command may fit better somewhere else
-//  const m_str env_filename = env->name;
-//  const m_str ctx_filename = env->context->name;
-//  env->name = t->info->value->from->filename;
-//  env->context->name = t->info->value->from->ctx->name;
   const Type ret = _scan_class(env, &info);
-//  env->name = env_filename;
-//  env->context->name = ctx_filename;
   if(local && env->context)env_pop(env, es.scope);
   envset_pop(&es, owner);
   return ret;
-}
-
-ANN void struct_release(const VM_Shred shred, const Type base,
-                        const m_bit *ptr) {
-  const Vector types   = &base->info->tuple->types;
-  const Vector offsets = &base->info->tuple->offset;
-  for (m_uint i = 0; i < vector_size(types); ++i) {
-    const Type t = (Type)vector_at(types, i);
-    if (isa(t, shred->info->vm->gwion->type[et_compound]) < 0) continue;
-    const m_uint offset = vector_at(offsets, i);
-    if (!tflag(t, tflag_struct))
-      release(*(M_Object *)(ptr + offset), shred);
-    else
-      struct_release(shred, t, *(m_bit **)(ptr + offset));
-  }
 }
 
 static OP_EMIT(opem_not_object) {
@@ -477,10 +400,11 @@ GWION_IMPORT(object_op) {
   GWI_BB(gwi_oper_end(gwi, "@unconditional", NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_cond_object))
   GWI_BB(gwi_oper_end(gwi, "@conditional", NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
   GWI_BB(gwi_oper_emi(gwi, opem_not_object))
   GWI_BB(gwi_oper_end(gwi, "!", NULL))
   GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
   return GW_OK;
 }

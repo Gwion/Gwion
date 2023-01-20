@@ -1,4 +1,0 @@
-fun void test(Ptr:[int] p) {
-   <<< *p >>>;
-}
-var int i => test;

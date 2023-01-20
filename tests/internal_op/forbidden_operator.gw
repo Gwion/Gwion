@@ -1,0 +1,1 @@
+operator bool @each(int i, int j) { return true; }

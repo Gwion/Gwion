@@ -55,8 +55,7 @@ static OP_EMIT(opem_ref_implicit_similar) {
                              .rhs  = imp->t,
                              .data = (m_uint)imp};
   CHECK_BB(op_emit(emit, &opi));
-  const Instr instr = emit_add_instr(emit, RegMove);
-  instr->m_val = -imp->e->type->size;
+  emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
   return emit_exp(emit, imp->e);
@@ -91,12 +90,10 @@ static OP_EMIT(opem_ref_contract_similar) {
                           .rhs  = base,
                           .data = (m_uint)&cast};
   CHECK_BB(op_emit(emit, &opi));
-  const Instr instr = emit_add_instr(emit, RegMove);
-  instr->m_val = -imp->e->type->size;
+  emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  emit_exp(emit, imp->e);
-  return GW_OK;
+  return emit_exp(emit, imp->e);
 }
 
 ANN static void base2ref(Env env, const Type lhs, const Type rhs) {
@@ -194,6 +191,6 @@ GWION_IMPORT(ref) {
   gwidoc(gwi, "internal `Ref` type creation.");
   GWI_BB(gwi_oper_ini(gwi, "Ref", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_ref_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
   return GW_OK;
 }

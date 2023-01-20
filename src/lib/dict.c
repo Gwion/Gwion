@@ -84,12 +84,12 @@ static clear_fn* o_clear[3]  = { clear_on, clear_oo, clear_os };
 static clear_fn* s_clear[3]  = { clear_sn, clear_so, clear_ss };
 static clear_fn*const* clear[3] = { n_clear, o_clear, s_clear };
 
-ANN static void hmapinfo_init(HMapInfo *const info, const Type types[], const Type key, const Type val) {
+ANN static void hmapinfo_init(HMapInfo *const info, const Type key, const Type val) {
   info->key = key;
   info->val = val;
   info->sz = key->size + val->size;
-  info->keyk = isa(key, types[et_compound]) > 0 + tflag(key, tflag_struct);
-  info->valk = isa(val, types[et_compound]) > 0 + tflag(val, tflag_struct);
+  info->keyk = tflag(key, tflag_compound) + tflag(key, tflag_struct);
+  info->valk = tflag(val, tflag_compound) + tflag(val, tflag_struct);
 }
 
 static DTOR(dict_clear_dtor) {
@@ -357,13 +357,12 @@ static OP_CHECK(opck_dict_remove_toop) {
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
   if(isa(args->type, hinfo->key) < 0 || args->next)
     ERR_N(e->pos, "dict.remove must be called with one Key argument");
-  return e->type = hinfo->val;
+  return e->type = env->gwion->type[et_void];
 }
 
 ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
                           const struct Op_Import *opi, const Exp call, const Exp exp) {
-  const Instr room_for_tombstone = emit_add_instr(emit, RegPushImm);
-  room_for_tombstone->m_val = -1;
+  emit_pushimm(emit, -1); // room for tombstone
   CHECK_BB(emit_exp(emit, call));
   const m_uint pc = emit_code_size(emit);
   const Instr iter = emit_add_instr(emit, hmap_iter);
@@ -375,8 +374,7 @@ ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
   const Instr top = emit_add_instr(emit, Goto);
   top->m_val = pc;
   ok->m_val = emit_code_size(emit);
-  const Instr _pop = emit_add_instr(emit, RegMove);
-  _pop->m_val = -SZ_INT;// - key->size;
+  emit_regmove(emit, -SZ_INT);
   return GW_OK;
 }
 
@@ -419,8 +417,8 @@ if(info->is_var) {
   const m_uint grow_pc = emit_code_size(emit);
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
-  emit_exp(emit, call.d.exp_call.func);
-  emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true);
+  CHECK_BB(emit_exp(emit, call.d.exp_call.func));
+  CHECK_BB(emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true));
   emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);
   regrow->m_val = grow_pc;
@@ -513,8 +511,9 @@ static OP_EMIT(opem_dict_access) {
   const Array_Sub array = &info->array;
   const Exp enext = array->exp->next;
   array->exp->next = NULL;
-  _opem_dict_access(emit, data);
+  const m_bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
+  CHECK_BB(ret);
   return !enext ? GW_OK : emit_next_access(emit, info);
 }
 
@@ -620,6 +619,7 @@ static OP_CHECK(opck_dict_each_val) {
 
 static OP_CHECK(opck_dict_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
+  if(ts->t->info->cdef->base.tmpl->call) return ts->t;
   struct tmpl_info     info = {
       .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
   const Type  exists = tmpl_exists(env, &info);
@@ -636,30 +636,31 @@ static OP_CHECK(opck_dict_scan) {
 
   const bool is_global = tmpl_global(env, ts->td->types);
   const m_uint scope = is_global ?  env_push_global(env) : env->scope->depth;
-  (void)scan0_class_def(env, cdef);
+  CHECK_BN(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   t->nspc->class_data_size = sizeof(struct HMapInfo);
   const m_bool ret = traverse_cdef(env, t);
+    set_tflag(t, tflag_cdef);
   if(is_global) {
     env_pop(env, scope);
     type_addref(t);
   }
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
-  hmapinfo_init(hinfo, env->gwion->type, key, val);
+  hmapinfo_init(hinfo, key, val);
   if(hinfo->keyk + hinfo->valk) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL, "@dtor", SZ_INT, true, false);
     t->nspc->dtor->native_func = (m_uint)dict_clear_dtor;
     set_tflag(t, tflag_dtor);
   }
   struct Op_Func opfunc = { .ck = opck_dict_access, .em = opem_dict_access };
-  struct Op_Import opi = { .lhs = key, .rhs = t, .ret = val, .op = insert_symbol("@array"), .func = &opfunc };
+  struct Op_Import opi = { .lhs = key, .rhs = t, .ret = val, .op = insert_symbol("[]"), .func = &opfunc };
   add_op(env->gwion, &opi);
   opi.op = insert_symbol("~~");
   opfunc.em = opem_dict_remove;
   add_op(env->gwion, &opi);
 
   {
-  const Func             f      = (Func)vector_front(&t->nspc->vtable);
+  const Func             f      = (Func)vector_at(&t->nspc->vtable, 1);
   const struct Op_Func   opfunc = {.ck = opck_dict_remove_toop};
   const struct Op_Import opi    = {
       .rhs  = f->value_ref->type,
@@ -669,23 +670,16 @@ static OP_CHECK(opck_dict_scan) {
   CHECK_BN(add_op(env->gwion, &opi));
 
   }
-
   return ret > 0 ? t : NULL;
 }
 
 GWION_IMPORT(dict) {
-//  gwidoc(gwi, "Ref: take a reference from a variable.");
-//  gwinote(gwi, "used just as the variable it reference.");
-//  gwinote(gwi, "can only be used as argument.");
-//  gwinote(gwi, "and cannot be returned.");
-
-
   DECL_OB(const Type, t_dict, = gwi_class_ini(gwi, "Dict:[Key,Val]", "Object"));
   gwi_class_xtor(gwi, dict_ctor, dict_dtor);
   t_dict->nspc->offset += sizeof(struct HMap);
   gwi->gwion->type[et_dict] = t_dict;
-
-  GWI_BB(gwi_func_ini(gwi, "bool",   "remove"));
+  set_tflag(t_dict, tflag_infer);
+  GWI_BB(gwi_func_ini(gwi, "void",   "remove"));
   GWI_BB(gwi_func_arg(gwi, "Key",    "key"));
   GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
 
@@ -693,7 +687,7 @@ GWION_IMPORT(dict) {
 
   GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_dict_scan))
-  GWI_BB(gwi_oper_end(gwi, "@scan", NULL))
+  GWI_BB(gwi_oper_end(gwi, "class", NULL))
 
   GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "int"))
   GWI_BB(gwi_oper_emi(gwi, opem_dict_each))

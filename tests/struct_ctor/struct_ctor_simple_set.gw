@@ -1,0 +1,11 @@
+#! [contains] 13
+
+struct S {
+  12 :=> var int i;
+  var float f;
+  operator new(int i, int j) {
+    <<< i + j :=> this.i >>>;
+  }
+}
+
+<<< 13 :=> (S(21,21)).i >>>;

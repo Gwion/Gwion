@@ -80,40 +80,30 @@ ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
 ANN m_uint emit_localn(const Emitter emit, const Type t);
 ANN void* emit_localx(const Emitter emit, const Type t);
-ANN void emit_local_exp(const Emitter emit, const Exp);
+ANN m_uint emit_local_exp(const Emitter emit, const Exp);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
 ANN m_bool emit_exp(const Emitter, const Exp);
 
-ANN Instr emit_object_addref(const Emitter emit, const m_int size,
+ANN void emit_object_addref(const Emitter emit, const m_int size,
                              const bool emit_var);
-ANN Instr emit_struct_addref(const Emitter emit, const Type t, const m_int size,
+ANN void emit_struct_addref(const Emitter emit, const Type t, const m_int size,
                              const bool emit_var);
-ANN static inline Instr emit_compound_addref(const Emitter emit, const Type t,
+ANN static inline void emit_compound_addref(const Emitter emit, const Type t,
                                              const m_int  size,
                                              const m_bool emit_var) {
   return !tflag(t, tflag_struct) ? emit_object_addref(emit, size, emit_var)
                                  : emit_struct_addref(emit, t, size, emit_var);
 }
 
-ANN static inline bool is_static_call(const Emitter emit, const Exp e) {
-  if (e->exp_type != ae_exp_dot) return true;
-  const Exp_Dot *member = &e->d.exp_dot;
-  return GET_FLAG(e->type, final) ||
-         GET_FLAG(member->base->type, final) ||
-         is_class(emit->gwion, member->base->type) ||
-//         GET_FLAG(e->type->info->func, static) ||
-         member->base->exp_type == ae_exp_cast;
-}
-
-ANN Instr emit_kind(Emitter, const m_uint size, const bool addr,
+ANN Instr emit_kind(Emitter, const m_uint val, const m_uint size, const bool addr,
                     const f_instr func[]);
-ANN Instr emit_regpushimm(Emitter, const m_uint, const bool);
-ANN Instr emit_regpushmem(Emitter, const m_uint, const bool);
-ANN Instr emit_regpushbase(Emitter, const m_uint, const bool);
-ANN Instr emit_dotstatic(Emitter, const m_uint, const bool);
-ANN Instr emit_dotmember(Emitter, const m_uint, const bool);
-ANN Instr emit_structmember(Emitter, const m_uint, const bool);
-ANN Instr emit_unionmember(Emitter, const m_uint, const bool);
+ANN Instr emit_regpushimm(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_regpushmem(Emitter, const m_uint, const m_uint , const bool);
+ANN Instr emit_regpushbase(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_dotstatic(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_dotmember(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_structmember(Emitter, const m_uint, const m_uint, const bool);
+ANN Instr emit_unionmember(Emitter, const m_uint, const m_uint, const bool);
 
 void emit_fast_except(const Emitter emit, const ValueFrom *vf, const loc_t loc);
 ANN static inline m_uint emit_code_size(const Emitter emit) {
@@ -126,4 +116,39 @@ ANN void emit_pop_scope(const Emitter emit);
 ANN m_bool ensure_emit(const Emitter, const Type);
 ANN m_bool emit_ensure_func(const Emitter emit, const Func f);
 ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var);
+
+ANN static inline void emit_regmove(const Emitter emit, const m_uint i) {
+  const Instr instr = emit_add_instr(emit, RegMove);
+  instr->m_val = i;
+}
+
+ANN static inline void emit_pushfunc(const Emitter emit, const Func f) {
+  if(f->code) {
+    const Instr instr = emit_add_instr(emit, RegPushImm);
+    instr->m_val = (m_uint)f->code;
+  } else {
+    const Instr instr = emit_add_instr(emit, SetFunc);
+    instr->m_val = (m_uint)f;
+  }
+}
+
+ANN static inline void emit_pushimm(const Emitter emit, const m_uint value) {
+  const Instr instr = emit_add_instr(emit, RegPushImm);
+  instr->m_val = value;
+}
+
+#define mk_emit_instr(name, instruction)                                                           \
+ANN static inline Instr emit_##name(const Emitter emit, const m_uint value, const m_uint value2) { \
+  const Instr instr = emit_add_instr(emit, instruction);                                           \
+  instr->m_val  = value;                                                                           \
+  instr->m_val2 = value2;                                                                          \
+  return instr;                                                                                    \
+ }
+mk_emit_instr(memsetimm, MemSetImm);
+mk_emit_instr(regsetimm, RegSetImm);
+mk_emit_instr(regtomem, Reg2Mem);
+mk_emit_instr(regtomem4, Reg2Mem4);
+mk_emit_instr(regpushmem4, RegPushMem4);
+
+ANN void emit_struct_release(const Emitter, const Type , const m_uint offset);
 #endif

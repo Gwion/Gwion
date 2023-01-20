@@ -30,12 +30,15 @@ ANN void gwi_reset(const Gwi gwi) {
 }
 
 ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
-  struct LintState ls     = {.builtin = true, };
-  Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls, .nindent = 4};
+  struct LintState ls     = {.builtin = true, .nindent = 4};
+  text_init(&ls.text, gwi->gwion->mp);
+  Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls };
   lint_indent(&linter);
   lint(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->lint = &linter;
-  return f(gwi);
+  const m_bool ret = f(gwi);
+  fprintf(stdout, "%s", ls.text.str);
+  return ret;
 }
 
 ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
