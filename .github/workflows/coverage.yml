@@ -31,6 +31,8 @@ jobs:
         
     - name: Test Gwion
       run: make test
+      env:
+        USE_COVERAGE: 1
 
     - uses: actions/setup-python@v1
       with:
