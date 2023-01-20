@@ -47,7 +47,8 @@ ANN static inline Type ref(const Env env, Type_Decl *td) {
 }
 
 ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
-  GwText text = { .mp = env->gwion->mp };
+  GwText text;
+  text_init(&text, env->gwion->mp);
   text_add(&text, "(");
   DECL_OO(const Type, t, = known_type(env, base->td));
   DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->pos));

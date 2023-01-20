@@ -1111,7 +1111,7 @@ ANN static m_bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
   if (!decl->args && !exp_getvar(exp_self(decl)) && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->td, late) &&
       GET_FLAG(v, late) && late_array(decl->td)
       && GET_FLAG(v->type, abstract)) {
-    env_warn(emit->env, decl->td->pos, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
+    env_err(emit->env, decl->td->pos, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
              v->type->name, !GET_FLAG(decl->td, const) ? "var" : "const");
     if(v->type->nspc->vtable.ptr) {
       const Vector vec = &v->type->nspc->vtable;
@@ -1123,6 +1123,7 @@ ANN static m_bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
         }
       }
     }
+    return GW_ERROR;
   }
   if(GET_FLAG(v, late) && exp_getuse(exp_self(decl)))
     emit_add_instr(emit, GWOP_EXCEPT);
@@ -1232,7 +1233,7 @@ ANN static inline void inline_args_ini(const Emitter emit, const Func f,
     const Value value = arg->var_decl.value;
     vector_add(v, value->from->offset);
     value->from->offset = emit_local(emit, value->type);
-    nspc_add_value(emit->env->curr, arg->var_decl.xid, value);
+    _nspc_add_value(emit->env->curr, arg->var_decl.xid, value);
   }
   emit_regmove(emit, -f->code->stack_depth);
   emit_regtomem4(emit, f->code->stack_depth, start_offset);
@@ -2248,11 +2249,11 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   emit_memsetimm(emit, key_offset, -1);
   stmt->v->from->offset = val_offset;
 //value_addref(stmt->v);
-nspc_add_value(emit->env->curr, stmt->sym, stmt->v);
+_nspc_add_value(emit->env->curr, stmt->sym, stmt->v);
   emit_debug(emit, stmt->v);
   if (stmt->idx) {
     stmt->idx->v->from->offset = key_offset;
-nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
+_nspc_add_value(emit->env->curr, stmt->idx->sym, stmt->idx->v);
 //value_addref(stmt->idx->v);
     emit_debug(emit, stmt->idx->v);
   }
@@ -2665,7 +2666,7 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List args) {
     emit->code->stack_depth += type->size;
     arg->var_decl.value->from->offset = emit_localn(emit, type);
     emit_debug(emit, arg->var_decl.value);
-    nspc_add_value(emit->env->curr, insert_symbol(arg->var_decl.value->name), arg->var_decl.value);
+    _nspc_add_value(emit->env->curr, insert_symbol(arg->var_decl.value->name), arg->var_decl.value);
   }
 }
 

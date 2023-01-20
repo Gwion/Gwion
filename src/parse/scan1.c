@@ -142,7 +142,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     } else if (GET_FLAG(decl->td, global))
       SET_FLAG(v, global);
     else if(env->context)
-      set_vflag(v, vflag_fglobal); // file global
+    set_vflag(v, vflag_fglobal); // file global
   } else if (GET_FLAG(decl->td, global))
     SET_FLAG(v, global);
   nspc_add_value(env->curr, vd->xid, v);
@@ -766,7 +766,6 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
       !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if (type_ref(parent)) ERR_B(pos, _("can't use ref type in class extend"))
-  if (GET_FLAG(parent, abstract)) SET_FLAG(cdef->base.type, abstract);
   return GW_OK;
 }
 

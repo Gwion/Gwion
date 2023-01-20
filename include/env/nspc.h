@@ -51,12 +51,12 @@ extern ANN void nspc_commit(const Nspc);
 #define describe_lookups(A, b)                                                 \
   describe_lookup0(A, b) describe_lookup1(A, b) describe_lookup2(A, b)
 
-#define describe_nspc_func(A, b)                                               \
-  static inline ANN void nspc_add_##b(const Nspc n, const Symbol s,            \
+#define describe_nspc_func(A, b, prefix)                                               \
+  static inline ANN void prefix##nspc_add_##b(const Nspc n, const Symbol s,            \
                                       const A a) {                             \
     scope_add(n->info->b, (vtype)s, (vtype)a);                                 \
   }                                                                            \
-  static inline ANN void nspc_add_##b##_front(const Nspc n, const Symbol s,    \
+  static inline ANN void prefix##nspc_add_##b##_front(const Nspc n, const Symbol s,    \
                                               const A a) {                     \
     map_set(&n->info->b->map, (vtype)s, (vtype)a);                             \
   }                                                                            \
@@ -68,8 +68,14 @@ extern ANN void nspc_commit(const Nspc);
   }                                                                            \
   describe_lookups(A, b)
 
-describe_nspc_func(Value, value) describe_nspc_func(Type, type)
-    describe_nspc_func(Func, func) describe_nspc_func(Trait, trait)
+typedef void (*nspc_add_value_t)(const Nspc n, const Symbol s, const Value a);
+ANN void nspc_add_value(const Nspc n, const Symbol s, const Value a);
+ANN void nspc_add_value_front(const Nspc n, const Symbol s, const Value a);
+ANN void nspc_add_value_set_func(nspc_add_value_t add, nspc_add_value_t front);
+describe_nspc_func(Value, value,_)
+describe_nspc_func(Type, type,)
+describe_nspc_func(Func, func,)
+describe_nspc_func(Trait, trait,)
     /* howere there is no need for lookup_func0, push_func, pop_func */
     ANN void did_you_mean_nspc(const Nspc, const char *);
 ANN void did_you_mean_type(const Type, const char *);

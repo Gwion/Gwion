@@ -103,7 +103,7 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   if (v) return v;
   const Value value =
       new_value(env, env->gwion->type[et_string], s_name(sym), loc);
-  nspc_add_value_front(env->global_nspc, sym, value);
+  _nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }
 

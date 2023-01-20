@@ -2009,6 +2009,8 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
   if (td->array && td->array->exp)
     CHECK_BB(check_subscripts(env, td->array, 1));
   CHECK_BB(ensure_traverse(env, parent));
+  if(GET_FLAG(parent, abstract))
+    SET_FLAG(cdef->base.type, abstract);
   return GW_OK;
 }
 

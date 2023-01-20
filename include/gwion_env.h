@@ -23,7 +23,7 @@ ANN static inline void gwerr_secondary_from(const m_str msg, const ValueFrom *fr
 }
 
 ANN static inline void declared_here(const Value v) {
-  gwerr_secondary_from("declared here", v->from);
+  gwerr_secondary_from((m_str)"declared here", v->from);
 }
 #endif
 

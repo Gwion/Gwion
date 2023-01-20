@@ -133,9 +133,13 @@ ANN static inline m_bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   return ret;
 }
 
+static pos_t pos = { 1 , 1 };
+void gwion_set_default_pos(const pos_t _pos) {
+  pos = _pos;
+}
 ANN static inline m_bool _check(struct Gwion_ *gwion, struct Compiler *c) {
   struct AstGetter_ arg = {c->name, c->file, gwion->st, .ppa = gwion->ppa};
-  CHECK_OB((c->ast = parse(&arg)));
+  CHECK_OB((c->ast = parse_pos(&arg, pos)));
   gwion->env->name = c->name;
   const m_bool ret = passes(gwion, c);
   return ret;
