@@ -81,7 +81,7 @@ options-show:
 
 embed_gw:
 	touch src/main.c
-	mkdir embed
+	mkdir -p embed
 	bash scripts/gw_embed.sh ${GWION_EMBED_GW} > src/embed.c
 	CFLAGS="-DGWION_EMBED_GW -Iembed $(eval ${CFLAGS})" ${MAKE}
 	rm -rf embed src/embed.c
