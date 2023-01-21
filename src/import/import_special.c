@@ -29,7 +29,7 @@ ANN void gwi_register_pass(const Gwi gwi, const m_str name,
 
 ANN void gwi_specialid(const Gwi gwi, const m_str id, const SpecialId spid) {
   if (gwi->gwion->data->cdoc)
-    lint(gwi->lint, "{+C}specialid{0} %s{/}%s{0};\n",
+    lint_util(gwi->lint, "{+C}specialid{0} %s{/}%s{0};\n",
          spid->is_const ? "{+G}const{0} " : "", id);
   struct SpecialId_ *a = mp_calloc(gwi->gwion->mp, SpecialId);
   memcpy(a, spid, sizeof(struct SpecialId_));

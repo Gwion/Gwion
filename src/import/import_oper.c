@@ -74,28 +74,28 @@ ANN void gwi_oper_eff(const Gwi gwi, const m_str effect) {
 ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
   if (gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);
-    lint(gwi->lint, "{+C}operator{0} ");
+    lint_util(gwi->lint, "{+C}operator{0} ");
     if (gwi->oper->lhs && !gwi->oper->rhs) {
-      lint(gwi->lint, "{+}%s{0}",
+      lint_util(gwi->lint, "{+}%s{0}",
            gwi->oper->lhs != (m_str)1 ? gwi->oper->lhs : "@Any");
       lint_space(gwi->lint);
     }
     if (gwi->oper->ret) {
-      lint(gwi->lint, "{+}%s{0}",
+      lint_util(gwi->lint, "{+}%s{0}",
            gwi->oper->ret != (m_str)1 ? gwi->oper->ret : "@Any");
       lint_space(gwi->lint);
     }
-    lint(gwi->lint, "{/}%s{0}", op);
+    lint_util(gwi->lint, "{/}%s{0}", op);
     lint_space(gwi->lint);
     lint_lparen(gwi->lint);
     if (gwi->oper->lhs && gwi->oper->rhs) {
-      lint(gwi->lint, "{+}%s{0}",
+      lint_util(gwi->lint, "{+}%s{0}",
            gwi->oper->lhs != (m_str)1 ? gwi->oper->lhs : "@Any");
       lint_comma(gwi->lint);
       lint_space(gwi->lint);
     }
     if (gwi->oper->rhs)
-      lint(gwi->lint, "{+}%s{0}",
+      lint_util(gwi->lint, "{+}%s{0}",
            gwi->oper->rhs != (m_str)1 ? gwi->oper->rhs : "@Any");
     lint_rparen(gwi->lint);
     lint_sc(gwi->lint);

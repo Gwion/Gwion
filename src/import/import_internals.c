@@ -34,7 +34,7 @@ ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
   text_init(&ls.text, gwi->gwion->mp);
   Lint             linter = {.mp = gwi->gwion->mp, .ls = &ls };
   lint_indent(&linter);
-  lint(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
+  lint_util(&linter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->lint = &linter;
   const m_bool ret = f(gwi);
   fprintf(stdout, "%s", ls.text.str);

@@ -33,8 +33,8 @@ Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size,
                  const m_str parent_name) {
   if (gwi->gwion->data->cdoc) {
     lint_indent(gwi->lint);
-    lint(gwi->lint, "{+C}primitive{0} {+}%s{0}", name);
-    if (parent_name) lint(gwi->lint, " {+C}extends{0} {+}%s{0}", parent_name);
+    lint_util(gwi->lint, "{+C}primitive{0} {+}%s{0}", name);
+    if (parent_name) lint_util(gwi->lint, " {+C}extends{0} {+}%s{0}", parent_name);
     lint_sc(gwi->lint);
     lint_nl(gwi->lint);
   }
