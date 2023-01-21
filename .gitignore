@@ -14,3 +14,5 @@ mkdocs.yml
 *.gcno
 *.swp
 .vscode
+# ignore gwiond for dev
+gwiond
