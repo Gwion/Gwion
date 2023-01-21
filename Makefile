@@ -80,9 +80,11 @@ options-show:
 	@$(info libs: ${GWLIBS})
 
 embed_gw:
+	touch src/main.c
+	mkdir embed
 	bash scripts/gw_embed.sh ${GWION_EMBED_GW} > src/embed.c
 	CFLAGS="-DGWION_EMBED_GW -Iembed $(eval ${CFLAGS})" ${MAKE}
-	rm src/embed.c
+	rm -rf embed src/embed.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}
 
