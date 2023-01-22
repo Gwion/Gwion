@@ -66,9 +66,9 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
     set_tflag(t, tflag_cdef);
   }
   if (gwi->gwion->data->cdoc && t->info->cdef) {
-    lint_indent(gwi->lint);
-    gwi->lint->indent++;
-    lint_class_def(gwi->lint, t->info->cdef);
+    gwfmt_indent(gwi->gwfmt);
+    gwi->gwfmt->indent++;
+    gwfmt_class_def(gwi->gwfmt, t->info->cdef);
   }
   if(t->info->cdef && t->info->cdef->base.ext &&
      t->info->cdef->base.ext->array)
@@ -128,10 +128,10 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
 
 ANN m_int gwi_class_end(const Gwi gwi) {
   if (gwi->gwion->data->cdoc && gwi->gwion->env->class_def->info->cdef) {
-    gwi->lint->indent--;
-    lint_indent(gwi->lint);
-    lint_rbrace(gwi->lint);
-    lint_nl(gwi->lint);
+    gwi->gwfmt->indent--;
+    gwfmt_indent(gwi->gwfmt);
+    gwfmt_rbrace(gwi->gwfmt);
+    gwfmt_nl(gwi->gwfmt);
   }
   if (!gwi->gwion->env->class_def)
     GWI_ERR_B(_("import: too many class_end called."))

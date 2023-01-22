@@ -217,7 +217,7 @@ ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
 ANN m_bool gwi_primitive(const Gwi gwi, const m_str name, const m_uint size, const ae_flag flag) {
   const Env env = gwi->gwion->env;
   const Prim_Def pdef = new_prim_def(gwi->gwion->mp, insert_symbol(gwi->gwion->st, name), size, gwi->loc, flag);
-  if(gwi->gwion->data->cdoc)lint_prim_def(gwi->lint, pdef);
+  if(gwi->gwion->data->cdoc)gwfmt_prim_def(gwi->gwfmt, pdef);
   if(!env->class_def || !tflag(env->class_def, tflag_tmpl)) {
     const m_bool ret = scan0_prim_def(gwi->gwion->env, pdef);
     free_prim_def(gwi->gwion->mp, pdef);

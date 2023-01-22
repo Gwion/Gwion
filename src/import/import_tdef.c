@@ -30,8 +30,8 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   gwi->ck->tmpl    = NULL;
   const m_bool ret = traverse_type_def(gwi->gwion->env, tdef);
   if (gwi->gwion->data->cdoc) {
-    lint_indent(gwi->lint);
-    lint_type_def(gwi->lint, tdef);
+    gwfmt_indent(gwi->gwfmt);
+    gwfmt_type_def(gwi->gwfmt, tdef);
   }
   const Type t = tdef->type;
   if (ret > 0)

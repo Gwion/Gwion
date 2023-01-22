@@ -58,8 +58,8 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   //  const M_Object o = new_object(gwi->gwion->mp, udef->value->type);
   //  udef->value->d.ptr = (m_uint*)o;
   if (gwi->gwion->data->cdoc) {
-    lint_indent(gwi->lint);
-    lint_union_def(gwi->lint, udef);
+    gwfmt_indent(gwi->gwfmt);
+    gwfmt_union_def(gwi->gwfmt, udef);
   }
   return udef->type;
 }
