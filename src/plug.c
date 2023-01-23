@@ -16,9 +16,6 @@
 #include "gwi.h"
 
 typedef m_bool (*plugin)(Gwi);
-typedef void *(*modini)(const struct Gwion_ *, const Vector);
-typedef void *(*modend)(const struct Gwion_ *, void *);
-typedef m_str *(*gwdeps)(void);
 
 struct PlugHandle {
   MemPool mp;
@@ -30,11 +27,20 @@ typedef struct Plug_ {
   void *dl;
   void *self;
   Nspc nspc;
+  gwplugin_t plugin;
+  gwdriver_t driver;
+  gwmodini_t modini;
+  gwmodend_t modend;
+  gwdepend_t depend;
 } * Plug;
 
 ANN static struct Plug_ *new_plug(MemPool p, void *dl) {
   struct Plug_ *plug = mp_calloc(p, Plug);
   plug->dl           = dl;
+  plug->plugin = DLSYM(plug->dl, gwplugin_t, GWIMPORT_NAME);
+  plug->modini = DLSYM(plug->dl, gwmodini_t, GWMODINI_NAME);
+  plug->modend = DLSYM(plug->dl, gwmodend_t, GWMODEND_NAME);
+  plug->depend = DLSYM(plug->dl, gwdepend_t, GWDEPEND_NAME);
   return plug;
 }
 
@@ -99,7 +105,7 @@ void free_plug(const Gwion gwion) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
-    const modend end  = DLSYM(plug->dl, modend, GWMODEND_NAME);
+    const gwmodend_t end  = plug->modend;
     if (end && plug->self) end(gwion, plug->self);
     free((m_str)VKEY(map, i));
     DLCLOSE(plug->dl);
@@ -139,8 +145,8 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
       if (!strcmp(name, (m_str)VKEY(map, j))) {
         Plug         plug = (Plug)VVAL(map, j);
         const Vector arg  = opt ? split_args(gwion->mp, opt) : NULL;
-        const modini ini  = DLSYM(plug->dl, modini, GWMODINI_NAME);
-        plug->self        = ini(gwion, arg);
+        if(!plug->modini) continue;
+        plug->self        = plug->modini(gwion, arg);
         if (arg) plug_free_arg(gwion->mp, arg);
         break;
       }
@@ -154,7 +160,7 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
 }
 
 ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
-  const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
+  const gwdepend_t dep = plug->depend;
   bool ret = true;
   if (dep) {
     m_str *const base = dep();
@@ -183,7 +189,7 @@ ANN static void set_parent(const Nspc nspc, const Gwion gwion ) {
 }
 
 ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, const loc_t loc) {
-  const plugin imp = DLSYM(plug->dl, plugin, GWIMPORT_NAME);
+  if(!plug->plugin) return GW_ERROR;
   const bool cdoc = gwion->data->cdoc;
   gwion->data->cdoc = 0; // check cdoc
   CHECK_BB(dependencies(gwion, plug, loc));
@@ -194,7 +200,7 @@ ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, c
   const m_uint scope = env_push(gwion->env, NULL, plug->nspc);
   const m_str  name  = gwion->env->name;
   gwion->env->name   = iname;
-  const m_bool ret   = gwi_run(gwion, imp);
+  const m_bool ret   = gwi_run(gwion, plug->plugin);
   gwion->env->name   = name;
   env_pop(gwion->env, scope);
   return ret;

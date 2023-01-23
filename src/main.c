@@ -52,9 +52,12 @@ int main(int argc, char **argv) {
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   const m_bool  ini   = gwion_ini(&gwion, &arg);
+//  embed_plug(&gwion);
+gwion_embed(&gwion);
+  arg_compile(&gwion, &arg);
   arg_release(&arg);
 #ifdef GWION_EMBED_GW
-  embed_gw(&gwion);
+//  embed_gw(&gwion);
 #endif
   if (ini > 0) gwion_run(&gwion);
   gwion_end(&gwion);
