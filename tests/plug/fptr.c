@@ -9,7 +9,7 @@
 #include "import.h"
 
 static MFUN(test_func) { puts("test"); }
-GWION_IMPORT(typedef_test) {
+GWION_IMPORT(fptr) {
   GWI_BB(gwi_fptr_ini(gwi, "void", "PtrType"))
   GWI_OB(gwi_fptr_end(gwi, 0))
 

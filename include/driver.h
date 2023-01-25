@@ -12,7 +12,6 @@ typedef struct DriverData_ {
   f_drvdel del;
 } DriverData;
 
-typedef void (*f_bbqset)(struct DriverData_ *);
 typedef void (*f_bbqrun)(const struct VM_ *);
 
 typedef struct BBQ_ {
@@ -20,7 +19,7 @@ typedef struct BBQ_ {
   m_float *           in;
   m_float *           out;
   struct SoundInfo_ * si;
-  f_bbqset            func;
+  gwdriver_t          func;
   f_bbqrun            run;
   struct DriverData_ *driver;
   bool                is_running;

@@ -9,7 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(checker) {
+GWION_IMPORT(array_invalid_in_var_name) {
   gwi_item_ini(gwi, "int", "array[.]");
   return GW_OK;
 }

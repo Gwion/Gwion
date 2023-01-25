@@ -9,7 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(global_var_test) {
+GWION_IMPORT(str2list_fail) {
   GWI_BB(gwi_item_ini(gwi, "SoemClass.child", "i"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
   return GW_OK;

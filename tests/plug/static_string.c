@@ -10,7 +10,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(static_string_test) {
+GWION_IMPORT(static_string) {
   const M_Object o =
       new_object(gwi->gwion->mp, gwi->gwion->type[et_string]);
   STRING(o) = s_name(insert_symbol(gwi->gwion->st, "test static string"));

@@ -12,7 +12,7 @@
 #include "ugen.h"
 #include "gwi.h"
 
-GWION_IMPORT(str2td) {
+GWION_IMPORT(str2decl) {
   GWI_OB(gwi_class_ini(gwi, "Test", NULL))
   GWI_OB(gwi_class_ini(gwi, "Child", NULL))
   GWI_BB(gwi_class_end(gwi))

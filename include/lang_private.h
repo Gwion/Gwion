@@ -1,24 +1,24 @@
 #ifndef __LANG_PRIVATE
 #define __LANG_PRIVATE
-ANN m_bool import_class(const Gwi gwi);
-ANN m_bool import_prim(const Gwi gwi);
-ANN m_bool import_enum(const Gwi gwi);
-ANN m_bool import_object(const Gwi gwi);
-ANN m_bool import_func(const Gwi gwi);
-ANN m_bool import_string(const Gwi gwi);
-ANN m_bool import_shred(const Gwi gwi);
-ANN m_bool import_event(const Gwi gwi);
-ANN m_bool import_ugen(const Gwi gwi);
-ANN m_bool import_array(const Gwi gwi);
-ANN m_bool import_xork(const Gwi gwi);
-ANN m_bool import_modules(const Gwi gwi);
-ANN m_bool import_object_op(const Gwi gwi);
-ANN m_bool import_values(const Gwi gwi);
-ANN m_bool import_union(const Gwi gwi);
-ANN m_bool import_ref(const Gwi gwi);
-ANN m_bool import_deep_equal(const Gwi gwi);
-ANN m_bool import_dict(const Gwi gwi);
-ANN m_bool import_gack(const Gwi gwi);
-ANN m_bool import_sift(const Gwi gwi);
-ANN m_bool import_locale(const Gwi gwi);
+ANN m_bool gwimport_class(const Gwi gwi);
+ANN m_bool gwimport_prim(const Gwi gwi);
+ANN m_bool gwimport_enum(const Gwi gwi);
+ANN m_bool gwimport_object(const Gwi gwi);
+ANN m_bool gwimport_func(const Gwi gwi);
+ANN m_bool gwimport_string(const Gwi gwi);
+ANN m_bool gwimport_shred(const Gwi gwi);
+ANN m_bool gwimport_event(const Gwi gwi);
+ANN m_bool gwimport_ugen(const Gwi gwi);
+ANN m_bool gwimport_array(const Gwi gwi);
+ANN m_bool gwimport_xork(const Gwi gwi);
+ANN m_bool gwimport_modules(const Gwi gwi);
+ANN m_bool gwimport_object_op(const Gwi gwi);
+ANN m_bool gwimport_values(const Gwi gwi);
+ANN m_bool gwimport_union(const Gwi gwi);
+ANN m_bool gwimport_ref(const Gwi gwi);
+ANN m_bool gwimport_deep_equal(const Gwi gwi);
+ANN m_bool gwimport_dict(const Gwi gwi);
+ANN m_bool gwimport_gack(const Gwi gwi);
+ANN m_bool gwimport_sift(const Gwi gwi);
+ANN m_bool gwimport_locale(const Gwi gwi);
 #endif

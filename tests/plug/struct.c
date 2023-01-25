@@ -12,7 +12,7 @@
 SFUN(coverage_int) { *(m_uint *)RETURN = 0; }
 SFUN(coverage_float) { *(m_float *)RETURN = 0; }
 
-GWION_IMPORT(coverage) {
+GWION_IMPORT(struct) {
   GWI_OB(gwi_struct_ini(gwi, "Struct"))
   GWI_BB(gwi_func_ini(gwi, "int", "i"))
   GWI_BB(gwi_func_end(gwi, coverage_int, ae_flag_static))

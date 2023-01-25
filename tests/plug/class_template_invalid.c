@@ -14,7 +14,7 @@ static m_int o_map_value;
 #define MAP_KEY(a) *((M_Object *)(a->data + o_map_key))
 #define MAP_VAL(a) *((M_Object *)(a->data + o_map_value))
 
-GWION_IMPORT(class_template) {
+GWION_IMPORT(class_template_invalid) {
   GWI_OB(gwi_class_ini(gwi, "ClassTemplate:[A,B]", NULL))
   GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
   GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_none, obj, NULL)))

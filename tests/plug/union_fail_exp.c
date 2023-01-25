@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "import.h"
 
-GWION_IMPORT(union_test) {
+GWION_IMPORT(union_fail_exp) {
   GWI_BB(gwi_union_ini(gwi, "U"))
   GWI_BB(gwi_union_add(gwi, "Float", "f"))
   GWI_BB(gwi_union_add(gwi, "int", "i"))

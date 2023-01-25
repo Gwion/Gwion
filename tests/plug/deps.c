@@ -15,4 +15,4 @@ GWION_IMPORT(deps) {
 }
 
 static const m_str deps[] = {"array", NULL};
-GWDEPEND { return deps; }
+GWDEPEND(deps) { return deps; }

@@ -8,7 +8,7 @@
 #include "instr.h"
 #include "import.h"
 
-GWION_IMPORT(end_class) {
+GWION_IMPORT(non_driver) {
   (void)gwi;
   return GW_OK;
 }

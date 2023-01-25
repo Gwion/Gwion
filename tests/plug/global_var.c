@@ -9,7 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(global_var_test) {
+GWION_IMPORT(global_var) {
   const M_Object o =
       new_object(gwi->gwion->mp, gwi->gwion->type[et_string]);
   STRING(o) = s_name(insert_symbol(gwi->gwion->st, "test"));

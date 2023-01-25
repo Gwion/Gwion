@@ -4,9 +4,9 @@
 #include "gwion_ast.h"
 #include "gwion_env.h"
 #include "vm.h"
+#include "plug.h"
 #include "driver.h"
 #include "gwion.h"
-#include "plug.h"
 
 GWMODINI(dummy_module) {
   puts(__func__);

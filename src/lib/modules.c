@@ -286,11 +286,11 @@ static GWION_IMPORT(usrugen) {
 }
 
 GWION_IMPORT(modules) {
-  GWI_BB(import_gain(gwi))
-  GWI_BB(import_impulse(gwi))
-  GWI_BB(import_fullrect(gwi))
-  GWI_BB(import_halfrect(gwi))
-  GWI_BB(import_step(gwi))
-  GWI_BB(import_zerox(gwi))
-  return import_usrugen(gwi);
+  GWI_BB(gwimport_gain(gwi))
+  GWI_BB(gwimport_impulse(gwi))
+  GWI_BB(gwimport_fullrect(gwi))
+  GWI_BB(gwimport_halfrect(gwi))
+  GWI_BB(gwimport_step(gwi))
+  GWI_BB(gwimport_zerox(gwi))
+  return gwimport_usrugen(gwi);
 }

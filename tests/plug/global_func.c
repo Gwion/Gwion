@@ -14,7 +14,7 @@ SFUN(coverage_int) {
   *(m_int *)RETURN = *(m_int *)MEM(0);
 }
 
-GWION_IMPORT(global_func_test) {
+GWION_IMPORT(global_func) {
   GWI_BB(gwi_func_ini(gwi, "int", "test"))
   GWI_BB(gwi_func_arg(gwi, "int", "i"))
   GWI_BB(gwi_func_end(gwi, coverage_int, ae_flag_none))

@@ -446,5 +446,5 @@ GWION_IMPORT(ugen) {
   _CHECK_OP(":~>", chuck_ugen, TrigAUConnect)
   _CHECK_OP(":~<", chuck_ugen, TrigAUDisconnect)
 
-  return import_global_ugens(gwi);
+  return gwimport_global_ugens(gwi);
 }

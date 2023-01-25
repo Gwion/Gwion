@@ -9,7 +9,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(checker) {
+GWION_IMPORT(array_in_var_name_fail) {
   GWI_BB(gwi_union_ini(gwi, "U"))
   GWI_BB(gwi_union_add(gwi, "int", "i"))
   return GW_OK;

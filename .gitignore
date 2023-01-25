@@ -16,3 +16,5 @@ mkdocs.yml
 .vscode
 # ignore gwiond for dev
 gwiond
+embed
+gwion.config.json
