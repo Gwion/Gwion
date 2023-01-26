@@ -625,6 +625,20 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN void scan2_default_args(const Env env, const Section *s, Ast *acc) {
+  Func_Base *const fb = s->d.func_def->base;
+  Arg_List       args = fb->args;
+  uint32_t len = args->len;
+  while(args->len--) {
+    const Arg *arg = mp_vector_at(args, Arg, args->len);
+    if(!arg->exp) break;
+    const Func_Def fdef = default_args(env, fb, acc, len);
+    scan1_func_def(env, fdef);
+    scan2_func_def(env, fdef);
+  }
+  args->len = len;
+}
+
 ANN m_bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   Ast acc = new_mp_vector(env->gwion->mp, Section, 0);
@@ -640,7 +654,7 @@ ANN m_bool scan2_ast(const Env env, Ast *ast) {
 
   for(uint32_t i = 0; i < acc->len; i++) {
     Section *section = mp_vector_at(acc, Section, i);
-    default_args(env, section, ast);
+    scan2_default_args(env, section, ast);
   }
   free_mp_vector(env->gwion->mp, Section, acc);
   return ret;

@@ -60,7 +60,7 @@ ANN static Stmt_List new_code(const Env env, Func_Base *base, const uint32_t max
 }
 
 
-ANN static Func_Def _default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max) {
+ANN Func_Def default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max) {
   Func_Base *const base = cpy_func_base(env->gwion->mp, fb);
   Stmt_List code = strcmp(s_name(base->xid), "new")
       ? std_code(env, fb, max)
@@ -69,18 +69,4 @@ ANN static Func_Def _default_args(const Env env, Func_Base *fb, Ast *acc, uint32
   Section section = MK_SECTION(func, func_def, fdef);
   mp_vector_add(env->gwion->mp, acc, Section, section);
   return fdef;
-}
-
-ANN void default_args(const Env env, const Section *s, Ast *acc) {
-  Func_Base *const fb = s->d.func_def->base;
-  Arg_List       args = fb->args;
-  uint32_t len = args->len;
-  while(args->len--) {
-    const Arg *arg = mp_vector_at(args, Arg, args->len);
-    if(!arg->exp) break;
-    const Func_Def fdef = _default_args(env, fb, acc, len);
-    scan1_func_def(env, fdef);
-    scan2_func_def(env, fdef);
-  }
-  args->len = len;
 }

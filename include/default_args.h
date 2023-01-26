@@ -1,4 +1,4 @@
 #ifndef __DEFAULT_ARGS
 #define __DEFAULT_ARGS
-ANN void default_args(const Env, const Section *, Ast *acc);
+ANN Func_Def default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max);
 #endif
