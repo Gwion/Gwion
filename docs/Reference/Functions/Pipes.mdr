@@ -1,0 +1,65 @@
+# Pipes
+## Motivation
+Sometimes when writing code, you have a situation such as this:
+```gwion,editable
+fun int incr(int i) {
+  return i + 1;
+}
+
+<<< incr(incr(incr(incr(1)))) >>>;
+```
+
+This code looks rather unappealing due to the nested functions. Instead, you can use pipes!
+
+## Usage
+
+Instead of nesting functions over and over again, you can pipe the functions in a nice line.
+
+```gwion,editable
+fun int incr(int i) {
+  return i + 1;
+}
+
+<<< 1 => incr => incr => incr => incr >>>;
+```
+
+As you can see, the `1` is piped into the `incr` function, and the result of that is piped into the `incr` function, and so on.
+
+### Multiple arguments
+
+Piping works a little differently if your function has multiple arguments. If a function has multiple arguments, there are two ways to pipe.
+
+First off, you can pipe all arguments directly.
+
+```gwion,editable
+fun int add(int i, int j) {
+  return i + j;
+}
+
+<<< (1, 2) => add >>>;
+```
+
+Second off, you can pipe arguments one at a time.
+
+```gwion,editable
+fun int add(int i, int j) {
+  return i + j;
+}
+
+<<< 1 => add(_, 2) >>>;
+<<< 2 => add(1, _) >>>;
+```
+
+The underscore determines where the piped argument goes. In the first line, `1` goes into the first argument, whereas in the second line, `2` goes into the second argument.
+
+You can also have multiple underscores.
+
+```gwion,editable
+fun int add3(int i, int j, int k) {
+  return i + j + k;
+}
+
+<<< (1, 3) => add3(_, 2, _) >>>;
+```
+
+The arguments go into their respective underscores. In this case, `1` goes into the first argument and `3` goes into the third.
