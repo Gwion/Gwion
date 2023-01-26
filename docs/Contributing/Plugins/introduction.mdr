@@ -143,7 +143,7 @@ static SFUN(sfun) {
 Finally, we can test our plugin. After running `make` (which creates `Adder.so`) in the directory, create a new file called `add.gw` and insert the following code:
 ```gwion,noplayground
 #! We import our newly created plugin
-#require Adder
+#import Adder
 
 #! Let's call our add function
 <<< Adder.add(1, 2) >>>;
