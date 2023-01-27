@@ -119,3 +119,14 @@ echo "}" >> embed/embed_foot
 cat embed/embed_head embed/embed_body embed/embed_foot > embed/embed.c
 rm embed/embed_head embed/embed_body embed/embed_foot
 
+audio=$(jq -rc '.audio' <<< "$json")
+in=$(jq -rc '.in' <<< "$audio")
+out=$(jq -rc '.out' <<< "$audio")
+samplerate=$(jq -rc '.samplerate' <<< "$audio")
+# check is truthy
+{
+[ "$in" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NIN=$in"
+[ "$out" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
+[ "$samplerate" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
+} >> embed/embed.mk
+
