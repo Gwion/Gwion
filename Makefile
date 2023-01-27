@@ -87,7 +87,7 @@ options-show:
 with_config:
 	bash scripts/embed.bash gwion.config.json
 	touch src/main.c
-	USE_CONFIG=1 CFLAGS="-DGWION_EMBED_GW -Iembed $(eval ${CFLAGS})" ${MAKE}
+	${MAKE} USE_CONFIG=1
 	touch src/main.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}

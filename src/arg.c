@@ -73,7 +73,9 @@ ANN static void arg_init(CliArg *arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->config);
+#ifndef GWION_STANDALONE
   vector_add(&arg->lib, (vtype)plug_dir());
+#endif
   arg->color = COLOR_AUTO;
 }
 
@@ -386,6 +388,8 @@ ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
 #ifdef __FUZZING
   return;
 #endif
+#ifndef GWION_STANDALONE
   config_default(&arg);
+#endif
   return _arg_parse(&arg);
 }

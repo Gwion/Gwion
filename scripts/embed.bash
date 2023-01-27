@@ -182,3 +182,7 @@ ldflags=$(jq -rc '.ldflags' <<< "$json")
     echo "LDFLAGS += $ldflag "
   done
 } >> embed/embed.mk
+standalone=$(jq -rc '.standalone' <<< "$json")
+[ "$standalone" = "true" ] && {
+  echo "CFLAGS += -DGWION_STANDALONE"
+} >> embed/embed.mk
