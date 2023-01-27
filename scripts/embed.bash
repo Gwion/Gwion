@@ -80,8 +80,9 @@ ANN static void compile_script(const Gwion gwion, const m_str filename,
 
 EOF
 
+libraries=$(jq -rc '.libraries' <<< "$json")
 echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
-jq -rc '.libraries|.[]' <<< "$json" |
+jq -rc '.[]' <<< "$libraries" |
   while read -r lib
   do
     path=$(jq -c '.path' <<< "$lib" | sed -e 's/^"//' -e 's/"$//')
@@ -105,9 +106,10 @@ handle_script() {
   echo "  compile_script(gwion, \"$name\", ${name}, ${name}_len);"
 }
 
+scripts=$(jq -r '.scripts' <<< "$json")
 handle_scripts() {
   i=0
-  jq -r '.scripts|.[]' <<< "$json"  |
+  jq -r '.[]' <<< "$scripts"  |
     while read -r name;
     do handle_script "$name" "$i"; i=$((i+1));
     done
@@ -123,10 +125,60 @@ audio=$(jq -rc '.audio' <<< "$json")
 in=$(jq -rc '.in' <<< "$audio")
 out=$(jq -rc '.out' <<< "$audio")
 samplerate=$(jq -rc '.samplerate' <<< "$audio")
-# check is truthy
+
 {
 [ "$in" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NIN=$in"
 [ "$out" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
 [ "$samplerate" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
 } >> embed/embed.mk
 
+args=$(jq -rc '.args' <<< "$json")
+[ "$args" != "null" ] && {
+  count=0
+  echo "CFLAGS += -DGWION_CONFIG_ARGS" >> embed/embed.mk
+  echo "static const char *config_argv[] = {"
+  jq -rc '.[]' <<< "$args" |
+  while read -r arg 
+  do
+    echo "  \"$arg\", "
+  done
+  echo "};"
+  count=$((count+1))
+  echo "static const int config_argc = $count;"
+cat << EOF
+ANN const char** config_args(int *argc, char **const argv) {
+  const int nargs = config_argc + *argc;
+  const char **  args = malloc(nargs * SZ_INT);
+  for(int i = 0; i < config_argc; i++) {
+    args[i] = config_argv[i];
+  }
+  for(int i = 0; i < *argc; i++) {
+  puts(argv[i]);
+    args[i + config_argc] = argv[i];
+  }
+  *argc = nargs;
+  return args;
+}
+EOF
+} >> embed/embed.c
+
+[ "$libraries" != "null" ] || [ "$scripts" != "null" ] && {
+  echo "CFLAGS += -DGWION_EMBED"
+} >> embed/embed.mk
+
+cflags=$(jq -rc '.cflags' <<< "$json")
+[ "$cflags" != "null" ] && {
+  jq -rc '.[]' <<< "$cflags" |
+  while read -r cflag
+  do
+    echo "CFLAGS += $cflag "
+  done
+} >> embed/embed.mk
+ldflags=$(jq -rc '.ldflags' <<< "$json")
+[ "$ldflags" != "null" ] && {
+  jq -rc '.[]' <<< "$ldflags" |
+  while read -r ldflag
+  do
+    echo "LDFLAGS += $ldflag "
+  done
+} >> embed/embed.mk

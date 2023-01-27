@@ -43,20 +43,31 @@ int main(int argc, char **argv) {
 
 #else
 
-#ifdef GWION_EMBED_GW
-void gwion_embed(const Gwion);
+#ifdef GWION_CONFIG_ARGS
+ANN char **config_args(int *, char **const);
+#endif
+#ifdef GWION_EMBED
+ANN void gwion_embed(const Gwion);
 #endif
 
 int main(int argc, char **argv) {
+#ifndef GWION_CONFIG_ARGS
   CliArg arg = {.arg = {.argc = argc, .argv = argv}, .loop = false};
+#else
+  char **config_argv = config_args(&argc, argv);
+  CliArg arg = {.arg = {.argc = argc, .argv = config_argv}, .loop = false};
+#endif
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
   const m_bool  ini   = gwion_ini(&gwion, &arg);
-#ifdef GWION_EMBED_GW
+#ifdef GWION_EMBED
   gwion_embed(&gwion);
 #endif
   arg_compile(&gwion, &arg);
   arg_release(&arg);
+#ifdef GWION_CONFIG_ARGS
+  free(config_argv);
+#endif
   if (ini > 0) gwion_run(&gwion);
   gwion_end(&gwion);
   gwion.vm = NULL;
