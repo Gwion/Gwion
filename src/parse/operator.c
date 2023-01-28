@@ -243,7 +243,7 @@ ANN static Type op_def(const Env env, struct Op_Import *const opi,
                 const Func_Def fdef) {
   const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
   tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
-    sizeof(Type_Decl*), fdef->base->tmpl->list->len);
+    Type_Decl*, fdef->base->tmpl->list->len);
   if (opi->lhs) {
      uint32_t idx = 0;
      const Type lhs = find_type(env, mp_vector_at(fdef->base->args, Arg, 0)->td);
