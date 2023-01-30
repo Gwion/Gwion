@@ -437,43 +437,7 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str      name = s_name(f->base->xid);
-  struct Vector_   v;
-  Specialized_List sl   = f->base->tmpl->list;
-  m_uint           tlen = 0;
-  vector_init(&v);
-  const bool spread = is_spread_tmpl(f->base->tmpl);
-  const uint32_t len = !spread ? sl->len : sl->len - 1;
-  for(uint32_t i = 0; i < len; i++) {
-    Specialized * spec = mp_vector_at(sl, Specialized, i);
-    const Type t = nspc_lookup_type0(env->curr, spec->xid);
-    if (!t) return NULL; // leaks vector ?
-    vector_add(&v, (vtype)t);
-    tlen += strlen(t->name); // this can be improved to use fully qualified name
-    ++tlen;
-  }
-
-  if(spread && f->base->tmpl->call) {
-    Type_List tl   = f->base->tmpl->call;
-    for(uint32_t i = len; i < tl->len; i++) {
-      Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-      const Type t = known_type(env, td);
-      if (!t) return NULL; // leaks vector?
-      vector_add(&v, (vtype)t);
-      tlen += strlen(t->name); // this can be improved to use fully qualified name
-      ++tlen;
-    }
-  }
-
-  char  tmpl_name[tlen + 2];
-  m_str str = tmpl_name;
-  for (m_uint i = 0; i < vector_size(&v); ++i) {
-    const m_str s = ((Type)vector_at(&v, i))->name;
-    strcpy(str, s);
-    str += strlen(s);
-    if (i + 1 < vector_size(&v)) *str++ = ',';
-  }
-  tmpl_name[tlen + 1] = '\0';
-  vector_release(&v);
+  m_str tmpl_name = tl2str(env->gwion, f->base->tmpl->call, f->base->pos); 
   const Symbol sym = func_symbol(env, env->curr->name, name, tmpl_name,
                                  (m_uint)f->vt_index);
   return s_name(sym);
