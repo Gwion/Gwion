@@ -1335,7 +1335,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *call) {
 
   if(unlikely(!is_func(emit->gwion, t))) {
     const Type t = actual_type(emit->gwion, call->func->type);
-    struct Op_Import opi = {.op   = insert_symbol("@ctor"),
+    struct Op_Import opi = {.op   = insert_symbol("call_type"),
                             .rhs  = t,
                             .data = (uintptr_t)call,
                             .pos  = exp_self(call)->pos};

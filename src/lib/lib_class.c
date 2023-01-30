@@ -71,7 +71,7 @@ GWION_IMPORT(class) {
   gwidoc(gwi, "internal constructor operator.");
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
-  GWI_BB(gwi_oper_end(gwi, "@ctor", NULL))
+  GWI_BB(gwi_oper_end(gwi, "call_type", NULL))
 /*
   gwidoc(gwi, "Allow enum for array size");
   GWI_BB(gwi_oper_ini(gwi, "Class", "int", NULL))

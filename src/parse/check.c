@@ -946,7 +946,7 @@ ANN Type call_type(const Env env, Exp_Call *const exp) {
     const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
     if(v) return exp->func->type = v->type;
   }
-  struct Op_Import opi = {.op   = insert_symbol("@ctor"),
+  struct Op_Import opi = {.op   = insert_symbol("call_type"),
                           .rhs  = actual_type(env->gwion, exp->func->type),
                           .data = (uintptr_t)exp,
                           .pos  = exp_self(exp)->pos};
