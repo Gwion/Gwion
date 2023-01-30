@@ -148,7 +148,7 @@ ANN static bool request_fun(const Env env, const Type t,
     if(!env->context->error) {
       gwerr_basic_from("is missing {+G}global{0}", NULL, NULL, v->from, 0);
       gwerr_secondary("from requested func", env->name, request->base->pos);
-      env->context->error = true;
+      env_set_error(env, true);
     }
   } else gwerr_basic("missing requested function", NULL, NULL, env->name,
               request->base->pos, 0);
