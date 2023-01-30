@@ -18,3 +18,4 @@ mkdocs.yml
 gwiond
 embed
 gwion.config.json
+scripts/get_deps
