@@ -44,10 +44,10 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   const Env env                     = gwi->gwion->env;
   gwi->ck->exp->d.exp_decl.td->flag = flag;
   if (gwi->gwion->data->cdoc) {
-    lint_indent(gwi->lint);
-    lint_exp(gwi->lint, gwi->ck->exp);
-    lint_sc(gwi->lint);
-    lint_nl(gwi->lint);
+    gwfmt_indent(gwi->gwfmt);
+    gwfmt_exp(gwi->gwfmt, gwi->ck->exp);
+    gwfmt_sc(gwi->gwfmt);
+    gwfmt_nl(gwi->gwfmt);
   }
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);

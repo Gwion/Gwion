@@ -1,15 +1,14 @@
 #!/bin/bash
-# [test] #24
+# [test] #23
 
 n=0
 [ "$1" ] && n="$1"
 [ "$n" -eq 0 ] && n=1
 source tests/sh/common.sh
 
-run "$n" "test arguments" "examples/shred.gw:12" "file"
+run "$n" "test arguments" "examples/array_lit:12" "file"
 
 n=$((n+1))
-N=$(printf "% 4i" "$n")
 run "$n" "simple run" "" "file"
 
 # help
@@ -77,10 +76,6 @@ run "$n" "no pass" "-g nopass" "file"
 # option needs argument
 n=$((n+1))
 run "$n" "option needs argument" "-p" "file"
-
-# option needs argument
-n=$((n+1))
-echo "<<< __file__ >>>;" | run "$n" "stdin" "-" "file"
 
 # invalid global type
 n=$((n+1))

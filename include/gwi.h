@@ -4,20 +4,20 @@
 #include "gwfmt.h"
 #define gwiheader(a, ...)                                                      \
   if (a->gwion->data->cdoc) do {                                               \
-      lint_nl(gwi->lint);                                                      \
-      lint_indent(gwi->lint);                                                  \
-      lint(gwi->lint, (m_str)"{-}#!+ {/}%s{0}\n", __VA_ARGS__);                \
+      gwfmt_nl(gwi->gwfmt);                                                      \
+      gwfmt_indent(gwi->gwfmt);                                                  \
+      gwfmt_util(gwi->gwfmt, (m_str)"{-}#!+ {/}%s{0}\n", __VA_ARGS__);                \
   } while (0)
 #define gwidoc(a, ...)                                                         \
   if (a->gwion->data->cdoc) do {                                               \
-      lint_nl(a->lint);                                                        \
-      lint_indent(a->lint);                                                    \
-      lint(a->lint, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
+      gwfmt_nl(a->gwfmt);                                                        \
+      gwfmt_indent(a->gwfmt);                                                    \
+      gwfmt_util(a->gwfmt, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
   } while (0)
 #define gwinote(a, ...)                                                        \
   if (a->gwion->data->cdoc) do {                                               \
-      lint_indent(a->lint);                                                    \
-      lint(a->lint, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
+      gwfmt_indent(a->gwfmt);                                                    \
+      gwfmt_util(a->gwfmt, (m_str)"{-}#!- {/}%s{0}\n", __VA_ARGS__);                  \
   } while (0)
 
 struct Gwi_ {
@@ -27,7 +27,7 @@ struct Gwi_ {
   struct OperCK *      oper; // _misc
   struct Vector_       effects;
   loc_t                loc;
-  Lint *               lint;
+  Gwfmt *              gwfmt;
   uint8_t              tmpls;
 };
 

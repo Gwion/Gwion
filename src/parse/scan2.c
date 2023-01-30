@@ -32,7 +32,7 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
   const Type t = decl->type;
   CHECK_BB(ensure_scan2(env, t));
   const Var_Decl vd   = decl->vd;
-  _nspc_add_value(env->curr, vd.xid, vd.value);
+  nspc_add_value(env->curr, vd.xid, vd.value);
   return GW_OK;
 }
 
@@ -379,7 +379,7 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
                   name)
           const Symbol sym =
               func_symbol(env, env->curr->name, name, "template", ff->def->vt_index);
-          _nspc_add_value(env->curr, sym, value);
+          nspc_add_value(env->curr, sym, value);
           if (!overload) nspc_add_value(env->curr, f->base->xid, value);
           nspc_add_func(env->curr, sym, func);
           func->def->vt_index = ff->def->vt_index;
@@ -390,7 +390,7 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   } while (type && (type = type->info->parent) && (nspc = type->nspc));
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
-  _nspc_add_value(env->curr, sym, value);
+  nspc_add_value(env->curr, sym, value);
   nspc_add_func(env->curr, sym, func);
   if (!overload) nspc_add_value(env->curr, f->base->xid, value);
   else func->def->vt_index = ++overload->from->offset;
@@ -437,43 +437,7 @@ ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
   const m_str      name = s_name(f->base->xid);
-  struct Vector_   v;
-  Specialized_List sl   = f->base->tmpl->list;
-  m_uint           tlen = 0;
-  vector_init(&v);
-  const bool spread = is_spread_tmpl(f->base->tmpl);
-  const uint32_t len = !spread ? sl->len : sl->len - 1;
-  for(uint32_t i = 0; i < len; i++) {
-    Specialized * spec = mp_vector_at(sl, Specialized, i);
-    const Type t = nspc_lookup_type0(env->curr, spec->xid);
-    if (!t) return NULL; // leaks vector ?
-    vector_add(&v, (vtype)t);
-    tlen += strlen(t->name); // this can be improved to use fully qualified name
-    ++tlen;
-  }
-
-  if(spread && f->base->tmpl->call) {
-    Type_List tl   = f->base->tmpl->call;
-    for(uint32_t i = len; i < tl->len; i++) {
-      Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-      const Type t = known_type(env, td);
-      if (!t) return NULL; // leaks vector?
-      vector_add(&v, (vtype)t);
-      tlen += strlen(t->name); // this can be improved to use fully qualified name
-      ++tlen;
-    }
-  }
-
-  char  tmpl_name[tlen + 2];
-  m_str str = tmpl_name;
-  for (m_uint i = 0; i < vector_size(&v); ++i) {
-    const m_str s = ((Type)vector_at(&v, i))->name;
-    strcpy(str, s);
-    str += strlen(s);
-    if (i + 1 < vector_size(&v)) *str++ = ',';
-  }
-  tmpl_name[tlen + 1] = '\0';
-  vector_release(&v);
+  m_str tmpl_name = tl2str(env->gwion, f->base->tmpl->call, f->base->pos); 
   const Symbol sym = func_symbol(env, env->curr->name, name, tmpl_name,
                                  (m_uint)f->vt_index);
   return s_name(sym);
@@ -486,7 +450,7 @@ static Value func_create(const Env env, const Func_Def f, const Value overload,
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   const Value v = func_value(env, func, overload);
   scan2_func_def_flag(env, f);
-  _nspc_add_value(env->curr, insert_symbol(func->name), v);
+  nspc_add_value(env->curr, insert_symbol(func->name), v);
   return v;
 }
 
@@ -625,6 +589,20 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   return GW_OK;
 }
 
+ANN void scan2_default_args(const Env env, const Section *s, Ast *acc) {
+  Func_Base *const fb = s->d.func_def->base;
+  Arg_List       args = fb->args;
+  uint32_t len = args->len;
+  while(args->len--) {
+    const Arg *arg = mp_vector_at(args, Arg, args->len);
+    if(!arg->exp) break;
+    const Func_Def fdef = default_args(env, fb, acc, len);
+    scan1_func_def(env, fdef);
+    scan2_func_def(env, fdef);
+  }
+  args->len = len;
+}
+
 ANN m_bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   Ast acc = new_mp_vector(env->gwion->mp, Section, 0);
@@ -640,7 +618,7 @@ ANN m_bool scan2_ast(const Env env, Ast *ast) {
 
   for(uint32_t i = 0; i < acc->len; i++) {
     Section *section = mp_vector_at(acc, Section, i);
-    default_args(env, section, ast);
+    scan2_default_args(env, section, ast);
   }
   free_mp_vector(env->gwion->mp, Section, acc);
   return ret;

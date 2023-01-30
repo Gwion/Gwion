@@ -278,13 +278,13 @@ static GWION_IMPORT(int_values) {
 }
 
 static GWION_IMPORT(int) {
-  GWI_BB(import_int_values(gwi))
+  GWI_BB(gwimport_int_values(gwi))
   GWI_BB(gwi_oper_cond(gwi, "int", BranchEqInt, BranchNeqInt))
   GWI_BB(gwi_oper_ini(gwi, "int", "int", "int"))
-  GWI_BB(import_int_op(gwi))
-  GWI_BB(import_int_logical(gwi))
-  GWI_BB(import_int_r(gwi))
-  GWI_BB(import_int_unary(gwi))
+  GWI_BB(gwimport_int_op(gwi))
+  GWI_BB(gwimport_int_logical(gwi))
+  GWI_BB(gwimport_int_r(gwi))
+  GWI_BB(gwimport_int_unary(gwi))
   return GW_OK;
 }
 
@@ -613,7 +613,7 @@ static GWION_IMPORT(float) {
   return GW_OK;
 }
 
-ANN static m_bool import_ux(const Gwi gwi) {
+ANN static GWION_IMPORT(ux) {
   char c[8] = { 'u' };
   const Env env = gwi->gwion->env;
   for(uint i = 1; i <= SZ_INT; i *= 2) {
@@ -625,11 +625,11 @@ ANN static m_bool import_ux(const Gwi gwi) {
 }
 
 GWION_IMPORT(prim) {
-  GWI_BB(import_int(gwi))
-  GWI_BB(import_ux(gwi));
-  GWI_BB(import_float(gwi))    // const folded
-  GWI_BB(import_intfloat(gwi)) // const folded
-  GWI_BB(import_floatint(gwi)) // const folded
-  GWI_BB(import_dur(gwi))
-  return import_time(gwi);
+  GWI_BB(gwimport_int(gwi))
+  GWI_BB(gwimport_ux(gwi));
+  GWI_BB(gwimport_float(gwi))    // const folded
+  GWI_BB(gwimport_intfloat(gwi)) // const folded
+  GWI_BB(gwimport_floatint(gwi)) // const folded
+  GWI_BB(gwimport_dur(gwi))
+  return gwimport_time(gwi);
 }

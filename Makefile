@@ -58,6 +58,11 @@ ifeq ($(shell uname), Linux)
 LDFLAGS += -lrt
 endif
 
+ifeq (${USE_CONFIG}, 1)
+config_obj := embed/embed.o
+include embed/embed.mk
+endif
+
 ALMOST_LIBS := fmt/libgwion_fmt.a
 ALMOST_LIBS += ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a
 ALMOST_LIBS += util/libgwion_util.a
@@ -71,13 +76,19 @@ CFLAGS += -DGWION_BUILTIN
 
 all: options-show prg
 
-prg: ${GWLIBS} src/main.o
+prg: ${GWLIBS} ${config_obj} src/main.o
 	@$(info link ${PRG})
-	@${CC} src/main.o -o ${PRG} ${LDFLAGS} ${LIBS}
+	${CC} src/main.o -o ${PRG} ${config_obj} ${PLUGLIBS} ${LDFLAGS} ${LIBS}
 
 options-show:
 	@$(call _options)
 	@$(info libs: ${GWLIBS})
+
+with_config:
+	bash scripts/embed.bash gwion.config.json
+	touch src/main.c
+	${MAKE} USE_CONFIG=1
+	touch src/main.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}
 

@@ -10,7 +10,7 @@
 #include "import.h"
 #include "gwi.h"
 
-GWION_IMPORT(extend_array_test) {
+GWION_IMPORT(extend_array) {
   GWI_OB(gwi_class_ini(gwi, "ArrayExt", "float[1]"))
   GWI_BB(gwi_class_end(gwi))
   return GW_OK;

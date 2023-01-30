@@ -82,8 +82,8 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   const m_bool ret = traverse_enum_def(gwion->env, edef);
   if (ret > 0) import_enum_end(gwi, &edef->values);
   if (gwi->gwion->data->cdoc) {
-    lint_indent(gwi->lint);
-    lint_enum_def(gwi->lint, edef);
+    gwfmt_indent(gwi->gwfmt);
+    gwfmt_enum_def(gwi->gwfmt, edef);
   }
   const Type t = ret > 0 ? edef->type : NULL;
   if (edef->values.ptr) vector_release(&edef->values);

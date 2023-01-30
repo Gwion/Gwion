@@ -12,7 +12,7 @@
 #include "ugen.h"
 #include "gwi.h"
 
-GWION_IMPORT(trig) {
+GWION_IMPORT(invalid_names) {
   DECL_OB(const Type, t0, = gwi_mk_type(gwi, "T~", SZ_INT, NULL));
   gwi_add_type(gwi, t0);
 

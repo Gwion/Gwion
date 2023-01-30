@@ -37,7 +37,7 @@ typedef struct Gwi_ *Gwi;
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
-#define GWION_IMPORT(a) ANN m_bool import_##a(const Gwi gwi)
+#define GWION_IMPORT(a) ANN m_bool gwimport_##a(const Gwi gwi)
 #else
 #define GWI_BB(a)                                                              \
   {                                                                            \
@@ -49,7 +49,7 @@ typedef struct Gwi_ *Gwi;
     gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
     CHECK_OB(a);                                                               \
   }
-#define GWION_IMPORT(a) ANN m_bool import(const Gwi gwi)
+#define GWION_IMPORT(a) ANN m_bool gwimport_##a(const Gwi gwi)
 #endif
 #define ALLOC_PTR(p, a, b, c)                                                  \
   b *a = (b *)_mp_calloc(p, sizeof(b));                                        \

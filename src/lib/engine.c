@@ -105,32 +105,32 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   gwidoc(gwi, "internal base of all objects and structures.");
 
-  GWI_BB(import_enum(gwi));
+  GWI_BB(gwimport_enum(gwi));
 
   const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
   GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
   GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
 
-  GWI_BB(import_object(gwi))
+  GWI_BB(gwimport_object(gwi))
 
-  GWI_BB(import_prim(gwi))
-  GWI_BB(import_func(gwi))
-  GWI_BB(import_object_op(gwi))
-  GWI_BB(import_values(gwi))
-  GWI_BB(import_union(gwi))
+  GWI_BB(gwimport_prim(gwi))
+  GWI_BB(gwimport_func(gwi))
+  GWI_BB(gwimport_object_op(gwi))
+  GWI_BB(gwimport_values(gwi))
+  GWI_BB(gwimport_union(gwi))
 
-  GWI_BB(import_array(gwi))
-  GWI_BB(import_event(gwi))
-  GWI_BB(import_ugen(gwi))
-  GWI_BB(import_xork(gwi))
+  GWI_BB(gwimport_array(gwi))
+  GWI_BB(gwimport_event(gwi))
+  GWI_BB(gwimport_ugen(gwi))
+  GWI_BB(gwimport_xork(gwi))
   GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_new))
   GWI_BB(gwi_oper_emi(gwi, opem_new))
   GWI_BB(gwi_oper_end(gwi, "new", NULL))
-  GWI_BB(import_ref(gwi))
-  GWI_BB(import_string(gwi))
-  GWI_BB(import_shred(gwi))
-  GWI_BB(import_modules(gwi))
+  GWI_BB(gwimport_ref(gwi))
+  GWI_BB(gwimport_string(gwi))
+  GWI_BB(gwimport_shred(gwi))
+  GWI_BB(gwimport_modules(gwi))
 
   gwidoc(gwi, "allow member access.");
   GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
@@ -138,19 +138,19 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, ".", NULL))
 
-  GWI_BB(import_class(gwi))
+  GWI_BB(gwimport_class(gwi))
 
   gwidoc(gwi, "allow static access.");
   GWI_BB(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_add(gwi, opck_object_dot))
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, ".", NULL))
-  GWI_BB(import_deep_equal(gwi));
+  GWI_BB(gwimport_deep_equal(gwi));
 
-  GWI_BB(import_dict(gwi));
-  GWI_BB(import_gack(gwi));
-  GWI_BB(import_sift(gwi));
-  GWI_BB(import_locale(gwi));
+  GWI_BB(gwimport_dict(gwi));
+  GWI_BB(gwimport_gack(gwi));
+  GWI_BB(gwimport_sift(gwi));
+  GWI_BB(gwimport_locale(gwi));
 
 
   // seemed need at a point to ease liking

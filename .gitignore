@@ -14,3 +14,8 @@ mkdocs.yml
 *.gcno
 *.swp
 .vscode
+# ignore gwiond for dev
+gwiond
+embed
+gwion.config.json
+scripts/get_deps

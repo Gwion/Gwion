@@ -9,7 +9,7 @@
 #include "import.h"
 #include "instr.h"
 
-GWION_IMPORT(too_many_args) {
+GWION_IMPORT(func_fail3) {
   GWI_BB(gwi_func_ini(gwi, "Ptr:[int]", "test:[A]"))
   GWI_BB(gwi_func_ini(gwi, "int", "test"))
   GWI_BB(gwi_func_arg(gwi, "int", "i[][]"))

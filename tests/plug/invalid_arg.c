@@ -9,7 +9,7 @@
 #include "import.h"
 
 static MFUN(test_mfun) {}
-GWION_IMPORT(invalid_arg_test) {
+GWION_IMPORT(invalid_arg) {
   GWI_OB(gwi_class_ini(gwi, "InvalidArg", NULL))
   GWI_BB(gwi_func_ini(gwi, "int[]", "func"))
   GWI_BB(gwi_func_arg(gwi, ".int", "i"))

@@ -54,6 +54,6 @@ ANN static inline void defined_here(const Value v) {
 
 ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
   set_vflag(v, vflag_valid);
-  _nspc_add_value(env->curr, xid, v);
+  nspc_add_value(env->curr, xid, v);
 }
 #endif

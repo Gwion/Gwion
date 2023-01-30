@@ -12,7 +12,7 @@
 #include "ugen.h"
 #include "gwi.h"
 
-GWION_IMPORT(fail_on_next_arg) {
+GWION_IMPORT(fail_on_next_arg2) {
   GWI_BB(gwi_func_ini(gwi, "void", "test"))
   GWI_BB(gwi_func_arg(gwi, "int", "i"))
   GWI_BB(gwi_func_arg(gwi, "i;t", "j"))

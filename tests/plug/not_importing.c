@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "import.h"
 
-GWION_IMPORT(enum_test) {
+GWION_IMPORT(not_importing) {
   GWI_BB(gwi_enum_add(gwi, "adc", 0))
   return GW_OK;
 }

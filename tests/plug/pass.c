@@ -11,7 +11,7 @@
 
 ANN static m_bool pass(Env nv NUSED, Ast *ast NUSED) { return GW_OK; }
 
-GWION_IMPORT(array_test) {
+GWION_IMPORT(pass) {
   gwi_register_pass(gwi, "dummy", pass);
   return GW_OK;
 }

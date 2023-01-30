@@ -5,8 +5,9 @@
 #include "vm.h"
 #include "instr.h"
 #include "emit.h"
-#include "driver.h"
 #include "gwion.h"
+#include "plug.h"
+#include "driver.h"
 #include "engine.h"
 #include "arg.h"
 #include "compile.h"
@@ -81,7 +82,6 @@ ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
       vector_add(&gwion->data->plugs->vec, (m_uint)gwion->env->global_nspc);
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
       gwion->emit->locale = gwion_locale(gwion);
-      (void)arg_compile(gwion, arg);
       return GW_OK;
     }
   }

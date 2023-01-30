@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "import.h"
 
-GWION_IMPORT(invalid_type3_test) {
+GWION_IMPORT(invalid_type3) {
   GWI_OB(gwi_class_ini(gwi, "InvalidVarType", NULL))
   GWI_BB(gwi_item_ini(gwi, ".int", "test"))
   GWI_BB(gwi_item_end(gwi, 0, num, 0))

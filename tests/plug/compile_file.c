@@ -12,7 +12,7 @@
 
 #define _XOPEN_SOURCE 500
 #include <string.h>
-GWION_IMPORT(compile_string) {
+GWION_IMPORT(compile_file) {
   DECL_OB(FILE *, file, = fopen("rm_me.gw", "w+"));
   fprintf(file, "1;");
   rewind(file);

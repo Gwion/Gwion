@@ -8,7 +8,7 @@
 #include "operator.h"
 #include "import.h"
 
-GWION_IMPORT(typedef_test) {
+GWION_IMPORT(typedef_fail) {
   GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef:[A]"))
   GWI_BB(gwi_typedef_ini(gwi, "int", "Typedef:[A]"))
   return GW_OK;

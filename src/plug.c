@@ -15,26 +15,27 @@
 #include "import.h"
 #include "gwi.h"
 
-typedef m_bool (*plugin)(Gwi);
-typedef void *(*modini)(const struct Gwion_ *, const Vector);
-typedef void *(*modend)(const struct Gwion_ *, void *);
-typedef m_str *(*gwdeps)(void);
-
 struct PlugHandle {
   MemPool mp;
   Map     map;
   size_t  len;
 };
 
-typedef struct Plug_ {
-  void *dl;
-  void *self;
-  Nspc nspc;
-} * Plug;
-
-ANN static struct Plug_ *new_plug(MemPool p, void *dl) {
-  struct Plug_ *plug = mp_calloc(p, Plug);
-  plug->dl           = dl;
+ANN static struct Plug_ *new_dl_plug(MemPool p, void *dl, const char *name) {
+  Plug plug = new_plug(p);
+  plug->dl     = dl;
+  char s[256] = { [0] = 'g', [1] = 'w', [8] = '_' };
+  strcpy(s + 9, name);
+  memcpy(s + 2, "import", 6);
+  plug->plugin = DLSYM(plug->dl, gwplugin_t, s);
+  memcpy(s + 2, "modini", 6);
+  plug->modini = DLSYM(plug->dl, gwmodini_t, s);
+  memcpy(s + 2, "modend", 6);
+  plug->modend = DLSYM(plug->dl, gwmodend_t, s);
+  memcpy(s + 2, "driver", 6);
+  plug->driver = DLSYM(plug->dl, gwdriver_t, s);
+  memcpy(s + 2, "depend", 6);
+  plug->depend = DLSYM(plug->dl, gwdepend_t, s);
   return plug;
 }
 
@@ -46,7 +47,7 @@ ANN static void plug_get(struct PlugHandle *h, const m_str c) {
   memcpy(name, pname, sz);
   name[sz] = '\0';
   if (dl) {
-    Plug plug = new_plug(h->mp, dl);
+    Plug plug = new_dl_plug(h->mp, dl, name);
     map_set(h->map, (vtype)strdup(name), (vtype)plug);
   } else
     gw_err(_("{+R}error{0} in {/+}%s{0}."), DLERROR());
@@ -83,7 +84,7 @@ ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
     const m_str dir = (m_str)vector_at(list, i - 1);
     h.len           = strlen(dir);
     char name[PATH_MAX];
-    sprintf(name, "%s/*.so" /**/, dir);
+    sprintf(name, "%s/*.so", dir);
     plug_get_all(&h, name);
   }
   return GW_OK;
@@ -99,10 +100,10 @@ void free_plug(const Gwion gwion) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
-    const modend end  = DLSYM(plug->dl, modend, GWMODEND_NAME);
+    const gwmodend_t end  = plug->modend;
     if (end && plug->self) end(gwion, plug->self);
     free((m_str)VKEY(map, i));
-    DLCLOSE(plug->dl);
+    if(plug->dl) DLCLOSE(plug->dl);
   }
   map_release(map);
   mp_free2(gwion->mp, sizeof(Plugs), gwion->data->plugs);
@@ -114,19 +115,18 @@ ANN static void plug_free_arg(MemPool p, const Vector v) {
   free_vector(p, v);
 }
 
-ANN void set_module(const struct Gwion_ *gwion, const m_str name,
+ANN m_bool set_module(const struct Gwion_ *gwion, const m_str name,
                     void *const ptr) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint j = 0; j < map_size(map); ++j) {
     if (!strcmp(name, (m_str)VKEY(map, j))) {
       Plug plug  = (Plug)VVAL(map, j);
       plug->self = ptr;
-      return;
+      return GW_OK;
     }
   }
-  const Plug plug  = new_plug(gwion->mp, name);
-  plug->self = ptr;
-  map_set(map, (m_uint)name, (m_uint)plug);
+  gw_err("module %s not found\n", name);
+  return GW_ERROR;
 }
 
 ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
@@ -139,8 +139,8 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
       if (!strcmp(name, (m_str)VKEY(map, j))) {
         Plug         plug = (Plug)VVAL(map, j);
         const Vector arg  = opt ? split_args(gwion->mp, opt) : NULL;
-        const modini ini  = DLSYM(plug->dl, modini, GWMODINI_NAME);
-        plug->self        = ini(gwion, arg);
+        if(!plug->modini) continue;
+        plug->self        = plug->modini(gwion, arg);
         if (arg) plug_free_arg(gwion->mp, arg);
         break;
       }
@@ -154,7 +154,7 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
 }
 
 ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
-  const gwdeps dep = DLSYM(plug->dl, gwdeps, GWDEPEND_NAME);
+  const gwdepend_t dep = plug->depend;
   bool ret = true;
   if (dep) {
     m_str *const base = dep();
@@ -183,7 +183,7 @@ ANN static void set_parent(const Nspc nspc, const Gwion gwion ) {
 }
 
 ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, const loc_t loc) {
-  const plugin imp = DLSYM(plug->dl, plugin, GWIMPORT_NAME);
+  if(!plug->plugin) return GW_ERROR;
   const bool cdoc = gwion->data->cdoc;
   gwion->data->cdoc = 0; // check cdoc
   CHECK_BB(dependencies(gwion, plug, loc));
@@ -194,7 +194,7 @@ ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, c
   const m_uint scope = env_push(gwion->env, NULL, plug->nspc);
   const m_str  name  = gwion->env->name;
   gwion->env->name   = iname;
-  const m_bool ret   = gwi_run(gwion, imp);
+  const m_bool ret   = gwi_run(gwion, plug->plugin);
   gwion->env->name   = name;
   env_pop(gwion->env, scope);
   return ret;
@@ -243,9 +243,11 @@ ANN m_bool driver_ini(const struct Gwion_ *gwion) {
   if (opt) *opt = '\0';
   for (m_uint i = 0; i < map_size(map); ++i) {
     const m_str name = (m_str)VKEY(map, i);
+    printf("%s %s\n", name, dname);
     if (!strcmp(name, dname)) {
+      puts("hey");
       const Plug     plug = (Plug)VVAL(map, i);
-      const f_bbqset drv  = DLSYM(plug->dl, f_bbqset, GWDRIVER_NAME);
+      const gwdriver_t drv  = plug->driver;
       if (!drv) break;
       gwion->vm->bbq->func = drv;
       if (opt) *opt = c;
