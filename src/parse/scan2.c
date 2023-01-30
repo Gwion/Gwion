@@ -32,7 +32,7 @@ ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
   const Type t = decl->type;
   CHECK_BB(ensure_scan2(env, t));
   const Var_Decl vd   = decl->vd;
-  _nspc_add_value(env->curr, vd.xid, vd.value);
+  nspc_add_value(env->curr, vd.xid, vd.value);
   return GW_OK;
 }
 
@@ -379,7 +379,7 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
                   name)
           const Symbol sym =
               func_symbol(env, env->curr->name, name, "template", ff->def->vt_index);
-          _nspc_add_value(env->curr, sym, value);
+          nspc_add_value(env->curr, sym, value);
           if (!overload) nspc_add_value(env->curr, f->base->xid, value);
           nspc_add_func(env->curr, sym, func);
           func->def->vt_index = ff->def->vt_index;
@@ -390,7 +390,7 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   } while (type && (type = type->info->parent) && (nspc = type->nspc));
   --i;
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
-  _nspc_add_value(env->curr, sym, value);
+  nspc_add_value(env->curr, sym, value);
   nspc_add_func(env->curr, sym, func);
   if (!overload) nspc_add_value(env->curr, f->base->xid, value);
   else func->def->vt_index = ++overload->from->offset;
@@ -486,7 +486,7 @@ static Value func_create(const Env env, const Func_Def f, const Value overload,
   nspc_add_func(env->curr, insert_symbol(func->name), func);
   const Value v = func_value(env, func, overload);
   scan2_func_def_flag(env, f);
-  _nspc_add_value(env->curr, insert_symbol(func->name), v);
+  nspc_add_value(env->curr, insert_symbol(func->name), v);
   return v;
 }
 
