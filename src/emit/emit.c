@@ -139,12 +139,12 @@ ANN void emit_object_release(const Emitter emit, const m_uint offset) {
 ANN void emit_compound_release(const Emitter emit, const Type t, const m_uint offset) {
   if(tflag(t, tflag_compound))
     return emit_object_release(emit, offset);
-  if(tflag(t, tflag_release))
-    emit_struct_release(emit, t, offset);
+  emit_struct_release(emit, t, offset);
 }
 
 ANN void emit_struct_release(const Emitter emit, const Type type,
                              const m_uint offset) {
+  if(!tflag(type, tflag_release)) return;
   const Instr instr = emit_add_instr(emit, StructReleaseMem);
   instr->m_val = offset;
   instr->m_val2 = (m_uint)type;
@@ -788,13 +788,13 @@ ANN static void emit_gack_type(const Emitter emit, const Exp e) {
       (e->exp_type == ae_exp_primary && e->d.prim.prim_type == ae_prim_str))
      return;
   const m_bool isobj = isa(e->type, emit->gwion->type[et_object]) > 0;
-  if (isobj && (tflag(e->type, tflag_ref) || !GET_FLAG(e->type, final)))
+  if (isobj  && (tflag(e->type, tflag_ref) || !GET_FLAG(e->type, final)))
     emit_add_instr(emit, GackType);
 }
 
 ANN /*static*/ m_bool emit_interp(const Emitter emit, const Exp exp) {
   emit_pushimm(emit, 0);
-  emit_local(emit, emit->gwion->type[et_int]);
+  //emit_local(emit, emit->gwion->type[et_int]);
   Exp e = exp, next = NULL;
   do {
     next    = e->next;
