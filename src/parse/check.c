@@ -544,10 +544,13 @@ ANN static Type_Decl*  mk_td(const Env env, Type_Decl *td,
 
 ANN static Type tmpl_arg_match(const Env env, const Symbol xid, const Symbol tgt, const Type t) {
   if (xid == tgt) return t;
-  if(!tflag(t, tflag_cdef)) return NULL;
-  const uint32_t len = mp_vector_len(t->info->cdef->base.tmpl->list);
+  Tmpl *tmpl = tflag(t, tflag_cdef) ? t->info->cdef->base.tmpl
+       : tflag(t, tflag_udef) ? t->info->udef->tmpl
+       : NULL;
+  if (!tmpl) return NULL;
+  const uint32_t len = mp_vector_len(tmpl->list);
   for(uint32_t i = 0; i < len; i++) {
-    Specialized *spec = mp_vector_at(t->info->cdef->base.tmpl->list, Specialized, i);
+    Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
     const Type base = nspc_lookup_type1(t->nspc, spec->xid);
     const Type t = tmpl_arg_match(env, xid, spec->xid, base);
     if(t) return t;
