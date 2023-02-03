@@ -506,21 +506,25 @@ ANN static inline void dump_opcodes(const VM_Code code) {
       case eRegPushBase:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase ", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase2:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase2", j);
         gw_out(" {-R}%-14f", instr->f);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase3:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase3", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase4:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase4", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eReg2Reg:

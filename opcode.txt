@@ -9,10 +9,10 @@ RegPushMem3~u~u
 RegPushMem4~u~u
 RegPushMemDeref~u~u
 RegPushNow
-RegPushBase~p
-RegPushBase2~f
-RegPushBase3~p
-RegPushBase4~p
+RegPushBase~p~u
+RegPushBase2~f~u
+RegPushBase3~p~u
+RegPushBase4~p~u
 Reg2Reg~u~u
 Reg2RegOther~u~u
 Reg2RegAddr~u~u
