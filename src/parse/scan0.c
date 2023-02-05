@@ -208,6 +208,51 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   return GW_OK;
 }
 
+static INSTR(StructAssign) {
+  memcpy(*(m_bit**)REG(-SZ_INT), REG((m_int)instr->m_val), instr->m_val2);
+}
+
+static OP_EMIT(opem_struct_assign) {
+  const Exp_Binary *bin = data;
+  const Type t = bin->lhs->type;
+  const Exp e = exp_self(bin);
+
+  if(tflag(t, tflag_release)) {
+    const f_instr exec = !tflag(t, tflag_union)
+       ? StructReleaseRegAddr
+       : UnionReleaseRegAddr;
+    const Instr release = emit_add_instr(emit, exec);
+    release->m_val = -SZ_INT;
+    release->m_val2 = (m_uint)t;
+  }
+
+  const Instr instr = emit_add_instr(emit, StructAssign);
+  instr->m_val  = -t->size - SZ_INT;
+  instr->m_val2 = t->size;
+  emit_struct_addref(emit, t, -SZ_INT, true);
+  if(exp_getvar(e)) {
+    emit_regmove(emit, -t->size);
+    const Instr instr = emit_add_instr(emit, Reg2Reg);
+    instr->m_val = -SZ_INT;
+    instr->m_val2 = t->size - SZ_INT;
+  } else emit_regmove(emit, -SZ_INT);
+  return GW_OK;
+}
+
+ANN static OP_CHECK(opck_struct_assign) {
+  CHECK_NN(opck_rassign(env, data));
+  Exp_Binary *bin = data;
+  bin->rhs->ref = bin->lhs;
+  return bin->lhs->type;
+}
+
+ANN static void scan0_struct_assign(const Env env, const Type t) {
+  struct Op_Func   opfunc = {.ck = opck_struct_assign, .em = opem_struct_assign };
+  struct Op_Import opi    = {
+      .op = insert_symbol(":=>"), .lhs = t, .rhs = t, .ret = t, .func = &opfunc};
+  add_op(env->gwion, &opi);
+}
+
 ANN static Type union_type(const Env env, const Symbol s, const loc_t loc) {
   const m_str name = s_name(s);
   const Type  t    = new_type(env->gwion->mp, name, env->gwion->type[et_union]);
@@ -215,11 +260,13 @@ ANN static Type union_type(const Env env, const Symbol s, const loc_t loc) {
   t->nspc->parent  = env->curr;
   t->info->tuple   = new_tupleform(env->gwion->mp, NULL); // ???
   set_tflag(t, tflag_union);
+  set_tflag(t, tflag_struct);
   add_type(env, env->curr, t);
   mk_class(env, t, loc);
   SET_FLAG(t, final);
   set_tflag(t, tflag_compound);
-  if (strncmp(t->name, "Option", 6)) SET_FLAG(t, abstract);
+  SET_FLAG(t, abstract);
+  scan0_struct_assign(env,  t);
   return t;
 }
 
@@ -477,48 +524,6 @@ ANN static m_bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
 }
 
 ANN Ast spread_class(const Env env, const Ast body);
-
-static INSTR(StructAssign) {
-  memcpy(*(m_bit**)REG(-SZ_INT), REG((m_int)instr->m_val), instr->m_val2);
-}
-
-static OP_EMIT(opem_struct_assign) {
-  const Exp_Binary *bin = data;
-  const Type t = bin->lhs->type;
-  const Exp e = exp_self(bin);
-
-  if(tflag(t, tflag_release)) {
-    const Instr release = emit_add_instr(emit, StructReleaseRegAddr);
-    release->m_val = -SZ_INT;
-    release->m_val2 = (m_uint)t;
-  }
-
-  const Instr instr = emit_add_instr(emit, StructAssign);
-  instr->m_val  = -t->size - SZ_INT;
-  instr->m_val2 = t->size;
-  emit_struct_addref(emit, t, -SZ_INT, true); // add ref on lhs
-  if(exp_getvar(e)) {
-    emit_regmove(emit, -t->size);
-    const Instr instr = emit_add_instr(emit, Reg2Reg);
-    instr->m_val = -SZ_INT;
-    instr->m_val2 = t->size - SZ_INT;
-  } else emit_regmove(emit, -SZ_INT);
-  return GW_OK;
-}
-
-ANN static OP_CHECK(opck_struct_assign) {
-  CHECK_NN(opck_rassign(env, data));
-  Exp_Binary *bin = data;
-  bin->rhs->ref = bin->lhs;
-  return bin->lhs->type;
-}
-
-ANN static void scan0_struct_assign(const Env env, const Type t) {
-  struct Op_Func   opfunc = {.ck = opck_struct_assign, .em = opem_struct_assign };
-  struct Op_Import opi    = {
-      .op = insert_symbol(":=>"), .lhs = t, .rhs = t, .ret = t, .func = &opfunc};
-  add_op(env->gwion, &opi);
-}
 
 ANN m_bool scan0_class_def(const Env env, const Class_Def c) {
   DECL_BB(const m_bool, global, = scan0_global(env, c->flag, c->pos));

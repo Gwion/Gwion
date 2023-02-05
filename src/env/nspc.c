@@ -13,43 +13,14 @@ ANN void nspc_commit(const Nspc nspc) {
   scope_commit(nspc->info->trait);
 }
 
-ANN static inline void nspc_release_object(const Nspc a, Value value,
-                                           Gwion gwion) {
-  if ((GET_FLAG(value, static) && a->class_data) ||
-      (value->d.ptr && vflag(value, vflag_builtin))) {
-    const M_Object obj =
-        value->d.ptr ? (M_Object)value->d.ptr
-                     : *(M_Object *)(a->class_data + value->from->offset);
-    release(obj, gwion->vm->cleaner_shred);
-  }
-}
-
-ANN2(1, 3)
-static inline void nspc_release_struct(const Nspc a, Value value, Gwion gwion) {
-  if (value && ((GET_FLAG(value, static) && a->class_data) ||
-                (vflag(value, vflag_builtin) && value->d.ptr))) {
-    const m_bit *ptr =
-        (value && value->d.ptr)
-            ? (m_bit *)value->d.ptr
-            : (m_bit *)(a->class_data + value->from->offset);
-    for (m_uint i = 0; i < vector_size(&value->type->info->tuple->types); ++i) {
-      const Type t = (Type)vector_at(&value->type->info->tuple->types, i);
-      if (isa(t, gwion->type[et_object]) > 0)
-        release(*(M_Object *)(ptr +
-                              vector_at(&value->type->info->tuple->offset, i)),
-                gwion->vm->cleaner_shred);
-      else if (tflag(t, tflag_struct))
-        nspc_release_struct(t->nspc, NULL, gwion);
-    }
-  }
-}
-
 static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   if(v->from->ctx && v->from->ctx->error) return; // this is quite a hack
-  if (tflag(v->type, tflag_compound) ) {
-    if (!tflag(v->type, tflag_struct))
-      nspc_release_object(a, v, gwion);
-    else nspc_release_struct(a, v, gwion);
+  if (GET_FLAG(v, static) && a->class_data) {
+    const m_bit *ptr = *(m_bit **)(a->class_data + v->from->offset);
+    anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
+  } else if (vflag(v, vflag_builtin) && v->d.ptr) {
+    const m_bit *ptr = (m_bit*)v->d.ptr;
+    anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
   }
   value_remref(v, gwion);
 }
@@ -67,15 +38,17 @@ describe_nspc_free(Func, func, func_remref(a, gwion));
 describe_nspc_free(Type, type, type_remref(a, gwion));
 describe_nspc_free(Trait, trait, free_trait(gwion->mp, a));
 
+ANN static void free_operators(NspcOp *a, const Gwion gwion) {
+    if (a->map.ptr) free_op_map(&a->map, gwion);
+    if (a->tmpl.ptr) free_op_tmpl(&a->tmpl, gwion);
+    mp_free(gwion->mp, NspcOp, a);
+
+}
 ANN void free_nspc(const Nspc a, const Gwion gwion) {
   nspc_free_value(a, gwion);
   nspc_free_func(a, gwion);
   nspc_free_trait(a, gwion);
-  if(a->operators) {
-    if (a->operators->map.ptr) free_op_map(&a->operators->map, gwion);
-    if (a->operators->tmpl.ptr) free_op_tmpl(&a->operators->tmpl, gwion);
-    mp_free(gwion->mp, NspcOp, a->operators);
-  }
+  if(a->operators) free_operators(a->operators, gwion);
   nspc_free_type(a, gwion);
   if (a->class_data && a->class_data_size)
     mp_free2(gwion->mp, a->class_data_size, a->class_data);

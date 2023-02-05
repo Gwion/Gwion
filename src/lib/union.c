@@ -27,16 +27,22 @@ static OP_EMIT(opem_none) {
   return GW_OK;
 }
 
+static INSTR(UnionIndex) {
+  // probs exosts already
+  *(m_uint*)REG(-SZ_INT) = **(m_uint**)REG(-SZ_INT);
+}
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Map      map    = &member->base->type->nspc->info->value->map;
+  exp_setvar(member->base, true);
   CHECK_BB(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
     emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
     return GW_OK;
   }
   if (!strcmp(s_name(member->xid), "index")) {
-    emit_add_instr(emit, DotMember);
+    //emit_add_instr(emit, DotMember);
+    emit_add_instr(emit, UnionIndex);
     return GW_OK;
   }
   for (m_uint i = 0; i < map_size(map); ++i) {
@@ -50,13 +56,13 @@ static OP_EMIT(opem_union_dot) {
   return GW_ERROR;
 }
 
-static DTOR(UnionDtor) {
-  const m_uint idx = *(m_uint *)o->data;
+ANN void union_release(const VM_Shred shred, const Type t, const m_bit *data) {
+  const m_uint idx = *(m_uint *)data;
   if (idx) {
-    const Map   map = &o->type_ref->nspc->info->value->map;
+    const Map   map = &t->nspc->info->value->map;
     const Value v   = (Value)map_at(map, idx - 1);
     if (tflag(v->type, tflag_compound))
-      compound_release(shred, v->type, (o->data + SZ_INT));
+      compound_release(shred, v->type, data + SZ_INT);
   }
 }
 
@@ -100,40 +106,54 @@ static MFUN(union_is) {
 }
 
 static MFUN(union_new) {
-  memcpy(o->data, MEM(SZ_INT*2), *(m_uint*)MEM(SZ_INT));
-  *(M_Object *)RETURN = o;
+  m_bit *data = *(m_bit**)MEM(0);
+  memcpy(data, MEM(SZ_INT*2), *(m_uint*)MEM(SZ_INT));
+  memcpy((m_bit*)RETURN, data, *(m_uint*)MEM(SZ_INT));
 }
-
+#include "parse.h"
+#undef insert_symbol
 static OP_CHECK(opck_union_new) {
   Exp_Call *call = (Exp_Call *)data;
   const Exp name = call->args;
-  if (!name || !name->next || name->next->next)
-    ERR_N(call->func->pos, "Union constructor takes two arguments, "
+  if (!name)
+    ERR_N(call->func->pos, "Union constructor takes one or two arguments, "
                            "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
-    return env->gwion->type[et_error];
+    ERR_N(call->func->pos, "Union constructor first argument me be an identifier");
   const Exp  val  = name->next;
   const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
+
   for (m_uint i = 0; i < map_size(map); ++i) {
     if (VKEY(map, i) == (m_uint)name->d.prim.d.var) {
       const Value v          = (Value)VVAL(map, i);
       name->d.prim.prim_type = ae_prim_num;
       name->d.prim.d.num     = i;
       name->type             = env->gwion->type[et_int];
-      DECL_ON(const Type, t, = check_exp(env, val));
-      if (isa(t, v->type) < 0) {
-        ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'", t->name,
-              v->name, v->type->name);
+      if(!val && v->type == env->gwion->type[et_none]) {
+        const Exp e = new_prim_int(env->gwion->mp, SZ_INT, name->pos);
+        e->next = name;
+        e->type = env->gwion->type[et_int];
+        name->next = new_prim_int(env->gwion->mp, 0, name->pos);
+        name->next->type = env->gwion->type[et_int];
+        call->args = e;
+      } else {
+        if (val->next)
+          ERR_N(call->func->pos, "too many arguments for union constructor");
+        DECL_ON(const Type, t, = check_exp(env, val));
+        if (check_implicit(env, val, v->type) < 0) { // add implicit
+          ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'", t->name,
+                v->name, v->type->name);
+        }
+        const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->pos);
+        e->next = name;
+        e->type = env->gwion->type[et_int];
+        call->args = e;
       }
-      const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->pos);
-      e->next = name;
-      e->type = env->gwion->type[et_int];
-      call->args = e;
       return base;
     }
   }
-  return env->gwion->type[et_error];
+  ERR_N(name->pos, "%s has no member %s\n", base->name, s_name(name->d.prim.d.var));
 }
 
 ANN GWION_IMPORT(union) {
@@ -150,12 +170,16 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_oper_emi(gwi, opem_none))
   GWI_BB(gwi_oper_end(gwi, ":=>", NoOp))
 
-  const Type t_union = gwi_class_ini(gwi, "union", "Object");
-  gwi_class_xtor(gwi, NULL, UnionDtor);
+  const Type t_union = gwi_struct_ini(gwi, "union");
+  //gwi_class_xtor(gwi, NULL, UnionDtor);
   gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_item_ini(gwi, "int", "index"))
   GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
+  /*
+  GWI_BB(gwi_func_ini(gwi, "void", "@ctor"))
+  GWI_BB(gwi_func_end(gwi, union_ctor, ae_flag_none))
+  */
   GWI_BB(gwi_func_ini(gwi, "bool", "is"))
   GWI_BB(gwi_func_arg(gwi, "int", "member"))
   GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))
@@ -164,9 +188,10 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_func_arg(gwi, "int", "id"))
   GWI_BB(gwi_func_arg(gwi, "T", "value"))
   GWI_BB(gwi_func_end(gwi, union_new, ae_flag_none))
+  
   GWI_BB(gwi_class_end(gwi))
 
-  const Func             f      = (Func)vector_front(&t_union->nspc->vtable);
+  const Func             f      = (Func)vector_at(&t_union->nspc->vtable, 0);
   const struct Op_Func   opfunc = {.ck = opck_union_is};
   const struct Op_Import opi    = {
       .rhs  = f->value_ref->type,
@@ -185,8 +210,6 @@ ANN GWION_IMPORT(union) {
       .pos  = gwi->loc,
       .op   = insert_symbol(gwi->gwion->st, "@func_check")};
   CHECK_BB(add_op(gwi->gwion, &opi1));
-
-  gwi->gwion->type[et_union] = t_union;
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))

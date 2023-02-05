@@ -53,30 +53,55 @@ typedef void(f_release)(const VM_Shred shred, const Type t NUSED,
                         const m_bit *ptr);
 #define RELEASE_FUNC(a)                                                        \
   void(a)(const VM_Shred shred, const Type t NUSED, const m_bit *ptr)
-static inline RELEASE_FUNC(object_release) { release(*(M_Object *)ptr, shred); }
 RELEASE_FUNC(struct_release);
+RELEASE_FUNC(union_release);
+static inline RELEASE_FUNC(object_release) { release(*(M_Object *)ptr, shred); }
+static inline RELEASE_FUNC(compound_release) {
+  if (!tflag(t, tflag_struct))
+    object_release(shred, t, ptr);
+  else if (!tflag(t, tflag_union))
+    struct_release(shred, t, ptr);
+  else union_release(shred, t, ptr);
+}
+static inline RELEASE_FUNC(anytype_release) {
+  if (tflag(t, tflag_release))
+    compound_release(shred, t, ptr);
+}
+static inline void object_addref(const m_bit *ptr) {
+  M_Object o = (M_Object)ptr;
+  if(o) o->ref++;
+}
 
-static inline void struct_addref(const Gwion gwion, const Type type,
-                                 const m_bit *ptr) {
-  for (m_uint i = 0; i < vector_size(&type->info->tuple->types); ++i) {
-    const Type t = (Type)vector_at(&type->info->tuple->types, i);
-    if (tflag(t, tflag_compound)) {
-      if (!tflag(t, tflag_struct)) {
-        const M_Object o =
-          *(M_Object *)(ptr + vector_at(&type->info->tuple->offset, i));
-        if(o) o->ref++;
-      } else struct_addref(gwion, t,
-          *(m_bit **)(ptr + vector_at(&type->info->tuple->offset, i)));
-    }
+ANN static inline void union_addref(const Type type, const m_bit*);
+ANN static inline void struct_addref(const Type type, const m_bit*);
+ANN static inline void compound_addref(const Type t, const m_bit *ptr) {
+  if (!tflag(t, tflag_struct))
+    object_addref(ptr);
+  else if (!tflag(t, tflag_union))
+    struct_addref(t, ptr);
+  else union_addref(t, ptr);
+}
+
+ANN static inline void struct_addref(const Type type, const m_bit *ptr) {
+  const Vector v = &type->info->tuple->types;
+  for (m_uint i = 0; i < vector_size(v); ++i) {
+    const Type t = (Type)vector_at(v, i);
+    const m_bit *data = *(m_bit**)(ptr + vector_at(v, i));
+    if (tflag(t, tflag_release)) compound_addref(t, data);
   }
 }
 
-ANN static inline void compound_release(const VM_Shred shred, const Type t,
-                                    const m_bit *ptr) {
-  if (!tflag(t, tflag_struct))
-    object_release(shred, t, ptr);
-  else
-    struct_release(shred, t, ptr);
+ANN static inline void union_addref(const Type t, const m_bit *ptr) {
+  const m_uint idx = *(m_uint *)ptr;
+  if (idx) {
+    const Map   map = &t->nspc->info->value->map;
+    const Value v   = (Value)map_at(map, idx - 1);
+    if (tflag(v->type, tflag_release))
+      compound_addref(v->type, ptr + SZ_INT);
+  }
 }
 
+ANN static inline void anytype_addref(const Type t, const m_bit *ptr) {
+  if(tflag(t, tflag_release)) compound_addref(t, ptr);
+}
 #endif

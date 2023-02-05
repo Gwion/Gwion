@@ -1,5 +1,5 @@
 #! [contains] val: 12
-var int? i;
+var int?(none) i;
 
 12 :=> i.val;
 if(i.is(val))

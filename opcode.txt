@@ -174,12 +174,16 @@ RegAddRef~i
 RegAddRefAddr~i
 StructRegAddRef~i~u
 StructRegAddRefAddr~i
+UnionRegAddRef~i~u
+UnionRegAddRefAddr~i
 ObjectAssign
 Assign
 ObjectRelease~u
 ObjectRelease2~p
 StructReleaseRegAddr~u~t
 StructReleaseMem~u~t
+UnionReleaseRegAddr~u~t
+UnionReleaseMem~u~t
 GWOP_EXCEPT~u
 DotMemberMem~u
 DotMemberMem2~u

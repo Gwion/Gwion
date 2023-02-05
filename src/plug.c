@@ -243,9 +243,7 @@ ANN m_bool driver_ini(const struct Gwion_ *gwion) {
   if (opt) *opt = '\0';
   for (m_uint i = 0; i < map_size(map); ++i) {
     const m_str name = (m_str)VKEY(map, i);
-    printf("%s %s\n", name, dname);
     if (!strcmp(name, dname)) {
-      puts("hey");
       const Plug     plug = (Plug)VVAL(map, i);
       const gwdriver_t drv  = plug->driver;
       if (!drv) break;

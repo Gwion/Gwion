@@ -1,4 +1,3 @@
 #! [contains] 12
-var int? i;
-<<< 12 :=> i.val >>>;
+var int?(val, 12) i;
 <<< i.val >>>;

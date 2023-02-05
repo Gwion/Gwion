@@ -1542,7 +1542,7 @@ ANN static Symbol case_op(const Env env, const Type base, const Exp e) {
         return NULL;
       }
     }
-  } else if (isa(base, env->gwion->type[et_union]) > 0 &&
+  } else if (tflag(base, tflag_union) &&
              e->exp_type == ae_exp_call) {
     const Exp func = e->d.exp_call.func;
     if (func->d.prim.prim_type == ae_prim_id) {

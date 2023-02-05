@@ -13,18 +13,10 @@ typedef struct HMap {
 } HMap;
 
 
-enum HMapKind {
-  HKIND_NONE,
-  HKIND_OBJ,
-  HKIND_STRUCT
-};
-
 typedef struct HMapInfo {
   Type key;
   Type val;
   m_uint sz;
-  enum HMapKind keyk;
-  enum HMapKind valk;
 } HMapInfo;
 
 #endif

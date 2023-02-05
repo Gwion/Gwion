@@ -461,8 +461,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&forkend, &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
       &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
-      &&addrefaddr, &&structaddref, &&structaddrefaddr, &&objassign, &&assign,
+      &&addrefaddr, &&structaddref, &&structaddrefaddr,
+      &&unionaddref, &&unionaddrefaddr,
+      &&objassign, &&assign,
       &&_remref, &&_remref2, &&_structreleaseregaddr, &&structreleasemem,
+      &&_unionreleaseregaddr, &&unionreleasemem,
       &&_except,
       &&dotmembermem, &&dotmembermem2, /*&&dotmembermem3, */&&dotmembermem4,
       &&dotmember, &&dotfloat, &&dotother, &&dotaddr,
@@ -569,7 +572,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       *(m_uint *)(reg + IVAL) = *(m_uint *)(reg + IVAL2);
       DISPATCH()
     regtoregother2:
-      memcpy(reg - VAL2, reg + IVAL, VAL2);
+      //memcpy(reg - VAL2, reg + IVAL, VAL2);
+      memmove(reg - VAL2, reg + IVAL, VAL2);
       DISPATCH()
     regtoregaddr:
       *(m_uint **)(reg + IVAL) = &*(m_uint *)(reg + IVAL2);
@@ -1066,10 +1070,16 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     }
       DISPATCH()
     structaddref:
-      struct_addref(vm->gwion, (Type)VAL2, (reg + IVAL));
+      struct_addref((Type)VAL2, (reg + IVAL));
       DISPATCH()
     structaddrefaddr:
-      struct_addref(vm->gwion, (Type)VAL2, *(m_bit **)(reg + IVAL));
+      struct_addref((Type)VAL2, *(m_bit **)(reg + IVAL));
+      DISPATCH()
+    unionaddref:
+      union_addref((Type)VAL2, (reg + IVAL));
+      DISPATCH()
+    unionaddrefaddr:
+      union_addref((Type)VAL2, *(m_bit **)(reg + IVAL));
       DISPATCH()
     objassign : {
       const M_Object o = **(M_Object **)(reg - SZ_INT);
@@ -1094,6 +1104,12 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH();
     structreleasemem:
       struct_release(shred, (Type)VAL2, mem + IVAL);
+      DISPATCH();
+    unionreleaseregaddr:
+      union_release(shred, (Type)VAL2, *(m_bit**)(reg + IVAL));
+      DISPATCH();
+    unionreleasemem:
+      union_release(shred, (Type)VAL2, mem + IVAL);
       DISPATCH();
     except:
       /* TODO: Refactor except instruction             *
@@ -1143,14 +1159,14 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
 
 #define UNION_CHECK                                                            \
-  register const m_bit *data = (*(M_Object *)(reg - SZ_INT))->data;            \
+  register const m_bit *data = (*(m_bit**)(reg - SZ_INT));            \
   if (*(m_uint *)data != VAL) {                                                \
-    handle(shred, "invalid union acces");                                      \
+    handle(shred, "InvalidUnionAcces");                                      \
     continue;                                                                  \
   }
 
     unioncheck : {
-      if (*(m_uint *)(*(M_Object *)(reg - SZ_INT))->data != VAL2) {
+      if (*(m_uint *)(*(m_bit* *)(reg - SZ_INT)) != VAL2) {
         reg -= SZ_INT;
         PC_DISPATCH(VAL);
       }
@@ -1175,9 +1191,9 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       DISPATCH()
     }
     unionaddr : {
-      *(m_uint *)(*(M_Object *)(reg - SZ_INT))->data = VAL;
-      *(m_bit **)(reg - SZ_INT) =
-          &*(m_bit *)((*(M_Object *)(reg - SZ_INT))->data + SZ_INT);
+      m_bit *data = *(m_bit**)(reg-SZ_INT);
+      *(m_uint*)data = VAL;
+      *(m_bit **)(reg - SZ_INT) = data + SZ_INT;
       DISPATCH()
     }
     staticint:
@@ -1313,8 +1329,10 @@ static void *_dispatch[] = {
       &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
       &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
-      &&_addrefaddr, &&_structaddref, &&_structaddrefaddr, &&_objassign, &&_assign,
+      &&_addrefaddr, &&_structaddref, &&_structaddrefaddr,
+      &&_unionaddref, &&_unionaddrefaddr, &&_objassign, &&_assign,
       &&_remref, &&_remref2, &&_structreleaseregaddr, &&_structreleasemem,
+      &&_unionreleaseregaddr, &&_unionreleasemem,
       &&_except,
       &&_dotmembermem, &&_dotmembermem2, /*&&_dotmembermem3, */&&_dotmembermem4,
       &&_dotmember, &&_dotfloat, &&_dotother, &&_dotaddr,
@@ -1532,12 +1550,16 @@ return;
     PREPARE(addrefaddr);
     PREPARE(structaddref);
     PREPARE(structaddrefaddr);
+    PREPARE(unionaddref);
+    PREPARE(unionaddrefaddr);
     PREPARE(objassign);
     PREPARE(assign);
     PREPARE(remref);
     PREPARE(remref2);
     PREPARE(structreleaseregaddr);
     PREPARE(structreleasemem);
+    PREPARE(unionreleaseregaddr);
+    PREPARE(unionreleasemem);
     PREPARE(except);
     PREPARE(dotmembermem);
     PREPARE(dotmembermem2);
