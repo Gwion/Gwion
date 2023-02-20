@@ -16,11 +16,12 @@ ANN void nspc_commit(const Nspc nspc) {
 static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   if(v->from->ctx && v->from->ctx->error) return; // this is quite a hack
   if (GET_FLAG(v, static) && a->class_data) {
-    const m_bit *ptr = *(m_bit **)(a->class_data + v->from->offset);
+    const m_bit *ptr = a->class_data + v->from->offset;
     anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
   } else if (vflag(v, vflag_builtin) && v->d.ptr) {
     const m_bit *ptr = (m_bit*)v->d.ptr;
-    anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
+    //if(vflag(v, vflag_direct))
+      anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
   }
   value_remref(v, gwion);
 }

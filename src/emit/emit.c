@@ -2254,6 +2254,7 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   const m_uint key_offset = /*!stmt->idx
      ? */emit_local(emit, emit->gwion->type[et_int])
      /*: emit_local(emit, stmt->idx->v->type)*/;
+
   const m_uint val_offset = emit_localn(emit, stmt->v->type); // localn ?
   emit_regtomem(emit, arr_offset, 0);
   emit_memsetimm(emit, key_offset, -1);
