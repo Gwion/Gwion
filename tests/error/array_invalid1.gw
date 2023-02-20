@@ -1,2 +1,2 @@
-#! [contains] invalid format for array init
+#! [contains] invalid array access
 [ [1,2] [3,4] ];

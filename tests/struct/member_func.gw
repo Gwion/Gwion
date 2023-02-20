@@ -1,5 +1,5 @@
 class C {
-  1 :=> test;
+  1 => test;
   fun int test(int i) {
    13 :=> var int j;
    return j;
@@ -7,7 +7,7 @@ class C {
 }
 
 var C c;
-12 => c.test => var int ret;
+12 => c.test :=> var int ret;
 
 <<< 1394 >>>;
 <<<ret>>>;

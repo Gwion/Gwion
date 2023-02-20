@@ -21,8 +21,6 @@
 #define HMAP_MIN_CAP 32
 #define HMAP_MAX_LOAD 0.75
 
-typedef void (clear_fn)(const HMap*, const VM_Shred, const struct HMapInfo*, const m_uint);
-
 // TODO: arch sensible hash
 static SFUN(mfun_int_h) {
   m_int x = *(m_uint*)MEM(0);
@@ -42,64 +40,24 @@ static SFUN(mfun_string_h) {
   *(m_int*)RETURN = hash(STRING(*(M_Object*)MEM(0)));
 }
 
-ANN static void clear_oo(const HMap *a, const VM_Shred shred, const HMapInfo *info NUSED, const m_uint idx) {
-  release(*(M_Object*)(a->data + idx * SZ_INT*2), shred);
-  release(*(M_Object*)((a->data + idx * SZ_INT*2) + SZ_INT), shred);
+ANN static void clear_all(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
+  compound_release(shred, info->key, a->data + idx * info->sz);
+  compound_release(shred, info->val, a->data + idx * info->sz + info->key->size);
 }
-
-ANN static void clear_ss(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  struct_release(shred, info->key, a->data + idx * info->sz);
-  struct_release(shred, info->val, a->data + idx * info->sz + info->key->size);
-}
-
-ANN static void clear_os(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  release(*(M_Object*)(a->data + idx * info->sz), shred);
-  struct_release(shred, info->val, a->data + idx * info->sz + SZ_INT);
-}
-
-ANN static void clear_so(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  struct_release(shred, info->key, a->data + idx * info->sz);
-  release(*(M_Object*)(a->data + idx * info->sz + info->key->size), shred);
-}
-
-ANN static void clear_on(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  release(*(M_Object*)(a->data + idx * info->sz), shred);
-}
-
-ANN static void clear_sn(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  struct_release(shred, info->key, a->data + idx * info->sz);
-}
-
-ANN static void clear_no(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  release(*(M_Object*)(a->data + idx * info->sz + info->key->size), shred);
-}
-
-
-ANN static void clear_ns(const HMap *a, const VM_Shred shred, const HMapInfo *info, const m_uint idx) {
-  struct_release(shred, info->val, a->data + idx * info->sz + info->key->size);
-}
-
-static clear_fn *const n_clear[3]  = { NULL,     clear_no, clear_ns };
-static clear_fn* o_clear[3]  = { clear_on, clear_oo, clear_os };
-static clear_fn* s_clear[3]  = { clear_sn, clear_so, clear_ss };
-static clear_fn*const* clear[3] = { n_clear, o_clear, s_clear };
 
 ANN static void hmapinfo_init(HMapInfo *const info, const Type key, const Type val) {
   info->key = key;
   info->val = val;
   info->sz = key->size + val->size;
-  info->keyk = tflag(key, tflag_compound) + tflag(key, tflag_struct);
-  info->valk = tflag(val, tflag_compound) + tflag(val, tflag_struct);
 }
 
 static DTOR(dict_clear_dtor) {
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
-  clear_fn *fn = clear[hinfo->keyk][hinfo->valk];
   HMap *a = &*(struct HMap*)o->data;
   for(m_uint i = a->capacity; --i;) {
     const HState state = *(HState*)(a->state + (i-1) * sizeof(HState));
     if(!state.set || state.deleted) continue;
-    fn(a, shred, hinfo, i-1);
+    clear_all(a, shred, hinfo, i-1);
   }
 }
 
@@ -174,14 +132,7 @@ static INSTR(hmap_iter_set) {
   HState *const state = (HState*)(hmap->state + sizeof(HState) * bucket);
   m_bit *const data = hmap->data + hinfo->sz * bucket;
   if (!state->set || state->deleted) {
-
-    if(hinfo->keyk) {
-      if(hinfo->keyk == HKIND_OBJ)
-        (*(M_Object*)REG(-instr->m_val))->ref++;
-      else
-        struct_addref(shred->info->vm->gwion, hinfo->key, REG(-instr->m_val));
-    }
-
+    compound_addref(hinfo->key, REG(-instr->m_val));
     state->set     = true;
     state->deleted = false;
     memcpy(data, REG(-instr->m_val), instr->m_val);
@@ -321,20 +272,12 @@ static INSTR(hmap_val) {
   memcpy(REG(-hinfo->val->size), new_data + hinfo->key->size, hinfo->val->size);
 }
 
-static INSTR(hmap_remove_clear) {
-  const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
-  const HMap *hmap = (HMap*)o->data;
-  const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
-  const m_uint bucket = *(m_uint*)REG(0);
-  clear_fn *fn = (clear_fn*)instr->m_val;
-  fn(hmap, shred, hinfo, bucket);
-}
-
 static INSTR(hmap_remove) {
   const M_Object o = *(M_Object*)(shred->reg - SZ_INT*2);
   HMap *const hmap = (HMap*)o->data;
   const HMapInfo *hinfo = (HMapInfo*)o->type_ref->nspc->class_data;
   const m_uint bucket = *(m_uint*)REG(0);
+  clear_all(hmap, shred, hinfo, bucket);
   m_bit *data = hmap->data + hinfo->sz * bucket;
   hmap->count--;
   HState *const state = (HState *)(hmap->state + bucket * sizeof(HState));
@@ -418,7 +361,8 @@ if(info->is_var) {
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
   CHECK_BB(emit_exp(emit, call.d.exp_call.func));
-  CHECK_BB(emit_exp_call1(emit, call.d.exp_call.func->type->info->func, true));
+  CHECK_BB(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
+    call.d.exp_call.func->type->info->func->def->base->ret_type->size, true));
   emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);
   regrow->m_val = grow_pc;
@@ -484,12 +428,6 @@ static OP_EMIT(opem_dict_remove) {
 
   CHECK_BB(traverse_exp(env, &call));
   CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
-  if(hinfo->keyk || hinfo->valk) {
-    clear_fn *const fn = clear[hinfo->keyk][hinfo->valk];
-    const Instr instr = emit_add_instr(emit, hmap_remove_clear);
-    instr->m_val = (m_uint)fn;
-  }
-
   const Instr pushval = emit_add_instr(emit, hmap_remove);
   pushval->m_val2 = hinfo->key->size;
   return GW_OK;
@@ -647,7 +585,7 @@ static OP_CHECK(opck_dict_scan) {
   }
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
   hmapinfo_init(hinfo, key, val);
-  if(hinfo->keyk + hinfo->valk) {
+  if(tflag(key, tflag_release) || tflag(val, tflag_release)) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL, "@dtor", SZ_INT, true, false);
     t->nspc->dtor->native_func = (m_uint)dict_clear_dtor;
     set_tflag(t, tflag_dtor);

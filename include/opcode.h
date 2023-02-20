@@ -177,12 +177,16 @@ enum {
   eRegAddRefAddr,
   eStructRegAddRef,
   eStructRegAddRefAddr,
+  eUnionRegAddRef,
+  eUnionRegAddRefAddr,
   eObjectAssign,
   eAssign,
   eObjectRelease,
   eObjectRelease2,
   eStructReleaseRegAddr,
   eStructReleaseMem,
+  eUnionReleaseRegAddr,
+  eUnionReleaseMem,
   eGWOP_EXCEPT,
   eDotMemberMem,
   eDotMemberMem2,
@@ -393,12 +397,16 @@ enum {
 #define  RegAddRefAddr         (f_instr)eRegAddRefAddr
 #define  StructRegAddRef       (f_instr)eStructRegAddRef
 #define  StructRegAddRefAddr   (f_instr)eStructRegAddRefAddr
+#define  UnionRegAddRef        (f_instr)eUnionRegAddRef
+#define  UnionRegAddRefAddr    (f_instr)eUnionRegAddRefAddr
 #define  ObjectAssign          (f_instr)eObjectAssign
 #define  Assign                (f_instr)eAssign
 #define  ObjectRelease         (f_instr)eObjectRelease
 #define  ObjectRelease2        (f_instr)eObjectRelease2
 #define  StructReleaseRegAddr  (f_instr)eStructReleaseRegAddr
 #define  StructReleaseMem      (f_instr)eStructReleaseMem
+#define  UnionReleaseRegAddr   (f_instr)eUnionReleaseRegAddr
+#define  UnionReleaseMem       (f_instr)eUnionReleaseMem
 #define  GWOP_EXCEPT           (f_instr)eGWOP_EXCEPT
 #define  DotMemberMem          (f_instr)eDotMemberMem
 #define  DotMemberMem2         (f_instr)eDotMemberMem2
@@ -506,21 +514,25 @@ ANN static inline void dump_opcodes(const VM_Code code) {
       case eRegPushBase:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase ", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase2:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase2", j);
         gw_out(" {-R}%-14f", instr->f);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase3:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase3", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eRegPushBase4:
         gw_out("{Y}┃{0}{-}% 4lu{0}: RegPushBase4", j);
         gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eReg2Reg:
@@ -1243,6 +1255,17 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
+      case eUnionRegAddRef:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: UnionRegAddRef", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
+        gw_out("\n");
+        break;
+      case eUnionRegAddRefAddr:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: UnionRegAddRefAddr", j);
+        gw_out(" {-R}%-14"INT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
       case eObjectAssign:
         gw_out("{Y}┃{0}{-}% 4lu{0}: ObjectAssign", j);
         gw_out("\n");
@@ -1269,6 +1292,18 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eStructReleaseMem:
         gw_out("{Y}┃{0}{-}% 4lu{0}: StructReleaseMem", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out(" {-B}%-14s"UINT_F"{0}", ((Type)instr->m_val2)->name);
+        gw_out("\n");
+        break;
+      case eUnionReleaseRegAddr:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: UnionReleaseRegAddr", j);
+        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
+        gw_out(" {-B}%-14s"UINT_F"{0}", ((Type)instr->m_val2)->name);
+        gw_out("\n");
+        break;
+      case eUnionReleaseMem:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: UnionReleaseMem", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out(" {-B}%-14s"UINT_F"{0}", ((Type)instr->m_val2)->name);
         gw_out("\n");

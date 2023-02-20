@@ -174,42 +174,42 @@ ANN2(1) static void module_arg(const Map map, const char *str) {
 }
 
 static void setup_options(cmdapp_t *app, cmdopt_t *opt) {
-  cmdapp_set(app, 'C', "config", CMDOPT_TAKESARG, NULL, "parse a config file",
+  cmdapp_set(app, 'C', "config", CMDOPT_TAKESARG, NULL, "parse a config file", "{Y}path{0}", 
              &opt[CONFIG]);
   cmdapp_set(app, 'p', "plugdir", CMDOPT_TAKESARG, NULL,
-             "add ARG to the plugin search path", &opt[PLUGIN]);
+             "add ARG to the plugin search path", "directory", &opt[PLUGIN]);
   cmdapp_set(app, 'm', "module", CMDOPT_TAKESARG, NULL,
-             "activate module (and arguments)", &opt[MODULE]);
-  cmdapp_set(app, 'l', "loop", CMDOPT_TAKESARG, NULL, "set loop mode",
+             "activate module", "arguments", &opt[MODULE]);
+  cmdapp_set(app, 'l', "loop", CMDOPT_TAKESARG, NULL, "set loop mode", "boolean",
              &opt[LOOP]);
-  cmdapp_set(app, 'g', "passes", CMDOPT_TAKESARG, NULL, "set pass order",
+  cmdapp_set(app, 'g', "passes", CMDOPT_TAKESARG, NULL, "comma separted list of passes", "{B}passes{0}",
              &opt[PASS]);
-  cmdapp_set(app, '\0', "stdin", 0, NULL, "read from stdin", &opt[STDIN]);
+  cmdapp_set(app, '\0', "stdin", 0, NULL, "read from stdin", NULL, &opt[STDIN]);
   cmdapp_set(app, 'c', "color", CMDOPT_TAKESARG, NULL,
-             "set colored output (never/auto/always, defaults to auto)",
+             "when to use {R}c{G}o{B}l{Y}o{M}r{C}s{0} (defaults to auto)", "{+}never{-}/auto/always",
              &opt[COLOR]);
   // sound options
   cmdapp_set(app, 'd', "driver", CMDOPT_TAKESARG, NULL,
-             "set driver (and arguments)", &opt[DRIVER]);
+             "set driver (and arguments)", "arguments", &opt[DRIVER]);
   cmdapp_set(app, 's', "samplerate", CMDOPT_TAKESARG, NULL,
-             "set the samplerate", &opt[SRATE]);
+             "set the samplerate", "integer", &opt[SRATE]);
   cmdapp_set(app, 'i', "input", CMDOPT_TAKESARG, NULL,
-             "number of input channel", &opt[NINPUT]);
+             "number of input channel", "integer", &opt[NINPUT]);
   cmdapp_set(app, 'o', "output", CMDOPT_TAKESARG, NULL,
-             "number of output channel", &opt[NOUTPUT]);
-  cmdapp_set(app, 'P', "plugin", CMDOPT_TAKESARG, NULL, "(force-)load a plugin",
+             "number of output channel", "integer", &opt[NOUTPUT]);
+  cmdapp_set(app, 'P', "plugin", CMDOPT_TAKESARG, NULL, "(force-)load a plugin", "name",
              &opt[LOAD_PLUGIN]);
-  cmdapp_set(app, 'D', "define", CMDOPT_TAKESARG, NULL, "define a macro",
+  cmdapp_set(app, 'D', "define", CMDOPT_TAKESARG, NULL, "define a macro", "macro",
              &opt[DEFINE]);
-  cmdapp_set(app, 'U', "undef", CMDOPT_TAKESARG, NULL, "undefine a macro",
+  cmdapp_set(app, 'U', "undef", CMDOPT_TAKESARG, NULL, "undefine a macro", "macro",
              &opt[UNDEF]);
   cmdapp_set(app, 'I', "include", CMDOPT_TAKESARG, NULL,
-             "add ARG to include path", &opt[INCLUDE]);
-  cmdapp_set(app, 'G', "debug", CMDOPT_MAYTAKEARG, NULL, "set/unset debug mode",
+             "add ARG to include path", "directory", &opt[INCLUDE]);
+  cmdapp_set(app, 'G', "debug", CMDOPT_MAYTAKEARG, NULL, "set/unset debug mode","bool",
              &opt[DEBUG]);
-  cmdapp_set(app, 'B', "dump", CMDOPT_MAYTAKEARG, NULL, "set/unset bytecode dump",
+  cmdapp_set(app, 'B', "dump", CMDOPT_MAYTAKEARG, NULL, "set/unset bytecode dump", "bool", 
              &opt[DUMP]);
-  cmdapp_set(app, 'H', "cdoc", CMDOPT_MAYTAKEARG, NULL, "set/unset cdoc mode",
+  cmdapp_set(app, 'H', "cdoc", CMDOPT_MAYTAKEARG, NULL, "set/unset cdoc mode", "bool",
              &opt[CDOC]);
 }
 
@@ -358,7 +358,7 @@ ANN m_bool _arg_parse(struct ArgInternal *arg) {
       .author          = "Jérémie Astor",
       .year            = 2016,
       .description     = "Strongly timed musical programming language.",
-      .help_des_offset = 28,
+      .help_des_offset = 32,
       .ver_extra =
           "License GPLv3+: GNU GPL version 3 or later "
           "<https://gnu.org/licenses/gpl.html>\n"

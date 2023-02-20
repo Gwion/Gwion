@@ -525,6 +525,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
     if (t->size > sz) sz = t->size;
   }
   udef->type->nspc->offset = SZ_INT + sz;
+  udef->type->size = SZ_INT + sz;
   return GW_OK;
 }
 

@@ -34,6 +34,13 @@ static DTOR(array_dtor_struct) {
                    &*(m_bit *)(ARRAY_PTR(a) + i * SZ_INT));
 }
 
+static DTOR(array_dtor_union) {
+  struct M_Vector_ *a = ARRAY(o);
+  for (m_uint i = 0; i < ARRAY_LEN(a); ++i)
+    union_release(shred, array_base(o->type_ref),
+                   &*(m_bit *)(ARRAY_PTR(a) + i * SZ_INT));
+}
+
 ANN M_Object new_array(MemPool p, const Type t, const m_uint length) {
   const M_Object a = new_object(p, t);
   const m_uint   depth =
@@ -69,6 +76,15 @@ static MFUN(vm_vector_rem_struct) {
   m_vector_rem(v, (vtype)index);
 }
 
+static MFUN(vm_vector_rem_union) {
+  const m_int    index = *(m_int *)(shred->mem + SZ_INT);
+  const M_Vector v     = ARRAY(o);
+  if (index < 0 || (m_uint)index >= ARRAY_LEN(v)) return;
+  const Type t = o->type_ref;
+  union_release(shred, array_base(t), ARRAY_PTR(v) + index * ARRAY_SIZE(v));
+  m_vector_rem(v, (vtype)index);
+}
+
 static MFUN(vm_vector_insert) {
   const m_int    index = *(m_int *)(shred->mem + SZ_INT);
   const M_Vector v     = ARRAY(o);
@@ -89,8 +105,15 @@ static MFUN(vm_vector_insert_struct) {
   const M_Vector v     = ARRAY(o);
   if (index < 0 || (m_uint)index > ARRAY_LEN(v)) return;
   m_vector_insert(v, index, shred->mem + SZ_INT * 2);
-  struct_addref(shred->info->vm->gwion, array_base(o->type_ref),
-                shred->mem + SZ_INT * 2);
+  struct_addref(array_base(o->type_ref), shred->mem + SZ_INT * 2);
+}
+
+static MFUN(vm_vector_insert_union) {
+  const m_int    index = *(m_int *)(shred->mem + SZ_INT);
+  const M_Vector v     = ARRAY(o);
+  if (index < 0 || (m_uint)index > ARRAY_LEN(v)) return;
+  m_vector_insert(v, index, shred->mem + SZ_INT * 2);
+  union_addref(array_base(o->type_ref), shred->mem + SZ_INT * 2);
 }
 
 static MFUN(vm_vector_size) { *(m_uint *)RETURN = ARRAY_LEN(ARRAY(o)); }
@@ -703,6 +726,26 @@ static void array_func(const Env env, const Type t, const m_str name, f_xfun fun
   builtin_func(env->gwion, v->d.func_ref, fun);
 }
 
+ANN static f_xfun get_rem(const Type t) {
+  if(!tflag(t, tflag_release)) return vm_vector_rem;
+  if(!tflag(t, tflag_struct)) return vm_vector_rem_obj;
+  if(!tflag(t, tflag_union)) return vm_vector_rem_struct;
+  return vm_vector_rem_union;
+}
+
+ANN static f_xfun get_insert(const Type t) {
+  if(!tflag(t, tflag_release)) return vm_vector_insert;
+  if(!tflag(t, tflag_struct)) return vm_vector_insert_obj;
+  if(!tflag(t, tflag_union)) return vm_vector_insert_struct;
+  return vm_vector_insert_union;
+}
+
+ANN static f_xfun get_dtor(const Type t) {
+  if(!tflag(t, tflag_struct)) return array_dtor_obj;
+  if(!tflag(t, tflag_union)) return array_dtor_struct;
+  return array_dtor_union;
+}
+
 static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
   const Type           t_array = env->gwion->type[et_array];
@@ -721,14 +764,6 @@ static OP_CHECK(opck_array_scan) {
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
-/*
-  if (!strncmp(base->name, "Option:[", 5)) {
-    gwerr_basic("Can't use option types as array base", NULL, NULL, "/dev/null",
-                (loc_t) {}, 0);
-    env_set_error(env, true);
-    return env->gwion->type[et_error];
-  }
-*/
   const Symbol sym  = array_sym(env, array_base_simple(base), base->array_depth + 1);
   const Type   type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if (type) return type;
@@ -756,16 +791,9 @@ static OP_CHECK(opck_array_scan) {
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);
   set_tflag(t, tflag_cdef | tflag_tmpl);
-  void *rem = tflag(base, tflag_compound)
-                  ? !tflag(base, tflag_struct) ? vm_vector_rem_obj
-                                               : vm_vector_rem_struct
-                  : vm_vector_rem;
-  builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), rem);
-  void *insert = tflag(base, tflag_compound)
-                     ? !tflag(base, tflag_struct) ? vm_vector_insert_obj
-                                                  : vm_vector_insert_struct
-                     : vm_vector_insert;
-  array_func(env, t, "insert", insert);
+  
+  builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), get_rem(t)); 
+  array_func(env, t, "insert", get_insert(t));
   array_func(env, t, "size", vm_vector_size);
   array_func(env, t, "depth", vm_vector_depth);
   array_func(env, t, "cap", vm_vector_cap);
@@ -777,14 +805,12 @@ static OP_CHECK(opck_array_scan) {
   array_func(env, t, "count", vm_vector_count);
   array_func(env, t, "foldl", vm_vector_foldl);
   array_func(env, t, "foldr", vm_vector_foldr);
-//  array_func(env, t, "new", vm_vector_new);
 
   if (tflag(base, tflag_compound)) {
     t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
                                "array component dtor", SZ_INT, true, false);
     set_tflag(t, tflag_dtor);
-    t->nspc->dtor->native_func = (m_uint)(
-        !tflag(base, tflag_struct) ? array_dtor_obj : array_dtor_struct);
+    t->nspc->dtor->native_func = (m_uint)get_dtor(base);
   }
   return t;
 }
