@@ -87,6 +87,14 @@ jq -rc '.[]' <<< "$libraries" |
   do
     path=$(jq -c '.path' <<< "$lib" | sed -e 's/^"//' -e 's/"$//')
     names=$(jq -c '.names' <<< "$lib")
+    cflags=$(jq -c '.cflags' <<< "$lib")
+    if [ "$cflags" != "null" ]
+    then config "CFLAGS += $cflags"
+    fi
+    ldflags=$(jq -c '.ldflags' <<< "$lib")
+    if [ "$ldflags" != "null" ]
+    then config "LDFLAGS += $ldflags"
+    fi
     config "LDFLAGS += $path"
     if [ "$names" != "null" ]
     then
