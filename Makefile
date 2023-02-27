@@ -74,11 +74,14 @@ CFLAGS += -Wno-pedantic
 
 CFLAGS += -DGWION_BUILTIN
 
+# with_config may require a c++ linker
+LINKER ?= ${CC}
+
 all: options-show prg
 
 prg: ${GWLIBS} ${config_obj} src/main.o
 	@$(info link ${PRG})
-	${CC} src/main.o -o ${PRG} ${config_obj} ${PLUGLIBS} ${LDFLAGS} ${LIBS}
+	${LINKER} src/main.o -o ${PRG} ${config_obj} ${PLUGLIBS} ${LDFLAGS} ${LIBS}
 
 options-show:
 	@$(call _options)
