@@ -1,5 +1,5 @@
-#ifndef __IMPORT_CHECKER
-#define __IMPORT_CHECKER
+#ifndef _IMPORT_CHECKER
+#define _IMPORT_CHECKER
 
 enum importck_type { ck_edef, ck_udef, ck_tdef, ck_oper, ck_item, ck_fdef };
 
