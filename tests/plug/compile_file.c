@@ -14,10 +14,12 @@
 #include <string.h>
 GWION_IMPORT(compile_file) {
   DECL_OB(FILE *, file, = fopen("rm_me.gw", "w+"));
-  fprintf(file, "1;");
-  rewind(file);
-  const m_bool ret =
+  if(fprintf(file, "1;") >= 0) {
+    rewind(file);
+    const m_bool ret =
       compile_file(gwi->gwion, __FILE__, file) ? GW_OK : GW_ERROR;
-  fclose(file);
-  return ret;
+    fclose(file);
+    return ret;
+  }
+  return GW_ERROR;
 }

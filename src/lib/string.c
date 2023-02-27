@@ -381,8 +381,13 @@ static SFUN(string_load) {
   fseek(f, 0, SEEK_END);
   const size_t sz = ftell(f);
   char c[sz + 1];
+  c[sz] = '\0';
   rewind(f);
-  (void)fread(c, 1, sz, f);
+  const size_t ret = fread(c, 1, sz, f);
+  if(ret != sz) {
+    xfun_handle(shred, "StringLoadException");
+    return;
+  }
   fclose(f);
   *(M_Object*)RETURN = new_string(shred->info->vm->gwion, c);
 }
