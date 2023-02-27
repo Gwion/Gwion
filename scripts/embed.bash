@@ -91,10 +91,6 @@ jq -rc '.[]' <<< "$libraries" |
     if [ "$cflags" != "null" ]
     then config "CFLAGS += $cflags"
     fi
-    ldflags=$(jq -c '.ldflags' <<< "$lib")
-    if [ "$ldflags" != "null" ]
-    then config "LDFLAGS += $ldflags"
-    fi
     config "LDFLAGS += $path"
     if [ "$names" != "null" ]
     then
@@ -104,6 +100,10 @@ jq -rc '.[]' <<< "$libraries" |
         echo "  embed_${name}(gwion);" >> embed/embed_foot
         handle_lib "$path" "$name"
       done
+    fi
+    ldflags=$(jq -c '.ldflags' <<< "$lib")
+    if [ "$ldflags" != "null" ]
+    then config "LDFLAGS += $ldflags"
     fi
   done
 
