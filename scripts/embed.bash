@@ -46,13 +46,13 @@ driver() {
 }
 modini() {
   has_func "gwmodini" "$1" "$2" && {
-    header "extern void *gwmodini_${2}(const Gwion, const Vector);"
+    header "extern void *gwmodini_${2}(Gwion const, Vector const);"
     echo "  plug->modini = gwmodini_${2};"
   }
 }
 modend() {
   has_func "gwmodend" "$1" "$2" && {
-    header "extern m_bool gwmodend_${2}(const Gwion gwion, void *self);"
+    header "extern m_bool gwmodend_${2}(Gwion const, void *self);"
     echo "  plug->modend = gwmodend_${2};"
   }
 }
