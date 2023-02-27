@@ -40,7 +40,7 @@ plugin() {
 }
 driver() {
   has_func "gwdriver" "$1" "$2" && {
-    header "extern void *gwdriver_$2(struct DriverData_*);"
+    header "extern void gwdriver_$2(struct DriverData_*);"
     echo "  plug->driver = gwdriver_$2;"
   }
 }
@@ -52,7 +52,7 @@ modini() {
 }
 modend() {
   has_func "gwmodend" "$1" "$2" && {
-    header "extern void* gwmodend_${2}(struct Gwion_ *const, void *);"
+    header "extern void* gwmodend_${2}(const struct Gwion_ *, void *);"
     echo "  plug->modend = gwmodend_${2};"
   }
 }
