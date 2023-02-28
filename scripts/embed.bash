@@ -122,12 +122,15 @@ jq -rc '.[]' <<< "$libraries" |
   done
 }
 
+file2hex() {
+  cp "$1" "$2"
+  xxd -i "$2" > "embed/${2}.h"
+  rm "$2"
+}
+
 handle_script() {
   name="script$2"
-  xxd -name "$name" -i "$1" > "embed/${name}.h" || {
-    echo "$1 missing. aborting" >&2
-    exit 1
-  }
+  file2hex "$1" "$name"
   header "#include \"${name}.h\""
   echo "  compile_script(gwion, \"$name\", (m_str)${name}, ${name}_len);"
 }
