@@ -215,6 +215,8 @@ array_is_ok "$ldflags" && {
 }
 
 standalone=$(jq -rc '.standalone' <<< "$json")
-[ "$standalone" = "true" ] &&
+[ "$standalone" = "true" ] && {
+  array_is_ok "$args" || config echo "CFLAGS += -DGWION_CONFIG_ARGS"
   config "CFLAGS += -DGWION_STANDALONE"
+}
 :
