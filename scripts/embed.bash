@@ -170,7 +170,7 @@ args=$(jq -rc '.args' <<< "$json")
 
 array_is_ok "$args" && {
   count=0
-  echo "CFLAGS += -DGWION_CONFIG_ARGS" >> embed/embed.mk
+  config "CFLAGS += -DGWION_CONFIG_ARGS"
   echo "static const char *config_argv[] = {"
   jq -rc '.[]' <<< "$args" |
   while read -r arg 
