@@ -1,8 +1,6 @@
 #!/usr/bin/bash
 mkdir -p embed
 rm -f embed/*
-
-#json=$(jq -c '.' "$1")
 json=$(cat "$1")
 
 cat  << EOF >> embed/embed_head
@@ -68,7 +66,8 @@ $(modini "$1" "$2")$(modend "$1" "$2")$(plugin "$1" "$2")$(driver "$1" "$2")
 EOF
 }
 
-cat << EOF >> embed/embed_foot
+script_helper() {
+cat << EOF >> embed/embed_head
 ANN static void compile_script(const Gwion gwion, const m_str filename,
                               const m_str content, const size_t sz)  {
   const m_str str = mp_malloc2(gwion->mp, sz + 1);
@@ -79,9 +78,25 @@ ANN static void compile_script(const Gwion gwion, const m_str filename,
 }
 
 EOF
+}
+
+not_null() {
+ [ "$1" != "null" ] && return 0
+ return 1
+}
+
+array_is_ok() {
+  not_null "$1" || return 1
+  length=$(jq -rc "length" <<< "$1")
+  [ "$length" = "0" ] && return 1
+  return 0
+}
 
 libraries=$(jq -rc '.libraries' <<< "$json")
-echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
+echo "lmolkjlkj" >&2
+
+handle_libs() {
+  array_is_ok "$libraries" || return 1
 jq -rc '.[]' <<< "$libraries" |
   while read -r lib
   do
@@ -106,16 +121,22 @@ jq -rc '.[]' <<< "$libraries" |
     then config "LDFLAGS += $ldflags"
     fi
   done
+}
 
 handle_script() {
   name="script$2"
-  xxd -name "$name" -i "$1" > "embed/${name}.h"
+  xxd -name "$name" -i "$1" > "embed/${name}.h" || {
+    echo "$1 missing. aborting" >&2
+    exit 1
+  }
   header "#include \"${name}.h\""
-  echo "  compile_script(gwion, \"$name\", ${name}, ${name}_len);"
+  echo "  compile_script(gwion, \"$name\", (m_str)${name}, ${name}_len);"
 }
 
 scripts=$(jq -r '.scripts' <<< "$json")
 handle_scripts() {
+  array_is_ok "$scripts" || return
+  script_helper
   i=0
   jq -r '.[]' <<< "$scripts"  |
     while read -r name;
@@ -123,9 +144,16 @@ handle_scripts() {
     done
 }
 
-handle_scripts >> embed/embed_foot
-echo "}" >> embed/embed_foot
 
+embed() {
+  array_is_ok "$scripts" || array_is_ok "$libraries" || return
+  echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
+  handle_libs
+  handle_scripts >> embed/embed_foot
+  echo "}" >> embed/embed_foot
+}
+embed
+touch embed/embed_body
 cat embed/embed_head embed/embed_body embed/embed_foot > embed/embed.c
 rm embed/embed_head embed/embed_body embed/embed_foot
 
@@ -134,14 +162,14 @@ in=$(jq -rc '.in' <<< "$audio")
 out=$(jq -rc '.out' <<< "$audio")
 samplerate=$(jq -rc '.samplerate' <<< "$audio")
 
-{
-[ "$in" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NIN=$in"
-[ "$out" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
-[ "$samplerate" != "null" ] && echo "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
-} >> embed/embed.mk
+[ "$in" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_NIN=$in"
+[ "$out" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
+[ "$samplerate" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
 
 args=$(jq -rc '.args' <<< "$json")
-[ "$args" != "null" ] && {
+
+
+array_is_ok "$args" && {
   count=0
   echo "CFLAGS += -DGWION_CONFIG_ARGS" >> embed/embed.mk
   echo "static const char *config_argv[] = {"
@@ -161,7 +189,6 @@ ANN const char** config_args(int *argc, char **const argv) {
     args[i] = config_argv[i];
   }
   for(int i = 0; i < *argc; i++) {
-  puts(argv[i]);
     args[i + config_argc] = argv[i];
   }
   *argc = nargs;
@@ -170,27 +197,25 @@ ANN const char** config_args(int *argc, char **const argv) {
 EOF
 } >> embed/embed.c
 
-[ "$libraries" != "null" ] || [ "$scripts" != "null" ] && {
-  echo "CFLAGS += -DGWION_EMBED"
-} >> embed/embed.mk
+[ "$libraries" != "null" ] || [ "$scripts" != "null" ] &&
+  config "CFLAGS += -DGWION_EMBED"
 
 cflags=$(jq -rc '.cflags' <<< "$json")
-[ "$cflags" != "null" ] && {
+array_is_ok "$cflags" && {
   jq -rc '.[]' <<< "$cflags" |
   while read -r cflag
-  do
-    echo "CFLAGS += $cflag "
+  do config "CFLAGS += $cflag "
   done
-} >> embed/embed.mk
+}
 ldflags=$(jq -rc '.ldflags' <<< "$json")
-[ "$ldflags" != "null" ] && {
+array_is_ok "$ldflags" && {
   jq -rc '.[]' <<< "$ldflags" |
   while read -r ldflag
-  do
-    echo "LDFLAGS += $ldflag "
+  do config "LDFLAGS += $ldflag "
   done
-} >> embed/embed.mk
+}
+
 standalone=$(jq -rc '.standalone' <<< "$json")
-[ "$standalone" = "true" ] && {
-  echo "CFLAGS += -DGWION_STANDALONE"
-} >> embed/embed.mk
+[ "$standalone" = "true" ] &&
+  config "CFLAGS += -DGWION_STANDALONE"
+:
