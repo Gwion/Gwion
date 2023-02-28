@@ -93,7 +93,6 @@ array_is_ok() {
 }
 
 libraries=$(jq -rc '.libraries' <<< "$json")
-echo "lmolkjlkj" >&2
 
 handle_libs() {
   array_is_ok "$libraries" || return 1
