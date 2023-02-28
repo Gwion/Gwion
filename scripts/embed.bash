@@ -168,15 +168,16 @@ samplerate=$(jq -rc '.samplerate' <<< "$audio")
 args=$(jq -rc '.args' <<< "$json")
 
 
-array_is_ok "$args" && {
+{
   count=0
   config "CFLAGS += -DGWION_CONFIG_ARGS"
   echo "static const char *config_argv[] = {"
-  jq -rc '.[]' <<< "$args" |
-  while read -r arg 
-  do
-    echo "  \"$arg\", "
-  done
+  array_is_ok "$args" && {
+    jq -rc '.[]' <<< "$args" |
+    while read -r arg 
+    do echo "  \"$arg\", "
+    done
+  }
   echo "};"
   count=$((count+1))
   echo "static const int config_argc = $count;"
