@@ -115,7 +115,7 @@ jq -rc '.[]' <<< "$libraries" |
         handle_lib "$path" "$name"
       done
     fi
-    ldflags=$(jq -c '.ldflags' <<< "$lib")
+    ldflags=$(jq -c '.ldflags' <<< "$lib" | sed -e 's/^"//' -e 's/"$//')
     if [ "$ldflags" != "null" ]
     then config "LDFLAGS += $ldflags"
     fi
