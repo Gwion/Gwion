@@ -390,8 +390,11 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
         return v->type;
       }
     }
-    gwerr_basic(_("Invalid variable"), _("not legit at this point."), NULL,
+    m_str str = NULL;
+    gw_asprintf(env->gwion->mp, &str, "Invalid variable {R}%s{0}\n", name);
+    gwerr_basic(str, _("not legit at this point."), NULL,
                 env->name, prim_pos(data), 0);
+    free_mstr(env->gwion->mp, str);
     did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(sym));
     env_set_error(env, true);
     return NULL;
