@@ -191,10 +191,14 @@ ANN const char** config_args(int *argc, char **const argv) {
   for(int i = 0; i < config_argc; i++) {
     args[i] = config_argv[i];
   }
+#ifndef GWION_STANDALONE
   for(int i = 0; i < *argc; i++) {
     args[i + config_argc] = argv[i];
   }
   *argc = nargs;
+#else
+  *argc = config_argc;
+#endif
   return args;
 }
 EOF

@@ -46,7 +46,7 @@ ANN static inline void config_end(const Vector config) {
   }
 }
 
-//#ifndef GWION_CONFIG_ARGS
+#ifndef GWION_STANDALONE
 ANN static m_str plug_dir(void) {
   const m_str  home     = getenv("HOME");
   const size_t sz       = strlen(home);
@@ -56,7 +56,7 @@ ANN static m_str plug_dir(void) {
   strcpy(plug_dir + sz, pdir);
   return plug_dir;
 }
-//#endif
+#endif
 
 enum arg_type {
   ARG_FILE,
@@ -377,14 +377,14 @@ ANN m_bool _arg_parse(struct ArgInternal *arg) {
   return GW_OK;
 }
 
-//#ifndef GWION_CONFIG_ARGS
+#ifndef GWION_STANDALONE
 ANN static void config_default(struct ArgInternal *arg) {
   char *home = getenv("HOME");
   char  c[strlen(home) + strlen(GWIONRC) + 2];
   sprintf(c, "%s/%s", home, GWIONRC);
   config_parse(arg, c);
 }
-//#endif
+#endif
 
 ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
   struct ArgInternal arg = {.gwion = gwion, .arg = a};
