@@ -180,9 +180,9 @@ args=$(jq -rc '.args' <<< "$json")
     while read -r arg 
     do echo "  \"$arg\", "
     done
+    count=$((count+1))
   }
   echo "};"
-  count=$((count+1))
   echo "static const int config_argc = $count;"
 cat << EOF
 ANN const char** config_args(int *argc, char **const argv) {
