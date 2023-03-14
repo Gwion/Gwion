@@ -55,11 +55,18 @@ modend() {
   }
 }
 
+depend() {
+  has_func "gwdepend" "$1" "$2" && {
+    header "extern m_str* gwdepend_${2}(void);"
+    echo "  plug->depend = gwdepend_${2};"
+  }
+}
+
 handle_lib() {
   cat << EOF >> embed/embed_body
 ANN static void embed_${name}(const Gwion gwion) {
   Plug plug = new_plug(gwion->mp);
-$(modini "$1" "$2")$(modend "$1" "$2")$(plugin "$1" "$2")$(driver "$1" "$2")
+$(modini "$1" "$2")$(modend "$1" "$2")$(plugin "$1" "$2")$(driver "$1" "$2")$(depend "$1" "$2")
   map_set(&gwion->data->plugs->map, (vtype)strdup("${2}"), (vtype)plug);
 }
 
