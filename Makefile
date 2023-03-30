@@ -2,7 +2,7 @@ GWION_PACKAGE=gwion
 
 ifeq (,$(wildcard util/Makefile))
   $(warning "missing git submodules, please run:")
-  $(error "git submodules update --init --recursive")
+  $(error "git submodule update --init --recursive")
 endif
 ifeq (,$(wildcard util/config.mk))
 $(shell cp util/config.mk.orig util/config.mk)
