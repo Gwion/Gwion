@@ -152,7 +152,6 @@ handle_scripts() {
     do handle_script "$name" "$i"; i=$((i+1));
     done
 }
-
 embed() {
   array_is_ok "$scripts" || array_is_ok "$libraries" || return
   echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
@@ -170,9 +169,9 @@ in=$(jq -rc '.in' <<< "$audio")
 out=$(jq -rc '.out' <<< "$audio")
 samplerate=$(jq -rc '.samplerate' <<< "$audio")
 
-[ "$in" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_NIN=$in"
-[ "$out" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
-[ "$samplerate" != "null" ] && config "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
+not_null "$in" && config "CFLAGS += -DGWION_DEFAULT_NIN=$in"
+not_null "$out" && config "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
+not_null "$samplerate" && config "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
 
 args=$(jq -rc '.args' <<< "$json")
 
@@ -203,7 +202,7 @@ ANN const char** config_args(int *argc, char **const argv) {
   for(int i = 0; i < *argc; i++) {
     args[i + config_argc] = argv[i];
   }
-  *argc = config_argc;
+  *argc = nargs;
   return args;
 }
 EOF
@@ -233,3 +232,4 @@ ulib=$(jq -rc '.ulib' <<< "$json")
 [ "$ulib" = "false" ] && config "CFLAGS += -DGWION_NO_ULIB"
 uargs=$(jq -rc '.uargs' <<< "$json")
 [ "$uargs" = "false" ] && config "CFLAGS += -DGWION_NO_UARGS"
+:
