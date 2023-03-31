@@ -123,9 +123,9 @@ ast: ast/libgwion_ast.a
 afl: gwion-fuzz
 
 gwion-fuzz:
-	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c src/vm/vm.c
+	@touch src/parse/scan*.c src/parse/check.c src/emit/emit.c src/main.c src/vm/vm.c
 	@+PRG=gwion-fuzz CC=afl-clang-fast CFLAGS=-D__FUZZING__ ${MAKE}
-	@touch src/parse/{scan*.c,check.c} src/emit/emit.c src/main.c src/vm/vm.c
+	@touch src/parse/scan*.c src/parse/check.c src/emit/emit.c src/main.c src/vm/vm.c
 
 clean_core:
 	@rm -f core.* *vgcore.*
