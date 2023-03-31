@@ -5,7 +5,6 @@
 #include "soundinfo.h"
 #include "vm.h"
 #include "gwion.h"
-#include "arg.h"
 #include "pass.h"
 #include "compile.h"
 #include "cmdapp.h"
@@ -46,7 +45,6 @@ ANN static inline void config_end(const Vector config) {
   }
 }
 
-#ifndef GWION_NO_ULIB
 ANN static m_str plug_dir(void) {
   const m_str  home     = getenv("HOME");
   const size_t sz       = strlen(home);
@@ -56,7 +54,6 @@ ANN static m_str plug_dir(void) {
   strcpy(plug_dir + sz, pdir);
   return plug_dir;
 }
-#endif
 
 enum arg_type {
   ARG_FILE,
@@ -75,9 +72,7 @@ ANN static void arg_init(CliArg *arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->config);
-#ifndef GWION_NO_ULIB
-  vector_add(&arg->lib, (vtype)plug_dir());
-#endif
+  if(arg->ulib)vector_add(&arg->lib, (vtype)plug_dir());
   arg->color = COLOR_AUTO;
 }
 
@@ -377,23 +372,21 @@ ANN m_bool _arg_parse(struct ArgInternal *arg) {
   return GW_OK;
 }
 
-#ifndef GWION_NO_URC
 ANN static void config_default(struct ArgInternal *arg) {
   char *home = getenv("HOME");
   char  c[strlen(home) + strlen(GWIONRC) + 2];
   sprintf(c, "%s/%s", home, GWIONRC);
   config_parse(arg, c);
 }
-#endif
 
 ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
+  if(!a->uargs) a->arg.argc = 1;
+  if(a->config_args) a->arg.argv = a->config_args(&a->arg.argc, a->arg.argv);
   struct ArgInternal arg = {.gwion = gwion, .arg = a};
   arg_init(a);
 #ifdef __FUZZING
   return;
 #endif
-#ifndef GWION_NO_URC
-  config_default(&arg);
-#endif
+  if(a->urc) config_default(&arg);
   return _arg_parse(&arg);
 }

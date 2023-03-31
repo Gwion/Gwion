@@ -76,12 +76,15 @@ ANN static Func gwion_locale(const Gwion gwion) {
 ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
   CHECK_BB(plug_ini(gwion, &arg->lib));
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
+  if(arg->embed_libs) arg->embed_libs(gwion);
   if (gwion_audio(gwion) > 0) {
     CHECK_BB(plug_run(gwion, &arg->mod));
     if (type_engine_init(gwion)) {
       vector_add(&gwion->data->plugs->vec, (m_uint)gwion->env->global_nspc);
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
       gwion->emit->locale = gwion_locale(gwion);
+      if(arg->embed_scripts) arg->embed_scripts(gwion);
+      arg_compile(gwion, arg);
       return GW_OK;
     }
   }

@@ -237,21 +237,20 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) 
 
 ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
   const Map  map   = &gwion->data->plugs->map;
-  m_str      dname = si->arg;
+  m_str      dname = strdup(si->arg);
   m_str      opt   = strchr(dname, '=');
-  const char c     = opt ? *opt : '\0';
   if (opt) *opt = '\0';
   for (m_uint i = 0; i < map_size(map); ++i) {
     const m_str name = (m_str)VKEY(map, i);
     if (!strcmp(name, dname)) {
       const Plug     plug = (Plug)VVAL(map, i);
       const gwdriver_t drv  = plug->driver;
-      if (opt) *opt = c;
+      free(dname);
       return drv;
     }
   }
-  if (opt) *opt = c;
   gw_err("can't find driver '%s'\n", dname);
+  free(dname);
   return NULL;
 }
 

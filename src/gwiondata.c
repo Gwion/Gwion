@@ -1,12 +1,12 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
-#include "plug.h"
 #include "gwiondata.h"
 #include "vm.h"
 #include "instr.h"
 #include "emit.h"
 #include "gwion.h"
+#include "plug.h"
 #include "specialid.h"
 #include "pass.h"
 

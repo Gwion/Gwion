@@ -44,34 +44,52 @@ int main(int argc, char **argv) {
 #else
 
 #ifdef GWION_CONFIG_ARGS
-ANN char **config_args(int *, char **const);
+ANN char **gwion_config_args(int *, char **const);
+#else
+#define gwion_config_args NULL
 #endif
-#ifdef GWION_EMBED
-ANN void gwion_embed(const Gwion);
+
+#ifdef GWION_EMBED_LIBS
+ANN void gwion_embed_libs(Gwion);
+#else
+#define gwion_embed_libs NULL
+#endif
+
+#ifdef GWION_EMBED_SCRIPTS
+ANN void gwion_embed_scripts(Gwion);
+#else
+#define gwion_embed_scripts NULL
+#endif
+
+#ifndef GWION_HAS_URC
+#define GWION_HAS_URC true
+#endif
+
+#ifndef GWION_HAS_ULIB
+#define GWION_HAS_ULIB true
+#endif
+
+#ifndef GWION_HAS_UARGS
+#define GWION_HAS_UARGS true
 #endif
 
 int main(int argc, char **argv) {
-#ifndef GWION_CONFIG_ARGS
-  CliArg arg = {.arg = {.argc = argc, .argv = argv} };
-#else
-  char **config_argv = config_args(&argc, argv);
-  CliArg arg = {.arg = {.argc = argc, .argv = config_argv} };
-#endif
   signal(SIGINT, sig);
   signal(SIGTERM, sig);
-  const m_bool  ini   = gwion_ini(&gwion, &arg);
-#ifdef GWION_EMBED
-  gwion_embed(&gwion);
-#endif
-  if(ini > 0) arg_compile(&gwion, &arg);
+  CliArg arg = {
+    .arg = {.argc = argc, .argv = argv},
+    .urc = GWION_HAS_URC,
+    .ulib = GWION_HAS_ULIB,
+    .uargs = GWION_HAS_UARGS,
+    .config_args = gwion_config_args,
+    .embed_libs = gwion_embed_libs,
+    .embed_scripts = gwion_embed_scripts,
+  };
+  const m_bool  ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);
-#ifdef GWION_CONFIG_ARGS
-  free(config_argv);
-#endif
   if (ini > 0) gwion_run(&gwion);
   gwion_end(&gwion);
   gwion.vm = NULL;
   exit(EXIT_SUCCESS);
 }
-
 #endif

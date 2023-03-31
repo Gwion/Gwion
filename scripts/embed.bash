@@ -27,6 +27,10 @@ config() {
   echo "$1" >> embed/embed.mk
 }
 
+cflag() {
+  config "CFLAGS += $1"
+}
+
 has_func() {
   nm "$2" | grep "${1}_${3}" > /dev/null
 }
@@ -92,6 +96,9 @@ not_null() {
  return 1
 }
 
+lenght() {
+  jq -rc "length" <<< "$1"
+}
 array_is_ok() {
   not_null "$1" || return 1
   length=$(jq -rc "length" <<< "$1")
@@ -110,7 +117,7 @@ jq -rc '.[]' <<< "$libraries" |
     names=$(jq -c '.names' <<< "$lib")
     cflags=$(jq -c '.cflags' <<< "$lib")
     if [ "$cflags" != "null" ]
-    then config "CFLAGS += $cflags"
+    then cflag "$cflags"
     fi
     config "LDFLAGS += $path"
     if [ "$names" != "null" ]
@@ -143,8 +150,8 @@ handle_script() {
 }
 
 scripts=$(jq -r '.scripts' <<< "$json")
+
 handle_scripts() {
-  array_is_ok "$scripts" || return
   script_helper
   i=0
   jq -r '.[]' <<< "$scripts"  |
@@ -153,11 +160,18 @@ handle_scripts() {
     done
 }
 embed() {
-  array_is_ok "$scripts" || array_is_ok "$libraries" || return
-  echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
-  handle_libs
-  handle_scripts >> embed/embed_foot
-  echo "}" >> embed/embed_foot
+  array_is_ok "$libraries" && {
+    echo "ANN void gwion_embed_libs(const Gwion gwion) {" >> embed/embed_foot
+    handle_libs
+    echo "}" >> embed/embed_foot
+    cflag "-DGWION_EMBED_LIBS"
+  }
+  array_is_ok "$scripts" && {
+    echo "ANN void gwion_embed_scripts(const Gwion gwion) {" >> embed/embed_foot
+    handle_scripts >> embed/embed_foot
+    echo "}" >> embed/embed_foot
+    cflag "-DGWION_EMBED_SCRIPTS"
+  }
 }
 embed
 touch embed/embed_body
@@ -169,37 +183,33 @@ in=$(jq -rc '.in' <<< "$audio")
 out=$(jq -rc '.out' <<< "$audio")
 samplerate=$(jq -rc '.samplerate' <<< "$audio")
 
-not_null "$in" && config "CFLAGS += -DGWION_DEFAULT_NIN=$in"
-not_null "$out" && config "CFLAGS += -DGWION_DEFAULT_NOUT=$out"
-not_null "$samplerate" && config "CFLAGS += -DGWION_DEFAULT_SAMPLERATE=$samplerate"
+not_null "$in" && cflag "-DGWION_DEFAULT_NIN=$in"
+not_null "$out" && cflag "-DGWION_DEFAULT_NOUT=$out"
+not_null "$samplerate" && cflag "-DGWION_DEFAULT_SAMPLERATE=$samplerate"
 
 args=$(jq -rc '.args' <<< "$json")
 
 
 {
-  count=0
-  config "CFLAGS += -DGWION_CONFIG_ARGS"
+  cflag "-DGWION_CONFIG_ARGS"
   echo "static const char *config_argv[] = {"
   array_is_ok "$args" && {
     jq -rc '.[]' <<< "$args" |
     while read -r arg 
     do echo "  \"$arg\", "
     done
-    count=$((count+1))
   }
   echo "};"
-  echo "static const int config_argc = $count;"
+  echo "static const int config_argc = $(lenght "$args");"
 cat << EOF
-ANN const char** config_args(int *argc, char **const argv) {
-#ifdef GWION_NO_UARGS
-  *argc = 0;
-#endif
+ANN const char** gwion_config_args(int *argc, char **const argv) {
   const int nargs = config_argc + *argc;
   const char **  args = malloc(nargs * SZ_INT);
+  args[0] = *argv;
   for(int i = 0; i < config_argc; i++) {
-    args[i] = config_argv[i];
+    args[i + 1] = config_argv[i];
   }
-  for(int i = 0; i < *argc; i++) {
+  for(int i = 1; i < *argc; i++) {
     args[i + config_argc] = argv[i];
   }
   *argc = nargs;
@@ -208,14 +218,11 @@ ANN const char** config_args(int *argc, char **const argv) {
 EOF
 } >> embed/embed.c
 
-not_null "$libraries" || not_null "$scripts" &&
-  config "CFLAGS += -DGWION_EMBED"
-
 cflags=$(jq -rc '.cflags' <<< "$json")
 array_is_ok "$cflags" && {
   jq -rc '.[]' <<< "$cflags" |
   while read -r cflag
-  do config "CFLAGS += $cflag "
+  do cflag "$cflag"
   done
 }
 ldflags=$(jq -rc '.ldflags' <<< "$json")
@@ -227,9 +234,11 @@ array_is_ok "$ldflags" && {
 }
 
 rc=$(jq -rc '.urc' <<< "$json")
-[ "$rc" = "false" ] && config "CFLAGS += -DGWION_NO_URC"
+[ "$rc" = "false" ] && cflag "-DGWION_HAS_URC=false"
 ulib=$(jq -rc '.ulib' <<< "$json")
-[ "$ulib" = "false" ] && config "CFLAGS += -DGWION_NO_ULIB"
+[ "$ulib" = "false" ] && cflag "-DGWION_HAS_ULIB=false"
 uargs=$(jq -rc '.uargs' <<< "$json")
-[ "$uargs" = "false" ] && config "CFLAGS += -DGWION_NO_UARGS"
+[ "$uargs" = "false" ] && cflag "-DGWION_HAS_UARGS=false"
+name=$(jq -rc '.name' <<< "$json")
+not_null "$name" && config "PRG := $name"
 :

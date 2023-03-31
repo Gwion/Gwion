@@ -14,8 +14,14 @@ typedef struct CliArg_ {
   struct Vector_     lib;
   struct Vector_     config;
   struct SoundInfo_ *si;
+  char** (*config_args)(int*, char**);
+  void  (*embed_libs)(Gwion);
+  void  (*embed_scripts)(Gwion);
   bool               loop;
   bool               quit;
+  bool               urc;
+  bool               ulib;
+  bool               uargs;
   enum COLOR         color;
 } CliArg;
 
