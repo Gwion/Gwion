@@ -88,10 +88,10 @@ options-show:
 	@$(info libs: ${GWLIBS})
 
 with_config:
-	bash scripts/embed.bash gwion.config.json
-	touch src/main.c touch src/arg.c
-	${MAKE} USE_CONFIG=1
-	touch src/main.c touch src/arg.c
+	@bash scripts/embed.bash gwion.config.json
+	@touch src/main.c src/arg.c
+	@${MAKE} USE_CONFIG=1
+	@touch src/main.c src/arg.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}
 
