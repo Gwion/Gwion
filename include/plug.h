@@ -25,7 +25,7 @@ ANN static inline Plug new_plug(MemPool p) {
 }
 
 ANN m_bool plug_ini(const struct Gwion_ *, const Vector);
-ANN m_bool driver_ini(const struct Gwion_ *);
+ANN gwdriver_t driver_ini(const struct Gwion_ *, struct SoundInfo_ *);
 ANN m_bool plug_run(const struct Gwion_ *, const Map);
 ANN void   free_plug(const Gwion);
 ANN void * get_module(const struct Gwion_ *, const m_str);

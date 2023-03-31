@@ -137,7 +137,7 @@ ANN uint32_t gw_rand(uint32_t s[2]);
 ANN void     gw_seed(uint32_t s[2], const uint64_t);
 ANN bool     handle(VM_Shred shred, const m_str effect);
 #define xfun_handle(shred, effect) {\
-/*  shred->mem -= ((Instr)vector_at(&shred->code->instr, shred->pc-1))->m_val2; */\
+  shred->mem -= ((Instr)vector_at(&shred->code->instr, shred->pc-1))->m_val2; \
   handle(shred, effect); \
 }
 

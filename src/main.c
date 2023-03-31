@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 #ifdef GWION_EMBED
   gwion_embed(&gwion);
 #endif
-  arg_compile(&gwion, &arg);
+  if(ini > 0) arg_compile(&gwion, &arg);
   arg_release(&arg);
 #ifdef GWION_CONFIG_ARGS
   free(config_argv);

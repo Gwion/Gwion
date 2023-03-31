@@ -235,9 +235,9 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) 
   return GW_OK;
 }
 
-ANN m_bool driver_ini(const struct Gwion_ *gwion) {
+ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
   const Map  map   = &gwion->data->plugs->map;
-  m_str      dname = gwion->vm->bbq->si->arg;
+  m_str      dname = si->arg;
   m_str      opt   = strchr(dname, '=');
   const char c     = opt ? *opt : '\0';
   if (opt) *opt = '\0';
@@ -246,14 +246,13 @@ ANN m_bool driver_ini(const struct Gwion_ *gwion) {
     if (!strcmp(name, dname)) {
       const Plug     plug = (Plug)VVAL(map, i);
       const gwdriver_t drv  = plug->driver;
-      if (!drv) break;
-      gwion->vm->bbq->func = drv;
       if (opt) *opt = c;
-      return GW_OK;
+      return drv;
     }
   }
+  if (opt) *opt = c;
   gw_err("can't find driver '%s'\n", dname);
-  return GW_ERROR;
+  return NULL;
 }
 
 ANN void *get_module(const struct Gwion_ *gwion, const m_str name) {

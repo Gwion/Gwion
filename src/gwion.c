@@ -18,7 +18,7 @@
 
 ANN m_bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
-  if (di->si->arg) CHECK_BB(driver_ini(gwion));
+  if (di->si->arg) CHECK_OB((di->func = driver_ini(gwion, di->si)));
   di->func(di->driver);
   CHECK_BB(di->driver->ini(gwion->vm, di));
   driver_alloc(di);
