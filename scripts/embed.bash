@@ -153,7 +153,6 @@ handle_scripts() {
     done
 }
 
-
 embed() {
   array_is_ok "$scripts" || array_is_ok "$libraries" || return
   echo "ANN void gwion_embed(const Gwion gwion) {" >> embed/embed_foot
@@ -193,25 +192,24 @@ args=$(jq -rc '.args' <<< "$json")
   echo "static const int config_argc = $count;"
 cat << EOF
 ANN const char** config_args(int *argc, char **const argv) {
+#ifdef GWION_NO_UARGS
+  *argc = 0;
+#endif
   const int nargs = config_argc + *argc;
   const char **  args = malloc(nargs * SZ_INT);
   for(int i = 0; i < config_argc; i++) {
     args[i] = config_argv[i];
   }
-#ifndef GWION_STANDALONE
   for(int i = 0; i < *argc; i++) {
     args[i + config_argc] = argv[i];
   }
-  *argc = nargs;
-#else
   *argc = config_argc;
-#endif
   return args;
 }
 EOF
 } >> embed/embed.c
 
-[ "$libraries" != "null" ] || [ "$scripts" != "null" ] &&
+not_null "$libraries" || not_null "$scripts" &&
   config "CFLAGS += -DGWION_EMBED"
 
 cflags=$(jq -rc '.cflags' <<< "$json")
@@ -229,9 +227,9 @@ array_is_ok "$ldflags" && {
   done
 }
 
-standalone=$(jq -rc '.standalone' <<< "$json")
-[ "$standalone" = "true" ] && {
-  array_is_ok "$args" || config "CFLAGS += -DGWION_CONFIG_ARGS"
-  config "CFLAGS += -DGWION_STANDALONE"
-}
-:
+rc=$(jq -rc '.urc' <<< "$json")
+[ "$rc" = "false" ] && config "CFLAGS += -DGWION_NO_URC"
+ulib=$(jq -rc '.ulib' <<< "$json")
+[ "$ulib" = "false" ] && config "CFLAGS += -DGWION_NO_ULIB"
+uargs=$(jq -rc '.uargs' <<< "$json")
+[ "$uargs" = "false" ] && config "CFLAGS += -DGWION_NO_UARGS"

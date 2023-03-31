@@ -89,9 +89,9 @@ options-show:
 
 with_config:
 	bash scripts/embed.bash gwion.config.json
-	touch src/main.c
+	touch src/main.c touch src/arg.c
 	${MAKE} USE_CONFIG=1
-	touch src/main.c
+	touch src/main.c touch src/arg.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}
 

@@ -52,10 +52,10 @@ ANN void gwion_embed(const Gwion);
 
 int main(int argc, char **argv) {
 #ifndef GWION_CONFIG_ARGS
-  CliArg arg = {.arg = {.argc = argc, .argv = argv}, .loop = false};
+  CliArg arg = {.arg = {.argc = argc, .argv = argv} };
 #else
   char **config_argv = config_args(&argc, argv);
-  CliArg arg = {.arg = {.argc = argc, .argv = config_argv}, .loop = false};
+  CliArg arg = {.arg = {.argc = argc, .argv = config_argv} };
 #endif
   signal(SIGINT, sig);
   signal(SIGTERM, sig);

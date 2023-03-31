@@ -46,7 +46,7 @@ ANN static inline void config_end(const Vector config) {
   }
 }
 
-#ifndef GWION_STANDALONE
+#ifndef GWION_NO_ULIB
 ANN static m_str plug_dir(void) {
   const m_str  home     = getenv("HOME");
   const size_t sz       = strlen(home);
@@ -75,7 +75,7 @@ ANN static void arg_init(CliArg *arg) {
   vector_init(&arg->add);
   vector_init(&arg->lib);
   vector_init(&arg->config);
-#ifndef GWION_STANDALONE
+#ifndef GWION_NO_ULIB
   vector_add(&arg->lib, (vtype)plug_dir());
 #endif
   arg->color = COLOR_AUTO;
@@ -377,7 +377,7 @@ ANN m_bool _arg_parse(struct ArgInternal *arg) {
   return GW_OK;
 }
 
-#ifndef GWION_STANDALONE
+#ifndef GWION_NO_URC
 ANN static void config_default(struct ArgInternal *arg) {
   char *home = getenv("HOME");
   char  c[strlen(home) + strlen(GWIONRC) + 2];
@@ -392,7 +392,7 @@ ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
 #ifdef __FUZZING
   return;
 #endif
-#ifndef GWION_STANDALONE
+#ifndef GWION_NO_URC
   config_default(&arg);
 #endif
   return _arg_parse(&arg);
