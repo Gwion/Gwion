@@ -13,11 +13,14 @@
 static GACK(gack_enum) {
   const Map m = &t->nspc->info->value->map;
   const m_uint value = *(m_uint*)VALUE;
-  if(value < map_size(m)) {
-    const Value v = (Value)map_at(&t->nspc->info->value->map, *(m_uint*)VALUE);
-    INTERP_PRINTF("%s", v->name);
-  } else
-    INTERP_PRINTF("%s", t->name);
+  for(m_uint i = 0; i < map_size(m); i++) {
+    const Value v = (Value)map_at(&t->nspc->info->value->map, i);
+    if((m_uint)v->d.ptr == value) {
+      INTERP_PRINTF("%s", v->name);
+      return;
+    }
+  }
+  INTERP_PRINTF("%s", t->name);
 }
 
 GWION_IMPORT(enum) {
