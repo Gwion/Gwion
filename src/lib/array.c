@@ -256,11 +256,71 @@ static OP_EMIT(opem_array_sl) {
 static OP_CHECK(opck_array_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
   const Type      l    = array_base(cast->exp->type);
-  const Type      r    = array_base(exp_self(cast)->type);
-  if (get_depth(cast->exp->type) == get_depth(exp_self(cast)->type) &&
-      isa(l->info->base_type, r->info->base_type) > 0)
-    return l;
-  return NULL;
+  const Type      t    = known_type(env, cast->td);
+  const Type      r    = array_base(t);
+  if (get_depth(cast->exp->type) != get_depth(t))
+    return NULL;
+  if(isa(l, r) > 0) return l;
+  Type parent = t;
+  while(parent) {
+    if (tflag(parent, tflag_cdef) && parent->info->cdef->base.ext && parent->info->cdef->base.ext->array) {
+      ERR_N(cast->td->pos, "can only cast to simple array types");
+    }
+    parent = parent->info->parent;
+  }
+  struct Exp_ e = { .type = l, .pos = cast->exp->pos };
+  CHECK_BN(check_implicit(env, &e, r));
+  return t;
+}
+
+ANN static void cast_start(const Emitter emit, const m_uint depth) {
+  for(m_uint i = 0; i < depth; i++) {
+    const m_uint offset = emit_local(emit, emit->gwion->type[et_int]); // idx
+    emit_local(emit, emit->gwion->type[et_int]); // store base 
+    emit_regtomem(emit, offset, -SZ_INT);
+    emit_memsetimm(emit, offset + SZ_INT, 0);
+    emit_regmove(emit, -SZ_INT);
+    const Instr loop = emit_add_instr(emit, ArrayCastLoop);
+    loop->m_val2 = offset;
+  }
+} 
+
+ANN static void cast_end(const Emitter emit, const Type base, const m_uint depth, const m_uint start) {
+  for(m_uint i = 0; i < depth; i++) {
+    const m_uint pc = start + (depth-i) * 4 - 1;
+    const Instr top = emit_add_instr(emit, Goto);
+    top->m_val = pc;
+    const Instr loop = (Instr)vector_at(&emit->code->instr, pc);
+    loop->m_val = emit_code_size(emit);
+    const Instr end = emit_add_instr(emit, ArrayInit);
+    const Type t = array_type(emit->env, base, i + 1);
+    end->m_val = (m_uint)array_type(emit->env, base, i + 1);
+    end->m_val2 = t->actual_size ?: t->size;
+  }
+}
+
+static OP_EMIT(opem_array_cast) {
+  const Exp_Cast *cast = (Exp_Cast *)data;
+  const Env env = emit->env;
+  const Type l = array_base(cast->exp->type);
+  const Type t = known_type(env, cast->td);
+  const Type r = array_base(t);
+  if(isa(l, r) < 0) {
+    const m_uint depth = get_depth(t);
+    const m_uint start = emit_code_size(emit);
+    cast_start(emit, depth);
+    if(r->actual_size) emit_regmove(emit, r->size - r->actual_size);
+    // we need a correct exp to pass
+    struct Op_Import opi = {.op   = insert_symbol("$"),
+                            .lhs  = l,
+                            .rhs  = r,
+                            .data = (uintptr_t)cast}; // no pos ?
+    (void)op_emit(emit, &opi);
+    cast_end(emit, r, depth, start);
+    const m_uint ret_offset = emit_local(emit, t);
+    emit_regtomem(emit, ret_offset, -SZ_INT);
+  }
+  return GW_OK;
 }
 
 static OP_CHECK(opck_array_slice) {
@@ -324,44 +384,32 @@ static OP_CHECK(opck_array) {
   if (t->array_depth >= array->depth)
     return array_type(env, array_base(t), t->array_depth - array->depth);
   const Exp         curr = take_exp(array->exp, t->array_depth);
+
   struct Array_Sub_ next = {curr->next, array_base(t),
                             array->depth - t->array_depth};
   return check_array_access(env, &next) ?: env->gwion->type[et_error];
 }
 
-ANN static void array_loop(const Emitter emit, const m_uint depth) {
-  emit_regmove(emit, -depth * SZ_INT);
-  for (m_uint i = 0; i < depth - 1; ++i) {
-    const Instr access = emit_add_instr(emit, ArrayAccess);
-    access->m_val      = i * SZ_INT;
-    access->m_val2     = !i ? SZ_INT : 0;
-    const Instr get    = emit_add_instr(emit, ArrayGet);
-    get->m_val         = i * SZ_INT;
-    get->m_val2        = -SZ_INT;
-    const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
-    ex->m_val          = -SZ_INT;
-  }
-  emit_regmove(emit, -SZ_INT);
-  const Instr access   = emit_add_instr(emit, ArrayAccess);
-  access->m_val        = depth * SZ_INT;
-}
-
-ANN static void array_finish(const Emitter emit, const Array_Sub array, const m_bool is_var) {
-  const Instr get = emit_add_instr(emit, is_var ? ArrayAddr : ArrayGet);
-  const Type t = array->type;
-  if(!is_var) {
-    if(array->depth < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object]) > 0)
-      emit_add_instr(emit, GWOP_EXCEPT);
-  }
-  get->m_val      = array->depth * SZ_INT;
-  emit_regmove(emit, is_var ? SZ_INT : t->size);
-}
-
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
-                                  const m_bool is_var) {
+                                  const bool is_var) {
   CHECK_BB(emit_exp(emit, array->exp));
-  array_loop(emit, array->depth);
-  array_finish(emit, array, is_var);
+  const m_uint depth = array->depth;
+  const m_uint offset = is_var ? SZ_INT : array->type->size;
+  emit_regmove(emit, -(depth+1) * SZ_INT + offset);
+  assert(depth);
+  const Type t = array->type;
+  Instr access = NULL;
+  for (m_uint i = 0; i < depth; ++i) {
+    access = emit_add_instr(emit, ArrayAccess);
+    access->m_val      = (i+1) * SZ_INT - offset;
+    access->udata.one  = offset;
+    if(i < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object]) > 0) {
+      const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
+      ex->m_val          = -SZ_INT;
+    }
+  }
+  assert(access);
+  access->udata.two = is_var;
   return GW_OK;
 }
 
@@ -994,6 +1042,7 @@ GWION_IMPORT(array) {
   GWI_BB(gwi_oper_end(gwi, ">>", NULL))
   GWI_BB(gwi_oper_ini(gwi, "Array", "Array", NULL))
   GWI_BB(gwi_oper_add(gwi, opck_array_cast))
+  GWI_BB(gwi_oper_emi(gwi, opem_array_cast))
   GWI_BB(gwi_oper_end(gwi, "$", NULL))
   GWI_BB(gwi_oper_ini(gwi, "int", "Array", "int"))
   GWI_BB(gwi_oper_add(gwi, opck_array_slice))

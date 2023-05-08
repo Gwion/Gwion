@@ -693,11 +693,6 @@ ANN m_bool emit_array_access(const Emitter                 emit,
                           .lhs  = info->array.exp->type,
                           .rhs  = info->array.type,
                           .data = (uintptr_t)info};
-/*
-  if (!info->is_var &&
-      (GET_FLAG(info->array.type, abstract) || type_ref(info->array.type)))
-    emit_fast_except(emit, NULL, info->array.exp->pos);
-*/
   return op_emit(emit, &opi);
 }
 

@@ -460,7 +460,8 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&sporkini, &&forkini, &&sporkfunc, &&sporkexp, &&sporkcode,
       &&forkend, &&sporkend, &&brancheqint, &&branchneint, &&brancheqfloat,
       &&branchnefloat, &&unroll, &&arrayappend, &&autounrollinit, &&autoloop,
-      &&arraytop, &&arrayaccess, &&arrayget, &&arrayaddr, &&newobj, &&addref,
+      &&arraycastloop,
+      &&arraytop, &&arrayaccess, &&newobj, &&addref,
       &&addrefaddr, &&structaddref, &&structaddrefaddr,
       &&unionaddref, &&unionaddrefaddr,
       &&objassign, &&assign,
@@ -1030,6 +1031,20 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       }
       BRANCH_DISPATCH(end);
     }
+arraycastloop:
+{
+  const M_Object base  = *(M_Object*)(mem + VAL2);
+  const m_uint idx = (*(m_uint*)(mem + VAL2 + SZ_INT))++;
+  M_Vector array = ARRAY(base);
+  const m_uint sz = ARRAY_SIZE(array);
+  if (idx == ARRAY_LEN(array)){
+    *(m_uint*)reg = ARRAY_LEN(array);
+    goto _goto;
+  }
+  memcpy(reg, ARRAY_PTR(array) + idx * sz, sz);
+  reg += sz;
+} 
+DISPATCH();
     arraytop:
       if (*(m_uint *)(reg - SZ_INT * 2) < *(m_uint *)(reg - SZ_INT))
         goto newobj;
@@ -1037,28 +1052,26 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
         goto _goto;
     arrayaccess : {
       register const m_int idx = *(m_int *)(reg + VAL);
-      a.obj                    = *(M_Object *)(reg - VAL2);
+      a.obj                    = *(M_Object *)(reg - SVAL);
       if (idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
-        gw_err(_("{-}  ... at index {W}[{Y}%" INT_F "{W}]{0}\n"), idx);
+        gw_err(_("{-}  ... at index {W}[{Y}%" INT_F "{W}]{2}\n"), idx);
         //    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
 //        VM_OUT
         handle(shred, "ArrayOutofBounds");
         continue; // or break ?
       }
-      DISPATCH()
-    }
-    arrayget:
-      m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg + IVAL2));
-      DISPATCH()
-    arrayaddr:
-      *(m_bit **)(reg + IVAL2) =
+      if (likely(!SVAL2))
+        m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg - SVAL));
+      else 
+        *(m_bit **)(reg - SVAL) =
           m_vector_addr(ARRAY(a.obj), *(m_int *)(reg + VAL));
       DISPATCH()
+    }
     newobj:
       *(M_Object *)reg = new_object(vm->gwion->mp, (Type)VAL2);
       reg += SZ_INT;
       DISPATCH()
-    addref : {
+    addref :  {
       const M_Object o = *(M_Object *)(reg + IVAL);
           if(o)
       ++o->ref;
@@ -1328,7 +1341,8 @@ static void *_dispatch[] = {
       &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkexp, &&_sporkcode, &&_forkend,
       &&_sporkend, &&_brancheqint, &&_branchneint, &&_brancheqfloat,
       &&_branchnefloat, &&_unroll, &&_arrayappend, &&_autounrollinit, &&_autoloop,
-      &&_arraytop, &&_arrayaccess, &&_arrayget, &&_arrayaddr, &&_newobj, &&_addref,
+&&_arraycastloop,      
+      &&_arraytop, &&_arrayaccess, &&_newobj, &&_addref,
       &&_addrefaddr, &&_structaddref, &&_structaddrefaddr,
       &&_unionaddref, &&_unionaddrefaddr, &&_objassign, &&_assign,
       &&_remref, &&_remref2, &&_structreleaseregaddr, &&_structreleasemem,
@@ -1540,11 +1554,10 @@ return;
     PREPARE(unroll);
     PREPARE(arrayappend);
     PREPARE(autounrollinit);
-    PREPARE(autoloop);
     PREPARE(arraytop);
+    PREPARE(autoloop);
+    PREPARE(arraycastloop);
     PREPARE(arrayaccess);
-    PREPARE(arrayget);
-    PREPARE(arrayaddr);
     PREPARE(newobj);
     PREPARE(addref);
     PREPARE(addrefaddr);

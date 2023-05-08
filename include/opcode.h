@@ -168,10 +168,9 @@ enum {
   eArrayAppend,
   eAutoUnrollInit,
   eAutoLoop,
+  eArrayCastLoop,
   eArrayTop,
   eArrayAccess,
-  eArrayGet,
-  eArrayAddr,
   eObjectInstantiate,
   eRegAddRef,
   eRegAddRefAddr,
@@ -388,10 +387,9 @@ enum {
 #define  ArrayAppend           (f_instr)eArrayAppend
 #define  AutoUnrollInit        (f_instr)eAutoUnrollInit
 #define  AutoLoop              (f_instr)eAutoLoop
+#define  ArrayCastLoop         (f_instr)eArrayCastLoop
 #define  ArrayTop              (f_instr)eArrayTop
 #define  ArrayAccess           (f_instr)eArrayAccess
-#define  ArrayGet              (f_instr)eArrayGet
-#define  ArrayAddr             (f_instr)eArrayAddr
 #define  ObjectInstantiate     (f_instr)eObjectInstantiate
 #define  RegAddRef             (f_instr)eRegAddRef
 #define  RegAddRefAddr         (f_instr)eRegAddRefAddr
@@ -1205,6 +1203,11 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out(" {-B}=>%-12"UINT_F"{0}", instr->m_val);
         gw_out("\n");
         break;
+      case eArrayCastLoop:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: ArrayCastLoop", j);
+        gw_out(" {-B}=>%-12"UINT_F"{0}", instr->m_val);
+        gw_out("\n");
+        break;
       case eArrayTop:
         gw_out("{Y}┃{0}{-}% 4lu{0}: ArrayTop    ", j);
         gw_out(" {-B}=>%-12"UINT_F"{0}", instr->m_val);
@@ -1214,18 +1217,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         gw_out("{Y}┃{0}{-}% 4lu{0}: ArrayAccess ", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
         gw_out(" {-M}%-14"UINT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eArrayGet:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: ArrayGet    ", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out(" {-M}%-14"INT_F"{0}", instr->m_val2);
-        gw_out("\n");
-        break;
-      case eArrayAddr:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: ArrayAddr   ", j);
-        gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out(" {-M}%-14"INT_F"{0}", instr->m_val2);
         gw_out("\n");
         break;
       case eObjectInstantiate:

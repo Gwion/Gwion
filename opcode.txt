@@ -165,10 +165,9 @@ Unroll~u~u
 ArrayAppend
 AutoUnrollInit~u
 AutoLoop~pc
+ArrayCastLoop~pc
 ArrayTop~pc
 ArrayAccess~u~u
-ArrayGet~u~i
-ArrayAddr~u~i
 ObjectInstantiate~i~t
 RegAddRef~i
 RegAddRefAddr~i

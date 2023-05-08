@@ -91,6 +91,7 @@ ANN /*static */ Symbol array_sym(const Env env, const Type src,
 }
 
 ANN Type array_type(const Env env, const Type src, const m_uint depth) {
+  if(!depth) return src;
   const Symbol sym  = array_sym(env, src, depth);
   const Type   type = nspc_lookup_type1(src->info->value->from->owner, sym);
   if (type) return type;
