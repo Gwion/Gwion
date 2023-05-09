@@ -1336,7 +1336,6 @@ ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
     decl_static(env, nspc_lookup_value0(env->curr, xid));
   }
   env_pop(env, scope);
-  nspc_allocdata(env->gwion->mp, edef->type->nspc);
   return GW_OK;
 }
 

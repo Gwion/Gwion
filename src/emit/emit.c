@@ -2371,7 +2371,8 @@ ANN static m_bool emit_enum_def(const Emitter emit NUSED, const Enum_Def edef) {
   LOOP_OPTIM
   for (m_uint i = 0; i < vector_size(&edef->values); ++i) {
     const Value v = (Value)vector_at(&edef->values, i);
-    *(m_uint *)(v->from->owner->class_data + v->from->offset) = i;
+    set_vflag(v, vflag_builtin);
+    v->d.num = i;
   }
   set_tflag(edef->type, tflag_emit);
   return GW_OK;
