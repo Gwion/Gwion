@@ -499,7 +499,6 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
 #define SDISPATCH() goto **(void***)byte;
 
     union {
-      M_Object obj;
       VM_Code  code;
     } a;
     VM_Shred child;
@@ -1052,19 +1051,20 @@ DISPATCH();
         goto _goto;
     arrayaccess : {
       register const m_int idx = *(m_int *)(reg + VAL);
-      a.obj                    = *(M_Object *)(reg - SVAL);
-      if (idx < 0 || (m_uint)idx >= m_vector_size(ARRAY(a.obj))) {
-        gw_err(_("{-}  ... at index {W}[{Y}%" INT_F "{W}]{2}\n"), idx);
+      const M_Object obj = *(M_Object *)(reg - SVAL);
+      const M_Vector array = ARRAY(obj);
+      if (idx < 0 || (m_uint)idx >= m_vector_size(array)) {
+        gw_err(_("{-}  .. . at index {W}[{Y}%" INT_F "{W}]{2}\n"), idx);
         //    gw_err(_("  ... at dimension [%" INT_F "]\n"), VAL);
 //        VM_OUT
         handle(shred, "ArrayOutofBounds");
         continue; // or break ?
       }
       if (likely(!SVAL2))
-        m_vector_get(ARRAY(a.obj), *(m_int *)(reg + VAL), (reg - SVAL));
+        m_vector_get(array, *(m_int *)(reg + VAL), (reg - SVAL));
       else 
         *(m_bit **)(reg - SVAL) =
-          m_vector_addr(ARRAY(a.obj), *(m_int *)(reg + VAL));
+          m_vector_addr(array, *(m_int *)(reg + VAL));
       DISPATCH()
     }
     newobj:
