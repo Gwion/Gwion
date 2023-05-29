@@ -1332,8 +1332,8 @@ ANN m_bool check_enum_def(const Env env, const Enum_Def edef) {
   const m_uint scope = env_push_type(env, edef->type);
   ID_List list = edef->list;
   for(uint32_t i = 0; i < list->len; i++) {
-    Symbol xid = *mp_vector_at(list, Symbol, i);
-    decl_static(env, nspc_lookup_value0(env->curr, xid));
+    EnumValue ev= *mp_vector_at(list, EnumValue, i);
+    decl_static(env, nspc_lookup_value0(env->curr, ev.xid));
   }
   env_pop(env, scope);
   return GW_OK;
