@@ -1,0 +1,35 @@
+13 10 10
+idx 2
+┏━━━━┓ /mnt/code/Gwion/gwion/cast2.gw
+┃
+┃   0: RegPushImm   (nil)          0             
+┃   1: RegPushImm   0x1            0             
+┃   2: RegPushImm   0x2            0             
+┃   3: RegSetImm    0x2            0             
+┃   4: OP_MAX      
+┃   5: Reg2Mem      0              -8            
+┃   6: RegSetImm    0x1            0             
+┃   7: OP_MAX      
+┃   8: Reg2Mem      8              -8            
+┃   9: OP_MAX      
+┃  10: OP_MAX      
+┃  11: OP_MAX      
+┃  12: OP_MAX      
+┃  13: CastI2F     
+┃  14: Goto         =>12          
+┃  15: OP_MAX      
+┃  16: Goto         =>12          
+┃  17: OP_MAX      
+┃  18: RegPushImm   (nil)          0             
+┃  19: RegPushImm   0x1            0             
+┃  20: RegMove      -16           
+┃  21: ArrayAccess  0              8             
+┃  22: ArrayGet     0              -8            
+┃  23: GWOP_EXCEPT  18446744073709551608
+┃  24: RegMove      -8            
+┃  25: ArrayAccess  16             0             
+┃  26: ArrayGet     16             0             
+┃  27: RegMove      4             
+┃  28: RegSetImm    0x559c23c668b0 0             
+┃  29: RegSetImm    0x4            8             
+┃  30: Gack        

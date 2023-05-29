@@ -1,0 +1,290 @@
+#import I2C
+#import Gpio
+
+class SX1509 {
+
+    #! ======================= REGISTER DEFINITIONS ======================= #!
+
+    #! Device and IO Banks
+    0x00 :=> const static int RegInputDisableB;     #! Input buffer disable register - I/O[15-8] (Bank B) 0000 0000
+    0x01 :=> const static int RegInputDisableA;     #! Input buffer disable register - I/O[7-0] (Bank A) 0000 0000
+    0x02 :=> const static int RegLongSlewB;         #! Output buffer long slew register - I/O[15-8] (Bank B) 0000 0000
+    0x03 :=> const static int RegLongSlewA;         #! Output buffer long slew register - I/O[7-0] (Bank A) 0000 0000
+    0x04 :=> const static int RegLowDriveB;         #! Output buffer low drive register - I/O[15-8] (Bank B) 0000 0000
+    0x05 :=> const static int RegLowDriveA;         #! Output buffer low drive register - I/O[7-0] (Bank A) 0000 0000
+    0x06 :=> const static int RegPullUpB;           #! Pull-up register - I/O[15-8] (Bank B) 0000 0000
+    0x07 :=> const static int RegPullUpA;           #! Pull-up register - I/O[7-0] (Bank A) 0000 0000
+    0x08 :=> const static int RegPullDownB;         #! Pull-down register - I/O[15-8] (Bank B) 0000 0000
+    0x09 :=> const static int RegPullDownA;         #! Pull-down register - I/O[7-0] (Bank A) 0000 0000
+    0x0A :=> const static int RegOpenDrainB;        #! Open drain register - I/O[15-8] (Bank B) 0000 0000
+    0x0B :=> const static int RegOpenDrainA;        #! Open drain register - I/O[7-0] (Bank A) 0000 0000
+    0x0C :=> const static int RegPolarityB;         #! Polarity register - I/O[15-8] (Bank B) 0000 0000
+    0x0D :=> const static int RegPolarityA;         #! Polarity register - I/O[7-0] (Bank A) 0000 0000
+    0x0E :=> const static int RegDirB;              #! Direction register - I/O[15-8] (Bank B) 1111 1111
+    0x0F :=> const static int RegDirA;              #! Direction register - I/O[7-0] (Bank A) 1111 1111
+    0x10 :=> const static int RegDataB;             #! Data register - I/O[15-8] (Bank B) 1111 1111*
+    0x11 :=> const static int RegDataA;             #! Data register - I/O[7-0] (Bank A) 1111 1111*
+    0x12 :=> const static int RegInterruptMaskB;    #! Interrupt mask register - I/O[15-8] (Bank B) 1111 1111
+    0x13 :=> const static int RegInterruptMaskA;    #! Interrupt mask register - I/O[7-0] (Bank A) 1111 1111
+    0x14 :=> const static int RegSenseHighB;        #! Sense register for I/O[15:12] 0000 0000
+    0x15 :=> const static int RegSenseLowB;         #! Sense register for I/O[11:8] 0000 0000
+    0x16 :=> const static int RegSenseHighA;        #! Sense register for I/O[7:4] 0000 0000
+    0x17 :=> const static int RegSenseLowA;         #! Sense register for I/O[3:0] 0000 0000
+    0x18 :=> const static int RegInterruptSourceB;  #! Interrupt source register - I/O[15-8] (Bank B) 0000 0000
+    0x19 :=> const static int RegInterruptSourceA;  #! Interrupt source register - I/O[7-0] (Bank A) 0000 0000
+    0x1A :=> const static int RegEventStatusB;      #! Event status register - I/O[15-8] (Bank B) 0000 0000
+    0x1B :=> const static int RegEventStatusA;      #! Event status register - I/O[7-0] (Bank A) 0000 0000
+    0x1C :=> const static int RegLevelShifter1;     #! Level shifter register 0000 0000
+    0x1D :=> const static int RegLevelShifter2;     #! Level shifter register 0000 0000
+    0x1E :=> const static int RegClock;             #! Clock management register 0000 0000
+    0x1F :=> const static int RegMisc;              #! Miscellaneous device settings register 0000 0000
+    0x20 :=> const static int RegLEDDriverEnableB;  #! LED driver enable register - I/O[15-8] (Bank B) 0000 0000
+    0x21 :=> const static int RegLEDDriverEnableA;  #! LED driver enable register - I/O[7-0] (Bank A) 0000 0000
+
+    #! Debounce and Keypad Engine
+    0x22 :=> const static int RegDebounceConfig;    #! Debounce configuration register 0000 0000
+    0x23 :=> const static int RegDebounceEnableB;   #! Debounce enable register - I/O[15-8] (Bank B) 0000 0000
+    0x24 :=> const static int RegDebounceEnableA;   #! Debounce enable register - I/O[7-0] (Bank A) 0000 0000
+    0x25 :=> const static int RegKeyConfig1;        #! Key scan configuration register 0000 0000
+    0x26 :=> const static int RegKeyConfig2;        #! Key scan configuration register 0000 0000
+    0x27 :=> const static int RegKeyData1;          #! Key value (column) 1111 1111
+    0x28 :=> const static int RegKeyData2;          #! Key value (row) 1111 1111
+
+    #! LED Driver (PWM, blinking, breathing)
+    0x29 :=> const static int RegTOn0;              #! ON time register for I/O[0] 0000 0000
+    0x2A :=> const static int RegIOn0;              #! ON intensity register for I/O[0] 1111 1111
+    0x2B :=> const static int RegOff0;              #! OFF time/intensity register for I/O[0] 0000 0000
+    0x2C :=> const static int RegTOn1;              #! ON time register for I/O[1] 0000 0000
+    0x2D :=> const static int RegIOn1;              #! ON intensity register for I/O[1] 1111 1111
+    0x2E :=> const static int RegOff1;              #! OFF time/intensity register for I/O[1] 0000 0000
+    0x2F :=> const static int RegTOn2;              #! ON time register for I/O[2] 0000 0000
+    0x30 :=> const static int RegIOn2;              #! ON intensity register for I/O[2] 1111 1111
+    0x31 :=> const static int RegOff2;              #! OFF time/intensity register for I/O[2] 0000 0000
+    0x32 :=> const static int RegTOn3;              #! ON time register for I/O[3] 0000 0000
+    0x33 :=> const static int RegIOn3;              #! ON intensity register for I/O[3] 1111 1111
+    0x34 :=> const static int RegOff3;              #! OFF time/intensity register for I/O[3] 0000 0000
+    0x35 :=> const static int RegTOn4;              #! ON time register for I/O[4] 0000 0000
+    0x36 :=> const static int RegIOn4;              #! ON intensity register for I/O[4] 1111 1111
+    0x37 :=> const static int RegOff4;              #! OFF time/intensity register for I/O[4] 0000 0000
+    0x38 :=> const static int RegTRise4;            #! Fade in register for I/O[4] 0000 0000
+    0x39 :=> const static int RegTFall4;            #! Fade out register for I/O[4] 0000 0000
+    0x3A :=> const static int RegTOn5;              #! ON time register for I/O[5] 0000 0000
+    0x3B :=> const static int RegIOn5;              #! ON intensity register for I/O[5] 1111 1111
+    0x3C :=> const static int RegOff5;              #! OFF time/intensity register for I/O[5] 0000 0000
+    0x3D :=> const static int RegTRise5;            #! Fade in register for I/O[5] 0000 0000
+    0x3E :=> const static int RegTFall5;            #! Fade out register for I/O[5] 0000 0000
+    0x3F :=> const static int RegTOn6;              #! ON time register for I/O[6] 0000 0000
+    0x40 :=> const static int RegIOn6;              #! ON intensity register for I/O[6] 1111 1111
+    0x41 :=> const static int RegOff6;              #! OFF time/intensity register for I/O[6] 0000 0000
+    0x42 :=> const static int RegTRise6;            #! Fade in register for I/O[6] 0000 0000
+    0x43 :=> const static int RegTFall6;            #! Fade out register for I/O[6] 0000 0000
+    0x44 :=> const static int RegTOn7;              #! ON time register for I/O[7] 0000 0000
+    0x45 :=> const static int RegIOn7;              #! ON intensity register for I/O[7] 1111 1111
+    0x46 :=> const static int RegOff7;              #! OFF time/intensity register for I/O[7] 0000 0000
+    0x47 :=> const static int RegTRise7;            #! Fade in register for I/O[7] 0000 0000
+    0x48 :=> const static int RegTFall7;            #! Fade out register for I/O[7] 0000 0000
+    0x49 :=> const static int RegTOn8;              #! ON time register for I/O[8] 0000 0000
+    0x4A :=> const static int RegIOn8;              #! ON intensity register for I/O[8] 1111 1111
+    0x4B :=> const static int RegOff8;              #! OFF time/intensity register for I/O[8] 0000 0000
+    0x4C :=> const static int RegTOn9;              #! ON time register for I/O[9] 0000 0000
+    0x4D :=> const static int RegIOn9;              #! ON intensity register for I/O[9] 1111 1111
+    0x4E :=> const static int RegOff9;              #! OFF time/intensity register for I/O[9] 0000 0000
+    0x4F :=> const static int RegTOn10;             #! ON time register for I/O[10] 0000 0000
+    0x50 :=> const static int RegIOn10;             #! ON intensity register for I/O[10] 1111 1111
+    0x51 :=> const static int RegOff10;             #! OFF time/intensity register for I/O[10] 0000 0000
+    0x52 :=> const static int RegTOn11;             #! ON time register for I/O[11] 0000 0000
+    0x53 :=> const static int RegIOn11;             #! ON intensity register for I/O[11] 1111 1111
+    0x54 :=> const static int RegOff11;             #! OFF time/intensity register for I/O[11] 0000 0000
+    0x55 :=> const static int RegTOn12;             #! ON time register for I/O[12] 0000 0000
+    0x56 :=> const static int RegIOn12;             #! ON intensity register for I/O[12] 1111 1111
+    0x57 :=> const static int RegOff12;             #! OFF time/intensity register for I/O[12] 0000 0000
+    0x58 :=> const static int RegTRise12;           #! Fade in register for I/O[12] 0000 0000
+    0x59 :=> const static int RegTFall12;           #! Fade out register for I/O[12] 0000 0000
+    0x5A :=> const static int RegTOn13;             #! ON time register for I/O[13] 0000 0000
+    0x5B :=> const static int RegIOn13;             #! ON intensity register for I/O[13] 1111 1111
+    0x5C :=> const static int RegOff13;             #! OFF time/intensity register for I/O[13] 0000 0000
+    0x5D :=> const static int RegTRise13;           #! Fade in register for I/O[13] 0000 0000
+    0x5E :=> const static int RegTFall13;           #! Fade out register for I/O[13] 0000 0000
+    0x5F :=> const static int RegTOn14;             #! ON time register for I/O[14] 0000 0000
+    0x60 :=> const static int RegIOn14;             #! ON intensity register for I/O[14] 1111 1111
+    0x61 :=> const static int RegOff14;             #! OFF time/intensity register for I/O[14] 0000 0000
+    0x62 :=> const static int RegTRise14;           #! Fade in register for I/O[14] 0000 0000
+    0x63 :=> const static int RegTFall14;           #! Fade out register for I/O[14] 0000 0000
+    0x64 :=> const static int RegTOn15;             #! ON time register for I/O[15] 0000 0000
+    0x65 :=> const static int RegIOn15;             #! ON intensity register for I/O[15] 1111 1111
+    0x66 :=> const static int RegOff15;             #! OFF time/intensity register for I/O[15] 0000 0000
+    0x67 :=> const static int RegTRise15;           #! Fade in register for I/O[15] 0000 0000
+    0x68 :=> const static int RegTFall15;           #! Fade out register for I/O[15] 0000 0000
+
+    #! Miscellaneous
+    0x69 :=> const static int RegHighInputB;        #! High input enable register - I/O[15-8] (Bank B) 0000 0000
+    0x6A :=> const static int RegHighInputA;        #! High input enable register - I/O[7-0] (Bank A) 0000 0000
+
+    #! Software Reset
+    0x7D :=> const static int RegReset;             #! Software reset register
+
+    #! Test (not to be written)
+    0x7E :=> const static int RegTest1;             #! Test register 0000 0000
+    0x7F :=> const static int RegTest2;             #! Test register
+
+    #! ======================= END OF REGISTER DEFINITIONS ======================= #!
+
+    late I2C i2c;
+    var int address;
+
+    operator new(string i2cBus, int address) {
+        new I2C(i2cBus, address, 0, 8) :=> this.i2c;
+        address :=> this.address;
+
+        reset();
+    }
+
+    fun void reset() {
+
+        #! Reset sequence (section 4.4.2)
+
+        this.write_register(this.RegReset, 0x12);
+        this.write_register(this.RegReset, 0x34);
+    }
+
+
+    fun void monitorSwitches(int[][] switchesGrid, string interruptPinChip, int interruptPin) {
+
+        <<< "Print at top" >>>;
+        var Gpio(interruptPinChip) gpio;
+        interruptPin => gpio.line :=> var auto line;
+        line.falling("test_input");
+
+        while(true) {
+            line => now;
+            <<< "Falling edge detected?" >>>;
+        }
+
+        #! repeat(i, gpioChip.num_lines()) {
+        #!     try {
+        #!         gpioChip.line(i);
+        #!     } handle {
+        #!         <<< "Failed on line ${i}" >>>;
+        #!     }
+        #! }
+        #! line.falling("SX1509-${this.address}");
+
+        #! while(line :=> now) {
+        #!     <<< "Falling edge detected?" >>>;
+        #! }
+
+        #! configure_keyboard_scan(switchesGrid.size(), switchesGrid[0].size());
+
+        #! <<< "Awaiting interrupt" >>>;
+        #! while(1) {
+        #!     gpin.poll(-1);
+        #!     gpin.read() :=> var auto val;
+        #!     <<< "Got an interrupt?! ${val}" >>>;
+        #!     if(gpin.get_edge() == Gpio.Edge.FALLING) {
+        #!         <<< "Falling" >>>;
+        #!     }
+        #! }
+        #! while(true) {
+        #!     get_keyboard_row_col() :=> var auto rowColumn;
+        #!     if(rowColumn[0] != 0 && rowColumn[1] != 0) {
+        #!         <<< "YEAHH" >>>;
+        #!         <<< "BUTTON: {switchesGrid[rowColumn[0]][rowColumn[1]]}" >>>;
+        #!     }
+        #!     ms => now;
+        #! }
+    }
+
+    #! Read a register from the chip.
+
+    fun u8[] read_register(int reg) {
+        this.i2c.write(this.address, reg $ u8);
+        return this.i2c.read(this.address, 1);
+    }
+
+    #! Write a value to a register on the chip.
+
+    fun void write_register(int reg, int value) {
+        this.i2c.write(reg, value $ u8);
+    }
+
+    fun u8[] get_ios_a() {
+        return this.RegDataA => this.read_register;
+    }
+    fun u8[] get_ios_b() {
+        return this.RegDataB => this.read_register;
+    }
+
+    fun void set_ios_a(u8 values) {
+        (this.RegDataA, values) => this.write_register;
+    }
+    fun void set_ios_b(u8 values) {
+        (this.RegDataB, values) => this.write_register;
+    }
+
+    #! read/write pairs, individuals, bits
+
+    fun void set_dirs_a(u8 dirs) {
+        this.write_register(RegDirA,dirs);
+    }
+    fun void set_dirs_b(u8 dirs) {
+        this.write_register(RegDirB,dirs);
+    }
+
+    fun void set_pull_ups_a(u8 pull_ups) {
+        this.write_register(RegPullUpA, pull_ups);
+    }
+
+    fun void set_pull_ups_b(u8 pull_ups) {
+        this.write_register(RegPullUpB, pull_ups);
+    }
+
+    fun void set_open_drains_a(u8 open_drains) {
+        this.write_register(RegOpenDrainA, open_drains);
+    }
+
+    fun void set_open_drains_b(u8 open_drains) {
+        this.write_register(RegOpenDrainB, open_drains);
+    }
+
+    fun void configure_keyboard_scan(int rows, int columns) {
+
+        if(rows < 2 || rows > 8 || columns < 1 || columns > 8) {
+            perform InvalidRowsOrColumns;
+        }
+
+        ((rows - 1) << 3) | (columns - 1) => this.write_register(this.RegKeyConfig2, _);
+    }
+
+    fun int[] get_keyboard_row_col()  {
+
+        this.read_register(this.RegKeyData1) :=> late u8[] col;
+        this.read_register(this.RegKeyData2) :=> late u8[] row;
+
+        0 :=> var int columnCount;
+        0 :=> var int rowCount;
+
+        #! if(col !== 255) {
+
+            #! columnCount++;
+
+            #! while ((col & 1) == 1) {
+            #!     1 >>=> col;
+            #!     columnCount++;
+            #! }
+        #! }
+
+
+        #! if(row != 255) {
+
+        #!     rowCount++;
+
+        #!     while((row & 1) == 1) {
+        #!         1 >>=> row;
+        #!         rowCount++;
+        #!     }
+        #! }
+
+        return [rowCount, columnCount];
+    }
+
+}

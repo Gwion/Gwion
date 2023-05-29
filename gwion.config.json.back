@@ -1,0 +1,68 @@
+{
+  "audio": {
+    "in": 32,
+    "out": 26,
+    "samplerate": 48000
+  },
+  "libraries": [
+    {
+      "names": [ "CoreUtil" ],
+      "path": "plug/CoreUtil/libCoreUtil.a"
+    },
+    {
+      "names": [ "FileIO" ],
+      "path": "plug/FileIO/libFileIO.a"
+    },
+    {
+      "names": [ "Machine" ],
+      "path": "plug/Machine/libMachine.a"
+    },
+    {
+      "names": [ "Math" ],
+      "path": "plug/Math/libMath.a"
+    },
+    {
+      "names": [ "Gpio" ],
+      "path": "plug/Gpio/libGpio.a",
+      "ldflags": "-l:libgpiod.a"
+    },
+    {
+      "names": [ "I2C" ],
+      "path": "plug/I2C/libI2C.a"
+    },
+    {
+      "names": [ "SimdJSON" ],
+      "path": "plug/SimdJSON/libSimdJSON.a",
+      "ldflags": "-l:libsimdjson.a"
+    },
+    {
+      "names": [ "RtMidi" ],
+      "path": "plug/RtMidi/libRtMidi.a",
+      "ldflags": "-l:librtmidi.a -lasound -ljack"
+    },
+    {
+      "names": [ "Sndfile" ],
+      "path": "plug/Sndfile/libSndfile.a",
+      "ldflags": "-lsndfile"
+    },
+    {
+      "names": [ "Soundpipe" ],
+      "path": "plug/Soundpipe/libSoundpipe.a",
+      "ldflags": "-Lplug/Soundpipe/gwion-soundpipe -l:libsoundpipe.a"
+    },
+    {
+      "names": [ "Modules" ],
+      "path": "plug/Modules/libModules.a"
+    },
+    {
+      "names": [ "STK" ],
+      "path": "plug/STK/libSTK.a",
+      "ldflags": "-l:libstk.a"
+    }
+  ],
+  "scripts": [ "/tmp/minified.gw" ],
+  "standalone": false,
+  "urc": false,
+  "ulib": false,
+  "uargs": false
+}

@@ -1,0 +1,6 @@
+enum FOO {
+  42 :=> bar,
+}
+
+<<< FOO.bar >>>;
+
