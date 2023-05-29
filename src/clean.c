@@ -303,11 +303,7 @@ ANN void class_def_cleaner(const Gwion gwion, Class_Def b) {
   free_class_def(gwion->mp, b);
 }
 
-ANN static void clean_enum_def(Clean *a NUSED, Enum_Def b) {
-  clean_id_list(a, b->list);
-  if (b->values.ptr) vector_release(&b->values);
-}
-
+#define clean_enum_def   clean_dummy
 ANN static void clean_union_list(Clean *a, Union_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
     Union_Member *tgt = mp_vector_at(b, Union_Member, i);

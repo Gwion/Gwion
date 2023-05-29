@@ -203,7 +203,6 @@ ANN m_bool scan0_enum_def(const Env env, const Enum_Def edef) {
   CHECK_BB(scan0_defined(env, edef->xid, edef->pos));
   DECL_BB(const m_bool, global, = scan0_global(env, edef->flag, edef->pos));
   edef->type = enum_type(env, edef);
-  vector_init(&edef->values);
   if (global) env_pop(env, 0);
   return GW_OK;
 }

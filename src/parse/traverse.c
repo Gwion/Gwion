@@ -44,7 +44,8 @@ ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
   CHECK_BB(scan0_enum_def(env, def));
   CHECK_BB(scan1_enum_def(env, def));
   //  CHECK_BB(scan2_enum_def(env, def));
-  return check_enum_def(env, def);
+  // return check_enum_def(env, def);
+  return GW_OK;
 }
 
 ANN m_bool traverse_fptr_def(const Env env, const Fptr_Def def) {

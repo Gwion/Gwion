@@ -45,7 +45,7 @@ ANN static void clean_stmt_list(Clean *a, Stmt_List b);
 ANN static void clean_func_base(Clean *a, Func_Base *b);
 ANN static void clean_func_def(Clean *a, Func_Def b);
 ANN static void clean_class_def(Clean *a, Class_Def b);
-ANN static void clean_enum_def(Clean *a, Enum_Def b);
+//ANN static void clean_enum_def(Clean *a, Enum_Def b);
 ANN static void clean_union_def(Clean *a, Union_Def b);
 ANN static void clean_fptr_def(Clean *a, Fptr_Def b);
 ANN static void clean_type_def(Clean *a, Type_Def b);
