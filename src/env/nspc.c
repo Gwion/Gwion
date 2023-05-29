@@ -19,7 +19,7 @@ static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   const m_bit *ptr = is_static
     ? a->class_data + v->from->offset
     : (m_bit*)v->d.ptr;
-  anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
+  if(ptr) anytype_release(gwion->vm->cleaner_shred, v->type, ptr);
   value_remref(v, gwion);
 }
 
