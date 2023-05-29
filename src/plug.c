@@ -125,7 +125,7 @@ ANN m_bool set_module(const struct Gwion_ *gwion, const m_str name,
       return GW_OK;
     }
   }
-  gw_err("module %s not found\n", name);
+  gw_err("%s: no such module\n", name);
   return GW_ERROR;
 }
 
@@ -146,7 +146,7 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
       }
     }
     if(j == map_size(map)) {
-      gw_err("{+R}[module]{0} {C}%s{0} not found\n", name);
+      gw_err("%s: no such module\n", name);
       return GW_ERROR;
     }
   }
@@ -161,7 +161,7 @@ ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_
     m_str *      deps = base;
     while (*deps) {
       if(plugin_ini(gwion, *deps, loc) < 0) {
-        gw_err("{-}[{0}{R+}missing plugin dependency{0}{-}]{0} missing {Y-}%s{0} plugin\n", *deps);
+        gw_err("%s: no such plugin (dependency)\n", *deps);
         ret = false;
       }
       ++deps;
@@ -229,7 +229,7 @@ ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) 
   const Env env = gwion->env;
   if(_plugin_ini(gwion, iname, loc) < 0) {
     if(gwion->env->context && !gwion->env->context->error)
-      env_err(env, loc, "no such plugin\n");
+      env_err(env, loc, "%s: no such plugin\n", iname);
     return GW_ERROR;
   }
   return GW_OK;
@@ -249,7 +249,7 @@ ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
       return drv;
     }
   }
-  gw_err("can't find driver '%s'\n", dname);
+  gw_err("%s: no such driver\n", dname);
   free(dname);
   return NULL;
 }
