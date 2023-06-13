@@ -190,26 +190,20 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
   } while (r && (r = op_parent(env, r)));
   return NULL;
 }
-/*
-//! check if type matches for template operator
-ANN bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
-                     Specialized_List *slp) {
-  const Specialized_List sl = *slp;
-  if (sl && !td->next && !td->types && td->xid == sl->xid) {
-    *slp = sl->next;
-    return true;
+
+ANN static bool op_template_type(const Symbol xid, const Specialized_List sl) {
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    if (xid == spec->xid) return true;
   }
-  const Type base = known_type(env, td);
-  return base ? isa(t, base) > 0 : false;
+  return false;
 }
-*/
+
 //! check if type matches for template operator
 ANN2(1,2,3) bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
-                     Specialized *spec, uint32_t *idx) {
-  if (spec && !td->next && !td->types && td->xid == spec->xid) {
-    (*idx)++;
+                    Specialized_List sl) {
+  if (!td->next && !td->types && op_template_type(td->xid, sl))
     return true;
-  }
   const Type base = known_type(env, td);
   return base ? isa(t, base) > 0 : false;
 }
@@ -221,20 +215,16 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   const Arg_List   args = base->args;
   Arg *arg0 = mp_vector_at(args, Arg, 0);
   Arg *arg1 = args->len > 1 ? mp_vector_at(args, Arg, 1) : NULL;
-  uint32_t idx = 0;
   if (opi->lhs) {
-    if (!_tmpl_match(env, opi->lhs, arg0->td, mp_vector_at(sl, Specialized, idx), &idx)) return false;
+    if (!_tmpl_match(env, opi->lhs, arg0->td, sl)) return false;
     if (fbflag(base, fbflag_postfix)) return !!opi->rhs;
     if (!fbflag(base, fbflag_unary)) {
       if (!opi->rhs) return false;
-      if (!_tmpl_match(env, opi->rhs, arg1->td, mp_vector_at(sl, Specialized, idx), &idx)) return false;
-    } else if (opi->rhs)
+      if (!_tmpl_match(env, opi->rhs, arg1->td, sl)) return false;
+    } else if (opi->rhs) return false;
+  } else if (!fbflag(base, fbflag_unary) ||
+        !_tmpl_match(env, opi->rhs, arg0->td, sl))
       return false;
-  } else {
-    if (!fbflag(base, fbflag_unary) ||
-        !_tmpl_match(env, opi->rhs, arg0->td, mp_vector_at(sl, Specialized, idx), &idx))
-      return false;
-  }
   return true;
 }
 
