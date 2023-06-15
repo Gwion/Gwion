@@ -1868,7 +1868,7 @@ ANN static m_bool check_ctor(const Env env, const Func func) {
   if(!func->def->builtin && !GET_FLAG(func, const)) {
     const Type_Decl *td = env->class_def->info->cdef->base.ext;
     const m_uint depth = !td || !td->array
-      ? 1 : td->array->exp->d.prim.d.num;
+      ? 1 : td->array->exp->d.prim.d.gwint.num;
     if(depth) { // check if size is 0
       const Type parent = env->class_def->info->parent;
       const Value v = nspc_lookup_value0(parent->nspc, insert_symbol("new"));

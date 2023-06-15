@@ -42,7 +42,7 @@ describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
     const Exp e         = exp_self(bin);                                       \
     e->exp_type         = ae_exp_primary;                                      \
     e->d.prim.prim_type = ae_prim_num;                                         \
-    e->d.prim.d.num     = ret;                                                 \
+    e->d.prim.d.gwint.num     = ret;                                           \
     return env->gwion->type[et_bool];                                          \
   }
 
@@ -74,7 +74,7 @@ ID_CHECK(check_funcpp) {
 
 ID_CHECK(check_linepp) {
   ((Exp_Primary *)prim)->prim_type = ae_prim_num;
-  ((Exp_Primary *)prim)->d.num = prim_pos(prim).first.line;
+  ((Exp_Primary *)prim)->d.gwint.num = prim_pos(prim).first.line;
   return env->gwion->type[et_int];
 }
 

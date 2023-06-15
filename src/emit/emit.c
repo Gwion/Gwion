@@ -1981,7 +1981,7 @@ ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
 }
 
 ANN static m_bool emit_if_const(const Emitter emit, const Stmt_If stmt) {
-  if (stmt->cond->d.prim.d.num) return emit_stmt(emit, stmt->if_body);
+  if (stmt->cond->d.prim.d.gwint.num) return emit_stmt(emit, stmt->if_body);
   return stmt->else_body ? emit_stmt(emit, stmt->else_body) : GW_OK;
 }
 
@@ -2122,8 +2122,8 @@ ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
         (void)emit_add_instr(emit, run_always);
       }
       op = _flow(emit, stmt->cond, NULL, is_while);
-    } else if ((!is_while && stmt->cond->d.prim.d.num) ||
-             (is_while && !stmt->cond->d.prim.d.num))
+    } else if ((!is_while && stmt->cond->d.prim.d.gwint.num) ||
+             (is_while && !stmt->cond->d.prim.d.gwint.num))
       return GW_OK;
   }
   CHECK_BB(scoped_stmt(emit, stmt->body));
@@ -2131,8 +2131,8 @@ ANN static m_bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
     if (!is_const) {
       CHECK_OB((op = _flow(emit, stmt->cond, NULL, !is_while)));
       op->m_val = index;
-    } else if ((is_while && stmt->cond->d.prim.d.num) ||
-               (!is_while && !stmt->cond->d.prim.d.num)) {
+    } else if ((is_while && stmt->cond->d.prim.d.gwint.num) ||
+               (!is_while && !stmt->cond->d.prim.d.gwint.num)) {
       const Instr goto_ = emit_add_instr(emit, Goto);
       goto_->m_val      = index;
     }

@@ -65,11 +65,11 @@
 
 #define BINARY_INT_FOLD(name, TYPE, OP, pre)                             \
   BINARY_FOLD(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
-              ae_prim_num, num, num, num)
+              ae_prim_num, gwint.num, gwint.num, gwint.num)
 
 #define BINARY_INT_FOLD_Z(name, TYPE, OP, pre)                             \
   BINARY_FOLD_Z(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
-              ae_prim_num, num, num, num)
+              ae_prim_num, gwint.num, gwint.num, gwint.num)
 
 BINARY_INT_FOLD(add, et_int, +,)
 BINARY_INT_FOLD(sub, et_int, -,)
@@ -103,7 +103,7 @@ static OP_EMIT(opem_##type##_##name) { \
   return GW_OK; \
 }
 
-#define BINARY_INT_EMIT(name) BINARY_OP_EMIT(name, int, num, m_val)
+#define BINARY_INT_EMIT(name) BINARY_OP_EMIT(name, int, gwint.num, m_val)
 BINARY_INT_EMIT(add)
 BINARY_INT_EMIT(sub)
 BINARY_INT_EMIT(mul)
@@ -208,14 +208,14 @@ static OP_EMIT(opem_int_range) {
     const Type           t     = env->gwion->type[TYPE];                       \
     CHECK_NN(opck_unary_meta(env, data));                                      \
     if (!func(unary->exp)) return t;                                           \
-    const ctype num                   = OP unary->exp->d.prim.d.member;        \
-    exp_self(unary)->exp_type         = ae_exp_primary;                        \
-    exp_self(unary)->d.prim.prim_type = exptype;                               \
-    exp_self(unary)->d.prim.d.num     = num;                                   \
+    const ctype num                     = OP unary->exp->d.prim.d.member;      \
+    exp_self(unary)->exp_type           = ae_exp_primary;                      \
+    exp_self(unary)->d.prim.prim_type   = exptype;                             \
+    exp_self(unary)->d.prim.d.gwint.num = num;                                 \
     return t;                                                                  \
   }
 #define UNARY_INT_FOLD(name, TYPE, OP)                                         \
-  UNARY_FOLD(int, name, TYPE, OP, is_prim_int, m_int, ae_prim_num, num)
+  UNARY_FOLD(int, name, TYPE, OP, is_prim_int, m_int, ae_prim_num, gwint.num)
 UNARY_INT_FOLD(negate, et_int, -)
 UNARY_INT_FOLD(cmp, et_int, ~)
 UNARY_INT_FOLD(not, et_bool, !)
@@ -297,7 +297,7 @@ static OP_CHECK(opck_cast_f2i) {
     Exp e = exp_self(cast);
     e->exp_type = ae_exp_primary;
     e->d.prim.prim_type = ae_prim_num;
-    e->d.prim.d.num = f;
+    e->d.prim.d.gwint.num = f;
   }
   return env->gwion->type[et_int];
 }
@@ -311,7 +311,7 @@ ANN static void tofloat(Exp e, const m_int i) {
 static OP_CHECK(opck_cast_i2f) {
   Exp_Cast *cast = (Exp_Cast*)data;
   if(is_prim_int(cast->exp)) {
-    const m_int i = cast->exp->d.prim.d.num;
+    const m_int i = cast->exp->d.prim.d.gwint.num;
     free_type_decl(env->gwion->mp, cast->td);
     free_exp(env->gwion->mp, cast->exp);
     Exp e = exp_self(cast);
@@ -333,13 +333,13 @@ static OP_CHECK(opck_implicit_i2f) {
 
 #define BINARY_INT_FLOAT_FOLD(name, TYPE, OP, pre)                       \
   BINARY_FOLD(int_float, name, TYPE, OP, pre, is_prim_int,               \
-              is_prim_float, m_float, ae_prim_float, num, fnum, fnum)
+              is_prim_float, m_float, ae_prim_float, gwint.num, fnum, fnum)
 #define BINARY_INT_FLOAT_FOLD_Z(name, TYPE, OP, pre)                       \
   BINARY_FOLD_Z(int_float, name, TYPE, OP, pre, is_prim_int,               \
-              is_prim_float, m_float, ae_prim_float, num, fnum, fnum)
+              is_prim_float, m_float, ae_prim_float, gwint.num, fnum, fnum)
 #define BINARY_INT_FLOAT_FOLD2(name, TYPE, OP, pre)                      \
   BINARY_FOLD(int_float, name, TYPE, OP, pre, is_prim_int,               \
-              is_prim_float, m_float, ae_prim_num, num, fnum, num)
+              is_prim_float, m_float, ae_prim_num, gwint.num, fnum, gwint.num)
 
 BINARY_INT_FLOAT_FOLD(add, et_float, +,)
 BINARY_INT_FLOAT_FOLD(sub, et_float, -,)
@@ -394,15 +394,15 @@ static GWION_IMPORT(intfloat) {
 
 #define BINARY_FLOAT_INT_FOLD(name, TYPE, OP, pre)                       \
   BINARY_FOLD(float_int, name, TYPE, OP, pre, is_prim_float,             \
-              is_prim_int, m_float, ae_prim_float, fnum, num, fnum)
+              is_prim_int, m_float, ae_prim_float, fnum, gwint.num, fnum)
 
 #define BINARY_FLOAT_INT_FOLD_Z(name, TYPE, OP, pre)                       \
   BINARY_FOLD_Z(float_int, name, TYPE, OP, pre, is_prim_float,             \
-              is_prim_int, m_float, ae_prim_float, fnum, num, fnum)
+              is_prim_int, m_float, ae_prim_float, fnum, gwint.num, fnum)
 
 #define BINARY_FLOAT_INT_FOLD2(name, TYPE, OP, pre)                      \
   BINARY_FOLD(float_int, name, TYPE, OP, pre, is_prim_float,             \
-              is_prim_int, m_int, ae_prim_num, fnum, num, num)
+              is_prim_int, m_int, ae_prim_num, fnum, gwint.num, gwint.num)
 
 BINARY_FLOAT_INT_FOLD(add, et_float, +,)
 BINARY_FLOAT_INT_FOLD(sub, et_float, -,)
@@ -535,7 +535,7 @@ static GWION_IMPORT(time) {
 
 #define BINARY_FLOAT_FOLD2(name, TYPE, OP, pre)                          \
   BINARY_FOLD(float, name, TYPE, OP, pre, is_prim_float, is_prim_float,  \
-              m_int, ae_prim_num, fnum, fnum, num)
+              m_int, ae_prim_num, fnum, fnum, gwint.num)
 
 BINARY_FLOAT_FOLD(add, et_float, +,)
 BINARY_FLOAT_FOLD(sub, et_float, -,)

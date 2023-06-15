@@ -113,7 +113,7 @@ ANN static inline bool is_hole(const Env env, const Exp exp) {
 static inline bool exp_is_zero(const Exp exp) {
   return exp->exp_type == ae_exp_primary &&
   exp->d.prim.prim_type == ae_prim_num &&
-  !exp->d.prim.d.num;
+  !exp->d.prim.d.gwint.num;
 }
 
 ANN static inline bool not_upvalue(const Env env, const Value v) {

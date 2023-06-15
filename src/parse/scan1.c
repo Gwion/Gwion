@@ -397,11 +397,11 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   t->nspc = new_nspc(env->gwion->mp, t->name);
   const m_uint scope = env_push_type(env, t);
   ID_List list = edef->list;
-  m_uint last = 0;
+  m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
     EnumValue ev = *mp_vector_at(list, EnumValue, i);
     const Value v = new_value(env, t, s_name(ev.xid), edef->pos);
-    v->d.num = (ev.set ? ev.num : last);
+    v->d.num = (ev.set ? ev.gwint.num : last);
     last = v->d.num + 1;
     valuefrom(env, v->from);
     nspc_add_value(env->curr, ev.xid, v);

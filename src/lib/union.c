@@ -126,10 +126,10 @@ static OP_CHECK(opck_union_new) {
 
   for (m_uint i = 0; i < map_size(map); ++i) {
     if (VKEY(map, i) == (m_uint)name->d.prim.d.var) {
-      const Value v          = (Value)VVAL(map, i);
-      name->d.prim.prim_type = ae_prim_num;
-      name->d.prim.d.num     = i;
-      name->type             = env->gwion->type[et_int];
+      const Value v            = (Value)VVAL(map, i);
+      name->d.prim.prim_type   = ae_prim_num;
+      name->d.prim.d.gwint.num = i;
+      name->type               = env->gwion->type[et_int];
       if(!val && v->type == env->gwion->type[et_none]) {
         const Exp e = new_prim_int(env->gwion->mp, SZ_INT, name->pos);
         e->next = name;
