@@ -48,8 +48,11 @@ ANEW ANN Value new_value(const Env, const Type type, const m_str name, const loc
 ANN void       valuefrom(const Env, ValueFrom *);
 
 ANN static inline void defined_here(const Value v) {
-  if (v->from->filename) // TODO: check why is that from check
-    gwerr_secondary(_("defined here"), v->from->filename, v->from->loc);
+  if (v->from->filename) {// TODO: check why is that from check
+    char c[256] = {[255] = '\0'};
+    snprintf(c, 256, _("%.*s defined here"), 240, v->name);
+    gwerr_secondary(c, v->from->filename, v->from->loc);
+  }
 }
 
 ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
