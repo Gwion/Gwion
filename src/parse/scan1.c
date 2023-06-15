@@ -465,18 +465,41 @@ ANN static m_bool scan1_fbase_tmpl(const Env env, Func_Base *const base) {
   return ret;
 }
 
+ANN static bool spec_acc_has(const MemPool mp, MP_Vector **acc, const Symbol xid) {
+  for(uint32_t i = 0; i < (*acc)->len; i++) {
+    const Symbol sym = *mp_vector_at(*acc, Symbol, i);
+    if (xid == sym) return true;
+  }
+  mp_vector_add(mp, acc, Symbol, xid);
+  return false;
+}
+
+ANN static bool find_op_template_type(const MemPool mp, const Symbol xid, const Specialized_List sl, MP_Vector **acc) {
+  for(uint32_t i = 0; i < sl->len; i++) {
+    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    if (xid == spec->xid) {
+      spec_acc_has(mp, acc, xid);
+      return true;
+    }
+  }
+  return false;
+}
+
 ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   Func_Base *const base = fdef->base;
   if (!fbflag(base, fbflag_op)) return scan1_fbase_tmpl(env, base);
   Arg_List         args = fdef->base->args;
   Specialized_List sl   = fdef->base->tmpl->list;
-  uint32_t j = 0;
+  MP_Vector *acc = new_mp_vector(env->gwion->mp, Symbol, 0);
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    Specialized *spec = mp_vector_at(sl, Specialized, j);
-    if (!arg->td->next && spec && arg->td->xid == spec->xid) { j++; }
+    if (!arg->td->next) {
+      find_op_template_type(env->gwion->mp, arg->td->xid, sl, &acc);
+    }
   }
-  if (j < sl->len) ERR_B(base->pos, "too many template types for operator");
+  const uint32_t len = acc->len;
+  free_mp_vector(env->gwion->mp, Symbol, acc);
+  if (len < sl->len) ERR_B(base->pos, "too many template types for operator");
   if (!env->curr->operators)
   env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
   const Vector v = &env->curr->operators->tmpl;
