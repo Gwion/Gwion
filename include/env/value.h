@@ -4,7 +4,7 @@ typedef struct ValueFrom_ {
   Nspc             owner;
   Type             owner_class;
   struct Context_ *ctx;
-  uint32_t           offset;
+  uint32_t         offset;
   m_str            filename;
   loc_t            loc;
 } ValueFrom;
