@@ -26,14 +26,14 @@
     return check_exp(env, exp_self(bin));                                      \
   }
 
-#define BINARY_FOLD(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,     \
+#define BINARY_FOLD(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,           \
                     exptype, lmember, rmember, retmember)                      \
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
-    const Type            t   = env->gwion->type[TYPE];                        \
+    const Type            t   = TYPE;                                          \
     if (!exp_self(bin)->pos.first.line) return t;                              \
     pre if (!funcl(bin->lhs) || !funcr(bin->rhs)) return t;                    \
-    const ctype                  num =                                    \
+    const ctype                  num =                                         \
         bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
     free_exp(env->gwion->mp, bin->lhs);                                        \
     free_exp(env->gwion->mp, bin->rhs);                                        \
@@ -43,17 +43,17 @@
     return t;                                                                  \
   }
 
-#define BINARY_FOLD_Z(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,   \
+#define BINARY_FOLD_Z(ntype, name, TYPE, OP, pre, funcl, funcr, ctype,         \
                     exptype, lmember, rmember, retmember)                      \
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
-    const Type            t   = env->gwion->type[TYPE];                        \
+    const Type            t   = TYPE;                                          \
     if (!exp_self(bin)->pos.first.line) return t;                              \
     const bool rconst = funcr(bin->rhs);                                       \
     if(rconst && !bin->rhs->d.prim.d.retmember)                                \
       ERR_N(bin->rhs->pos, _("ZeroDivideException"));                          \
     pre if (!funcl(bin->lhs) || !rconst) return t;                             \
-    const ctype                  num =                                    \
+    const ctype                  num =                                         \
         bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
     free_exp(env->gwion->mp, bin->lhs);                                        \
     free_exp(env->gwion->mp, bin->rhs);                                        \
@@ -63,32 +63,35 @@
     return t;                                                                  \
   }
 
-#define BINARY_INT_FOLD(name, TYPE, OP, pre)                             \
-  BINARY_FOLD(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
+
+#define BINARY_COMMON find_common_anc(bin->lhs->type, bin->rhs->type)
+#define FOLD_BOOL   env->gwion->type[et_bool]
+#define BINARY_INT_FOLD(name, TYPE, OP, pre)                                   \
+  BINARY_FOLD(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int,       \
               ae_prim_num, gwint.num, gwint.num, gwint.num)
 
-#define BINARY_INT_FOLD_Z(name, TYPE, OP, pre)                             \
-  BINARY_FOLD_Z(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int, \
+#define BINARY_INT_FOLD_Z(name, TYPE, OP, pre)                                 \
+  BINARY_FOLD_Z(int, name, TYPE, OP, pre, is_prim_int, is_prim_int, m_int,     \
               ae_prim_num, gwint.num, gwint.num, gwint.num)
 
-BINARY_INT_FOLD(add, et_int, +,)
-BINARY_INT_FOLD(sub, et_int, -,)
-BINARY_INT_FOLD(mul, et_int, *, /*POWEROF2_OPT(name, <<)*/)
-BINARY_INT_FOLD_Z(div, et_int, /,/* POWEROF2_OPT(name, >>)*/)
-BINARY_INT_FOLD_Z(mod, et_int, %,)
-BINARY_INT_FOLD(sl, et_int, <<,)
-BINARY_INT_FOLD(sr, et_int, >>,)
-BINARY_INT_FOLD(sand, et_int, &,)
-BINARY_INT_FOLD(sor, et_int, |,)
-BINARY_INT_FOLD(xor, et_int, ^,)
-BINARY_INT_FOLD(gt, et_bool, >,)
-BINARY_INT_FOLD(lt, et_bool, <,)
-BINARY_INT_FOLD(ge, et_bool, >=,)
-BINARY_INT_FOLD(le, et_bool, <=,)
-BINARY_INT_FOLD(and, et_bool, &&,)
-BINARY_INT_FOLD(or, et_bool, ||,)
-BINARY_INT_FOLD(eq, et_bool, ==,)
-BINARY_INT_FOLD(neq, et_bool, !=,)
+BINARY_INT_FOLD(add,   BINARY_COMMON, +,)
+BINARY_INT_FOLD(sub,   BINARY_COMMON, -,)
+BINARY_INT_FOLD(mul,   BINARY_COMMON, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_INT_FOLD_Z(div, BINARY_COMMON, /,/* POWEROF2_OPT(name, >>)*/)
+BINARY_INT_FOLD_Z(mod, BINARY_COMMON, %,)
+BINARY_INT_FOLD(sl,    BINARY_COMMON, <<,)
+BINARY_INT_FOLD(sr,    BINARY_COMMON, >>,)
+BINARY_INT_FOLD(sand,  BINARY_COMMON, &,)
+BINARY_INT_FOLD(sor,   BINARY_COMMON, |,)
+BINARY_INT_FOLD(xor,   BINARY_COMMON, ^,)
+BINARY_INT_FOLD(gt,    FOLD_BOOL, >,)
+BINARY_INT_FOLD(lt,    FOLD_BOOL, <,)
+BINARY_INT_FOLD(ge,    FOLD_BOOL, >=,)
+BINARY_INT_FOLD(le,    FOLD_BOOL, <=,)
+BINARY_INT_FOLD(and,   FOLD_BOOL, &&,)
+BINARY_INT_FOLD(or,    FOLD_BOOL, ||,)
+BINARY_INT_FOLD(eq,    FOLD_BOOL, ==,)
+BINARY_INT_FOLD(neq,   FOLD_BOOL, !=,)
 
 #define BINARY_OP_EMIT(name, type, member, val) \
 static OP_EMIT(opem_##type##_##name) { \
@@ -205,7 +208,7 @@ static OP_EMIT(opem_int_range) {
 #define UNARY_FOLD(ntype, name, TYPE, OP, func, ctype, exptype, member)        \
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Unary *unary = (Exp_Unary *)data;                            \
-    const Type           t     = env->gwion->type[TYPE];                       \
+    const Type           t     = TYPE;                                         \
     CHECK_NN(opck_unary_meta(env, data));                                      \
     if (!func(unary->exp)) return t;                                           \
     const ctype num                     = OP unary->exp->d.prim.d.member;      \
@@ -214,11 +217,12 @@ static OP_EMIT(opem_int_range) {
     exp_self(unary)->d.prim.d.gwint.num = num;                                 \
     return t;                                                                  \
   }
+
 #define UNARY_INT_FOLD(name, TYPE, OP)                                         \
   UNARY_FOLD(int, name, TYPE, OP, is_prim_int, m_int, ae_prim_num, gwint.num)
-UNARY_INT_FOLD(negate, et_int, -)
-UNARY_INT_FOLD(cmp, et_int, ~)
-UNARY_INT_FOLD(not, et_bool, !)
+UNARY_INT_FOLD(negate, unary->exp->type, -)
+UNARY_INT_FOLD(cmp, unary->exp->type, ~)
+UNARY_INT_FOLD(not, FOLD_BOOL, !)
 
 static GWION_IMPORT(int_unary) {
   GWI_BB(gwi_oper_ini(gwi, NULL, "int", "int"))
@@ -341,18 +345,18 @@ static OP_CHECK(opck_implicit_i2f) {
   BINARY_FOLD(int_float, name, TYPE, OP, pre, is_prim_int,               \
               is_prim_float, m_float, ae_prim_num, gwint.num, fnum, gwint.num)
 
-BINARY_INT_FLOAT_FOLD(add, et_float, +,)
-BINARY_INT_FLOAT_FOLD(sub, et_float, -,)
-BINARY_INT_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
-BINARY_INT_FLOAT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
-BINARY_INT_FLOAT_FOLD2(gt, et_bool, >,)
-BINARY_INT_FLOAT_FOLD2(ge, et_bool, >=,)
-BINARY_INT_FLOAT_FOLD2(lt, et_bool, <=,)
-BINARY_INT_FLOAT_FOLD2(le, et_bool, <=,)
-BINARY_INT_FLOAT_FOLD2(and, et_bool, &&,)
-BINARY_INT_FLOAT_FOLD2(or, et_bool, ||,)
-BINARY_INT_FLOAT_FOLD2(eq, et_bool, ==,)
-BINARY_INT_FLOAT_FOLD2(neq, et_bool, !=,)
+BINARY_INT_FLOAT_FOLD(add,   BINARY_COMMON, +,)
+BINARY_INT_FLOAT_FOLD(sub,   BINARY_COMMON, -,)
+BINARY_INT_FLOAT_FOLD(mul,   BINARY_COMMON, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_INT_FLOAT_FOLD_Z(div, BINARY_COMMON, /, /*POWEROF2_OPT(name, >>)*/)
+BINARY_INT_FLOAT_FOLD2(gt,   FOLD_BOOL, >,)
+BINARY_INT_FLOAT_FOLD2(ge,   FOLD_BOOL, >=,)
+BINARY_INT_FLOAT_FOLD2(lt,   FOLD_BOOL, <=,)
+BINARY_INT_FLOAT_FOLD2(le,   FOLD_BOOL, <=,)
+BINARY_INT_FLOAT_FOLD2(and,  FOLD_BOOL, &&,)
+BINARY_INT_FLOAT_FOLD2(or,   FOLD_BOOL, ||,)
+BINARY_INT_FLOAT_FOLD2(eq,   FOLD_BOOL, ==,)
+BINARY_INT_FLOAT_FOLD2(neq,  FOLD_BOOL, !=,)
 
 static GWION_IMPORT(intfloat) {
   GWI_BB(gwi_oper_ini(gwi, "int", "float", "int"))
@@ -404,19 +408,19 @@ static GWION_IMPORT(intfloat) {
   BINARY_FOLD(float_int, name, TYPE, OP, pre, is_prim_float,             \
               is_prim_int, m_int, ae_prim_num, fnum, gwint.num, gwint.num)
 
-BINARY_FLOAT_INT_FOLD(add, et_float, +,)
-BINARY_FLOAT_INT_FOLD(sub, et_float, -,)
-BINARY_FLOAT_INT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
-BINARY_FLOAT_INT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
+BINARY_FLOAT_INT_FOLD(add,    bin->lhs->type, +,)
+BINARY_FLOAT_INT_FOLD(sub,    bin->lhs->type, -,)
+BINARY_FLOAT_INT_FOLD(mul,    bin->lhs->type, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_FLOAT_INT_FOLD_Z(div,  bin->lhs->type, /, /*POWEROF2_OPT(name, >>)*/)
 
-BINARY_FLOAT_INT_FOLD2(gt, et_bool, >,)
-BINARY_FLOAT_INT_FOLD2(ge, et_bool, >=,)
-BINARY_FLOAT_INT_FOLD2(lt, et_bool, <=,)
-BINARY_FLOAT_INT_FOLD2(le, et_bool, <=,)
-BINARY_FLOAT_INT_FOLD2(and, et_bool, &&,)
-BINARY_FLOAT_INT_FOLD2(or, et_bool, ||,)
-BINARY_FLOAT_INT_FOLD2(eq, et_bool, ==,)
-BINARY_FLOAT_INT_FOLD2(neq, et_bool, !=,)
+BINARY_FLOAT_INT_FOLD2(gt,  FOLD_BOOL, >,)
+BINARY_FLOAT_INT_FOLD2(ge,  FOLD_BOOL, >=,)
+BINARY_FLOAT_INT_FOLD2(lt,  FOLD_BOOL, <=,)
+BINARY_FLOAT_INT_FOLD2(le,  FOLD_BOOL, <=,)
+BINARY_FLOAT_INT_FOLD2(and, FOLD_BOOL, &&,)
+BINARY_FLOAT_INT_FOLD2(or,  FOLD_BOOL, ||,)
+BINARY_FLOAT_INT_FOLD2(eq,  FOLD_BOOL, ==,)
+BINARY_FLOAT_INT_FOLD2(neq, FOLD_BOOL, !=,)
 
 static GWION_IMPORT(floatint) {
   GWI_BB(gwi_oper_ini(gwi, "float", "int", "float"))
@@ -537,19 +541,19 @@ static GWION_IMPORT(time) {
   BINARY_FOLD(float, name, TYPE, OP, pre, is_prim_float, is_prim_float,  \
               m_int, ae_prim_num, fnum, fnum, gwint.num)
 
-BINARY_FLOAT_FOLD(add, et_float, +,)
-BINARY_FLOAT_FOLD(sub, et_float, -,)
-BINARY_FLOAT_FOLD(mul, et_float, *, /*POWEROF2_OPT(name, <<)*/)
-BINARY_FLOAT_FOLD_Z(div, et_float, /, /*POWEROF2_OPT(name, >>)*/)
+BINARY_FLOAT_FOLD(add,   BINARY_COMMON, +,)
+BINARY_FLOAT_FOLD(sub,   BINARY_COMMON, -,)
+BINARY_FLOAT_FOLD(mul,   BINARY_COMMON, *, /*POWEROF2_OPT(name, <<)*/)
+BINARY_FLOAT_FOLD_Z(div, BINARY_COMMON, /, /*POWEROF2_OPT(name, >>)*/)
 
-BINARY_FLOAT_FOLD2(and, et_bool, &&,)
-BINARY_FLOAT_FOLD2(or, et_bool, ||,)
-BINARY_FLOAT_FOLD2(eq, et_bool, ==,)
-BINARY_FLOAT_FOLD2(neq, et_bool, !=,)
-BINARY_FLOAT_FOLD2(gt, et_bool, >,)
-BINARY_FLOAT_FOLD2(ge, et_bool, >=,)
-BINARY_FLOAT_FOLD2(lt, et_bool, <,)
-BINARY_FLOAT_FOLD2(le, et_bool, <=,)
+BINARY_FLOAT_FOLD2(and,  FOLD_BOOL, &&,)
+BINARY_FLOAT_FOLD2(or,   FOLD_BOOL, ||,)
+BINARY_FLOAT_FOLD2(eq,   FOLD_BOOL, ==,)
+BINARY_FLOAT_FOLD2(neq,  FOLD_BOOL, !=,)
+BINARY_FLOAT_FOLD2(gt,   FOLD_BOOL, >,)
+BINARY_FLOAT_FOLD2(ge,   FOLD_BOOL, >=,)
+BINARY_FLOAT_FOLD2(lt,   FOLD_BOOL, <,)
+BINARY_FLOAT_FOLD2(le,   FOLD_BOOL, <=,)
 
 #define BINARY_FLOAT_EMIT(name) BINARY_OP_EMIT(name, float, fnum, f)
 BINARY_FLOAT_EMIT(add)
@@ -563,9 +567,9 @@ BINARY_FLOAT_EMIT(lt)
 
 #define UNARY_FLOAT_FOLD(name, TYPE, OP)                                       \
   UNARY_FOLD(float, name, TYPE, OP, is_prim_int, m_float, ae_prim_float, fnum)
-UNARY_FLOAT_FOLD(negate, et_float, -)
+UNARY_FLOAT_FOLD(negate, unary->exp->type, -)
 // UNARY_INT_FOLD(cmp, et_float, ~)
-UNARY_FLOAT_FOLD(not, et_bool, !)
+UNARY_FLOAT_FOLD(not, FOLD_BOOL, !)
 
 #define IMPORT_BINARY_FLOAT(name, op)          \
   GWI_BB(gwi_oper_add(gwi, opck_float_##name)) \
