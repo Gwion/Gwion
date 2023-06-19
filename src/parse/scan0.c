@@ -477,7 +477,15 @@ ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
         ERR_B(fdef->base->pos, "Trait function must be declared without qualifiers");
       if (!trait->fun) trait->fun = new_mp_vector(env->gwion->mp, Func_Def, 0);
       mp_vector_add(env->gwion->mp, &trait->fun, Func_Def, fdef);
-    }
+    } else if (section->section_type == ae_section_stmt) {
+      Stmt_List list = section->d.stmt_list;
+      for(uint32_t i = 0; i < list->len; i++) {
+        Stmt stmt = mp_vector_at(list, struct Stmt_, i);
+        if(stmt->d.stmt_exp.val->exp_type != ae_exp_decl)
+        ERR_B(stmt->pos, "trait can only contains variable requests and functions");
+      }
+    } else
+        ERR_B(pdef->pos, "invalid section for trait definition");
   }
   return GW_OK;
 }
