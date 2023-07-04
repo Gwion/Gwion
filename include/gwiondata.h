@@ -15,6 +15,7 @@ typedef struct GwionData_ {
   struct Passes_ *passes;
   Plugs *plugs;
   bool            cdoc;
+  bool            errored;
 } GwionData;
 
 ANN GwionData *new_gwiondata(const MemPool);
