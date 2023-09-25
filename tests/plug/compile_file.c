@@ -10,7 +10,6 @@
 #include "gwi.h"
 #include "compile.h"
 
-#define _XOPEN_SOURCE 500
 #include <string.h>
 GWION_IMPORT(compile_file) {
   DECL_OB(FILE *, file, = fopen("rm_me.gw", "w+"));

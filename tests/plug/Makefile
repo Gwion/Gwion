@@ -4,7 +4,7 @@ CC       ?= gcc
 NAME := ${NAME}
 SRC = ${NAME}.c
 OBJ = $(SRC:.c=.o)
-CFLAGS += -std=c99 ${INC} -Wall -Wextra -g -Og
+CFLAGS += -std=c99 ${INC} -Wall -Wextra -g -Og -D_GNU_SOURCE
 
 # os specific
 ifeq ($(shell uname), Darwin)
