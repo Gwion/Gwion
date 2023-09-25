@@ -36,7 +36,7 @@ VM_Shred new_vm_shred(MemPool p, VM_Code c) {
   shred->reg           = (m_bit *)shred + sizeof(struct VM_Shred_);
   shred->base = shred->mem = shred->reg + SIZEOF_REG;
   shred->info              = new_shredinfo(p, c);
-  MUTEX_SETUP(shred->mutex);
+  gwt_lock_ini(&shred->mutex);
   return shred;
 }
 
@@ -47,6 +47,6 @@ void free_vm_shred(VM_Shred shred) {
   const MemPool mp = shred->info->mp;
   mp_free(mp, ShredTick, shred->tick);
   free_shredinfo(mp, shred->info);
-  MUTEX_CLEANUP(shred->mutex);
+  gwt_lock_end(&shred->mutex);
   mp_free(mp, Stack, shred);
 }

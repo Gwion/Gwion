@@ -49,7 +49,8 @@ ANN void       valuefrom(const Env, ValueFrom *);
 
 ANN static inline void defined_here(const Value v) {
   if (v->from->filename) {// TODO: check why is that from check
-    char c[256] = {[255] = '\0'};
+    char c[256];
+    c[255] = '\0';
     snprintf(c, 256, _("%.*s defined here"), 240, v->name);
     gwerr_secondary(c, v->from->filename, v->from->loc);
   }

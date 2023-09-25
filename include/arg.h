@@ -17,6 +17,8 @@ typedef struct CliArg_ {
   char** (*config_args)(int*, char**);
   void  (*embed_libs)(Gwion);
   void  (*embed_scripts)(Gwion);
+  uint32_t           thread_count;
+  uint32_t           queue_size;
   bool               loop;
   bool               quit;
   bool               urc;

@@ -34,7 +34,10 @@ static void afl_run(const Gwion gwion) {
 }
 
 int main(int argc, char **argv) {
-  Arg arg = {};
+  Arg arg = {
+    .thread_count = 4,
+    .queue_size = 16
+  };
   gwion_ini(&gwion, &arg);
   arg_release(&arg);
   afl_run(&gwion);
@@ -84,6 +87,8 @@ int main(int argc, char **argv) {
     .config_args = gwion_config_args,
     .embed_libs = gwion_embed_libs,
     .embed_scripts = gwion_embed_scripts,
+    .thread_count = 4,
+    .queue_size = 16
   };
   const m_bool  ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);

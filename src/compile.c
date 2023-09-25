@@ -99,7 +99,10 @@ ANN static inline m_bool _passes(struct Gwion_ *gwion, struct Compiler *c) {
   for (m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass pass =
         (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    CHECK_BB(pass(gwion->env, &c->ast));
+    if(pass(gwion->env, &c->ast) < 0) {
+      gwion->data->errored = true;
+      return GW_ERROR;
+    }
   }
   return GW_OK;
 }
@@ -160,9 +163,9 @@ ANN static m_uint _compile(struct Gwion_ *gwion, struct Compiler *c) {
 
 ANN static m_uint compile(struct Gwion_ *gwion, struct Compiler *c) {
   compiler_name(c);
-  MUTEX_LOCK(gwion->data->mutex);
+  gwt_lock(&gwion->data->mutex);
   const m_uint ret = _compile(gwion, c);
-  MUTEX_UNLOCK(gwion->data->mutex);
+  gwt_unlock(&gwion->data->mutex);
   compiler_clean(c);
   return ret;
 }

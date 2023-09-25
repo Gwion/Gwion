@@ -42,4 +42,12 @@ type_class(const Gwion gwion, const Type t) {
 ANN void gwion_set_debug(const Gwion gwion, const bool dbg);
 ANN void gwion_set_dump(const Gwion gwion, const bool dump);
 ANN void gwion_set_cdoc(const Gwion gwion, const bool dbg);
+
+
+ANN static inline void shred_pool_run(const VM_Shred shred, void (*fun)(void*), void *arg) {
+  shreduler_remove(shred->tick->shreduler, shred, false);
+  threadpool_add(shred->info->vm->gwion->data->tpool, fun, arg);
+}
+
+
 #endif

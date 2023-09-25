@@ -201,11 +201,11 @@ ANN void vm_ini_shred(const VM *vm, const VM_Shred shred) {
 
 ANN void vm_lock(VM const *vm) {
   if (vm->parent) vm_lock(vm->parent);
-  MUTEX_LOCK(vm->shreduler->mutex);
+  gwt_lock(&vm->shreduler->mutex);
 }
 
 ANN void vm_unlock(VM const *vm) {
-  do MUTEX_UNLOCK(vm->shreduler->mutex);
+  do gwt_unlock(&vm->shreduler->mutex);
   while ((vm = vm->parent));
 }
 
@@ -1626,7 +1626,7 @@ return;
 // remove me
 ANN void next_bbq_pos(const VM *vm) {
   Driver *const di = vm->bbq;
-  MUTEX_LOCK(vm->shreduler->mutex);
+  gwt_lock(&vm->shreduler->mutex);
   if(++di->pos == 16777216-1) {
     const Vector v = &vm->shreduler->active_shreds;
     for(m_uint i = 0; i < vector_size(v); i++) {
@@ -1635,7 +1635,7 @@ ANN void next_bbq_pos(const VM *vm) {
     }
     di->pos = 0;
   }
-  MUTEX_UNLOCK(vm->shreduler->mutex);
+  gwt_unlock(&vm->shreduler->mutex);
 }
 
 ANN void vm_run_audio(const VM *vm) {

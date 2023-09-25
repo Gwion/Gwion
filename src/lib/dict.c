@@ -65,10 +65,7 @@ INSTR(dict_ctor_alt) {
   const Type t = (Type)instr->m_val2;
   const M_Object o = new_object(shred->info->mp, t);
   const HMapInfo *hinfo = (HMapInfo*)t->nspc->class_data;
-  HMap *a = &*(struct HMap*)o->data;
-  a->data  = (m_bit*)mp_calloc2(shred->info->mp, hinfo->sz * instr->m_val);
-  a->state = (m_bit*)mp_calloc2(shred->info->mp, sizeof(HState) * instr->m_val);
-  a->capacity = instr->m_val;
+  dict_alloc(shred->info->mp, o, hinfo->sz, instr->m_val);
   shred->reg += SZ_INT;
   *(M_Object*)REG(-SZ_INT) = o;
 }

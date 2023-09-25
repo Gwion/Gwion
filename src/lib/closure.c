@@ -382,6 +382,7 @@ ANN static Type partial2auto(const Env env, const Exp_Binary *bin) {
   const Type actual = fdef->base->func->value_ref->type;
   set_fbflag(fdef->base, fbflag_lambda);
   Var_Decl vd = bin->rhs->d.exp_decl.vd;
+exp_setvar(bin->rhs, true);
   return vd.value->type = bin->rhs->type = bin->rhs->d.exp_decl.type = actual;
 }
 
@@ -393,10 +394,14 @@ static OP_CHECK(opck_auto_fptr) {
     ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
-  if(!bin->lhs->type->info->func)
+//  if(!bin->lhs->type->info->func)
+  if(!bin->lhs->type->info->func || !strncmp(bin->lhs->type->name, "partial:", 8))
     return partial2auto(env, bin);
+
   // create a matching signature
   // TODO: we could check first if there a matching existing one
+  // we can maybe add it to the lhs type function namespace
+  // would make it easy enough to search
   Func_Base *const fbase =
       cpy_func_base(env->gwion->mp, bin->lhs->type->info->func->def->base);
   const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase);

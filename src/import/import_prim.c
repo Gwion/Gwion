@@ -199,6 +199,7 @@ ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
   const Type t = new_type(env->gwion->mp, name, NULL);
   t->size = sz;
   t->actual_size = size;
+  set_tflag(t, tflag_primitive);
   scan_prim_op(env, t);
   scan_prim_op2(env, t);
   if(size < SZ_INT) {

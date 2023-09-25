@@ -5,7 +5,7 @@ struct Shreduler_ {
   struct ShredTick_ *list;
   struct ShredTick_ *curr;
   struct Vector_     active_shreds;
-  MUTEX_TYPE         mutex;
+  gwtlock_t          mutex;
   size_t             shred_ids;
   bool               loop;
 };

@@ -17,32 +17,33 @@ struct TypeInfo_ {
 };
 
 enum tflag {
-  tflag_none     = 1 << 0,
-  tflag_scan0    = 1 << 1, //
-  tflag_scan1    = 1 << 2, //
-  tflag_scan2    = 1 << 3, //
-  tflag_check    = 1 << 4, //
-  tflag_emit     = 1 << 5, //
-  tflag_infer    = 1 << 6,
-  tflag_empty    = 1 << 7,
-  tflag_ftmpl    = 1 << 8,
-  tflag_ntmpl    = 1 << 9, // do NOT need types
-  tflag_udef     = 1 << 10,
-  tflag_cdef     = 1 << 11,
-  tflag_struct   = 1 << 12,
-  tflag_ctor     = 1 << 13,
-  tflag_dtor     = 1 << 14,
-  tflag_tmpl     = 1 << 15,
-  tflag_typedef  = 1 << 16,
-  tflag_distinct = 1 << 17,
-  tflag_noret    = 1 << 18,
-  tflag_contract = 1 << 19,
-  tflag_float    = 1 << 20,
-  tflag_union    = 1 << 21,
-  tflag_ref      = 1 << 22,
-  tflag_packed   = 1 << 23,
-  tflag_compound = 1 << 24,
-  tflag_release  = 1 << 25, // mark structs that need release
+  tflag_none      = 1 << 0,
+  tflag_scan0     = 1 << 1, //
+  tflag_scan1     = 1 << 2, //
+  tflag_scan2     = 1 << 3, //
+  tflag_check     = 1 << 4, //
+  tflag_emit      = 1 << 5, //
+  tflag_infer     = 1 << 6,
+  tflag_empty     = 1 << 7,
+  tflag_ftmpl     = 1 << 8,
+  tflag_ntmpl     = 1 << 9, // do NOT need types
+  tflag_udef      = 1 << 10,
+  tflag_cdef      = 1 << 11,
+  tflag_struct    = 1 << 12,
+  tflag_ctor      = 1 << 13,
+  tflag_dtor      = 1 << 14,
+  tflag_tmpl      = 1 << 15,
+  tflag_typedef   = 1 << 16,
+  tflag_distinct  = 1 << 17,
+  tflag_noret     = 1 << 18,
+  tflag_contract  = 1 << 19,
+  tflag_float     = 1 << 20,
+  tflag_union     = 1 << 21,
+  tflag_ref       = 1 << 22,
+  tflag_packed    = 1 << 23,
+  tflag_compound  = 1 << 24,
+  tflag_release   = 1 << 25, // mark structs that need release
+  tflag_primitive = 1 << 26, // mark structs that need release
 } __attribute__((packed));
 
 struct Type_ {

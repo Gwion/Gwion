@@ -113,7 +113,7 @@ ANN m_bool gwion_ini(const Gwion gwion, CliArg *arg) {
   gwion->ppa = mp_calloc(gwion->mp, PPArg);
   pparg_ini(gwion->mp, gwion->ppa);
   gwion_core(gwion);
-  gwion->data = new_gwiondata(gwion->mp);
+  gwion->data = new_gwiondata(gwion->mp, arg->thread_count, arg->queue_size);
   gwion->type = (Type *)xcalloc(MAX_TYPE, sizeof(struct Type_ *));
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   new_passes(gwion);

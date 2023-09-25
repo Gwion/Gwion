@@ -19,4 +19,10 @@ typedef struct HMapInfo {
   m_uint sz;
 } HMapInfo;
 
+ANN static inline void dict_alloc(MemPool mp, const M_Object o, const m_uint sz, const m_uint capacity) {
+  HMap *hmap = &*(struct HMap*)o->data;
+  hmap->data  = (m_bit*)mp_calloc2(mp, sz * capacity);
+  hmap->state = (m_bit*)mp_calloc2(mp, sizeof(HState) * capacity);
+  hmap->capacity = capacity;
+}
 #endif

@@ -32,6 +32,8 @@ enum {
   DEBUG,
   DUMP,
   CDOC,
+  THREAD,
+  QUEUE,
   NOPTIONS
 };
 
@@ -208,6 +210,10 @@ static void setup_options(cmdapp_t *app, cmdopt_t *opt) {
              &opt[DUMP]);
   cmdapp_set(app, 'H', "cdoc", CMDOPT_MAYTAKEARG, NULL, "set/unset cdoc mode", "bool",
              &opt[CDOC]);
+  cmdapp_set(app, 't', "thread_count", CMDOPT_TAKESARG, NULL, "set number of threads", "integer",
+             &opt[THREAD]);
+  cmdapp_set(app, 'q', "queue_size", CMDOPT_TAKESARG, NULL, "set threadpool queue_size", "integer",
+             &opt[QUEUE]);
 }
 
 static inline void add2arg(CliArg *const arg, const char *data,
@@ -337,6 +343,12 @@ static void myproc(void *data, cmdopt_t *option, const char *arg) {
       break;
     case 'H':
       get_cdoc(arg_int->gwion, option->value);
+      break;
+    case 't':
+      _arg->thread_count = (uint32_t)ARG2INT(option->value);
+      break;
+    case 'q':
+      _arg->queue_size = (uint32_t)ARG2INT(option->value);
       break;
     }
   }

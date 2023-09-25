@@ -1,28 +1,28 @@
 #ifndef __IMPORT
 #define __IMPORT
 
-typedef void (*f_xtor)(const M_Object, const m_bit *, const VM_Shred);
-typedef void (*f_mfun)(const M_Object, const m_bit *, const VM_Shred);
-typedef void (*f_sfun)(const m_bit *, const m_bit *, const VM_Shred);
-typedef void (*f_gack)(const Type, const m_bit *, const VM_Shred);
+typedef void (*f_xtor)(const M_Object, m_bit *const, const VM_Shred);
+typedef void (*f_mfun)(const M_Object, m_bit *const, const VM_Shred);
+typedef void (*f_sfun)(const m_bit *,  m_bit *const, const VM_Shred);
+typedef void (*f_gack)(const Type,     m_bit *const, const VM_Shred);
 typedef void (*f_xfun)();
 typedef struct Gwi_ *Gwi;
 
 #define MFUN(a)                                                                \
-  ANN void a(const M_Object o NUSED, const m_bit *RETURN NUSED,                \
+  ANN void a(const M_Object o NUSED, m_bit *const RETURN NUSED,                \
              const VM_Shred shred NUSED)
 #define SFUN(a)                                                                \
-  ANN void a(const M_Object o NUSED, const m_bit *RETURN NUSED,                \
+  ANN void a(const M_Object o NUSED, m_bit *const RETURN NUSED,                \
              const VM_Shred shred NUSED)
 #define CTOR(a)                                                                \
-  ANN void a(const M_Object o NUSED, const m_bit *_ NUSED,                     \
+  ANN void a(const M_Object o NUSED, m_bit *const _ NUSED,                     \
              const VM_Shred shred NUSED)
 #define DTOR(a)                                                                \
-  ANN void a(const M_Object o NUSED, const m_bit *_ NUSED,                     \
+  ANN void a(const M_Object o NUSED, m_bit *const _ NUSED,                     \
              const VM_Shred shred NUSED)
 #define GACK(a)                                                                \
   ANN2(2)                                                                      \
-  void a(const Type t NUSED, const m_bit *VALUE NUSED,                         \
+  void a(const Type t NUSED, m_bit *const VALUE NUSED,                         \
          const VM_Shred shred NUSED)
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void *data NUSED)
 #define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void *data NUSED)
