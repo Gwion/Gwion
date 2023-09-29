@@ -15,8 +15,11 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
 
 ANN static void clean_type_list(Clean *a, Type_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    Type_Decl *td = *mp_vector_at(b, Type_Decl*, i);
-    clean_type_decl(a, td);
+    TmplArg arg = *mp_vector_at(b, TmplArg, i);
+    if(arg.type == tmplarg_td)
+      clean_type_decl(a, arg.d.td);
+    else if(arg.type == tmplarg_exp)
+      clean_exp(a, arg.d.exp);
   }
 }
 

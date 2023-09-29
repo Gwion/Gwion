@@ -12,12 +12,13 @@
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   const Array_Sub array = td->array;
   td->array = NULL;
-  Type_List tl  = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
-  mp_vector_set(tl, Type_Decl*, 0, td);
+  Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
+  mp_vector_set(tl, TmplArg, 0, arg);
   Type_Decl         tmp = {
       .xid = insert_symbol("Option"), .types = tl, .pos = td->pos};
   const Type t = !(n - 1) ? known_type(env, &tmp) : _option(env, &tmp, n - 1);
-  free_mp_vector(env->gwion->mp, Type_Decl*, tl);
+  free_mp_vector(env->gwion->mp, TmplArg, tl);
   td->array = array;
   return t;
 }
@@ -31,11 +32,12 @@ ANN static Type option(const Env env, Type_Decl *td) {
 }
 
 ANN static Type _ref(const Env env, Type_Decl *td) {
-  Type_List tl  = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
-  mp_vector_set(tl, Type_Decl*, 0, td);
+  Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
+  mp_vector_set(tl, TmplArg, 0, arg);
   Type_Decl tmp = {.xid = insert_symbol("Ref"), .types = tl, .pos = td->pos};
   const Type t = known_type(env, &tmp);
-  free_mp_vector(env->gwion->mp, Type_Decl*, tl);
+  free_mp_vector(env->gwion->mp, TmplArg, tl);
   return t;
 }
 

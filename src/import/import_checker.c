@@ -133,14 +133,19 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 
 ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc);
 ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
-  Type_Decl *td = _str2td(gwion, tdc);
-  if (!td) GWION_ERR_B(tdc->pos, "invalid types");
-  mp_vector_add(gwion->mp, tl, Type_Decl*, td);
-  if (*tdc->str == ',') {
-    ++tdc->str;
-    if (!str2tl(gwion, tdc, tl))
-      return false;
-  }
+  if(isalpha(*tdc->str)) {
+    TmplArg targ = {
+      .type = tmplarg_td,
+      .d = { .td = _str2td(gwion, tdc) }
+    };
+    if (!targ.d.td) GWION_ERR_B(tdc->pos, "invalid types");
+    mp_vector_add(gwion->mp, tl, TmplArg, targ);
+    if (*tdc->str == ',') {
+      ++tdc->str;
+      if (!str2tl(gwion, tdc, tl))
+        return false;
+    }
+  } else exit(6);
   return true;
 }
 
@@ -152,7 +157,7 @@ ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
     return (Type_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = new_mp_vector(gwion->mp, Type_Decl*, 0);
+  Type_List tl = new_mp_vector(gwion->mp, TmplArg, 0);
   if (!str2tl(gwion, tdc, &tl)) {
     free_type_list(gwion->mp, tl);
     return (Type_List)GW_ERROR;
@@ -281,7 +286,7 @@ ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
 
 struct td_info {
   Type_List tl;
-  GwText    text;
+  Gwfmt     *fmt;
 };
 
 ANN static void td_fullname(const Env env, GwText *text, const Type t) {
@@ -295,15 +300,13 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
 
 ANN static m_bool td_info_run(const Env env, struct td_info *info) {
   Type_List tl = info->tl;
-  if(unlikely(!tl->len)) {
-    text_add(&info->text, "");
-    return GW_OK;
-  }
   for(uint32_t i = 0; i < tl->len; i++) {
-    if (i) text_add(&info->text, ",");
-    DECL_OB(Type_Decl *, td, = *mp_vector_at(tl, Type_Decl*, i));
-    DECL_OB(const Type, t, = known_type(env, td));
-    td_fullname(env, &info->text, t);
+    if (i) text_add(&info->fmt->ls->text, ",");
+    TmplArg targ = *mp_vector_at(tl, TmplArg, i);
+    if(targ.type == tmplarg_td) {
+      DECL_OB(const Type, t, = known_type(env, targ.d.td));
+      td_fullname(env, &info->fmt->ls->text, t);
+    } else gwfmt_exp(info->fmt, targ.d.exp);
   }
   return GW_OK;
 }
@@ -318,10 +321,12 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
 
 ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl,
                       const loc_t pos NUSED) {
-  struct td_info info = {.tl = tl};
-  text_init(&info.text, gwion->mp);
+  struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
+  text_init(&ls.text, gwion->mp);
+  Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
+  struct td_info info = {.tl = tl, .fmt = &l };
   CHECK_BO(td_info_run(gwion->env, &info));
-  return info.text.str;
+  return ls.text.str;
 }
 
 ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {

@@ -23,12 +23,13 @@ ANN static m_bool _push_types(const Env env, const Nspc nspc,
   if(!tl) return GW_OK;
   for(uint32_t i = 0; i < len; i++) {
     if (i >= tl->len) return GW_OK;
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    const Type t = known_type(env, td);
+    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    if(unlikely(arg.type == tmplarg_exp)) continue;
+    const Type t = known_type(env, arg.d.td);
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     nspc_add_type(nspc, spec->xid, t);
   };
-if(len != sl->len) return GW_OK;
+  if(len != sl->len) return GW_OK;
   return tl->len == sl->len ? GW_OK : GW_ERROR;
 }
 
@@ -59,22 +60,33 @@ ANN m_bool template_push(const Env env, const Type t) {
    return _template_push(env, t);
 }
 
+#include <ctype.h>
 ANN void check_call(const Env env, const Tmpl *tmpl) {
   for(uint32_t i = 0; i < tmpl->call->len; i++) {
-    Specialized *spec = mp_vector_at(tmpl->list, Specialized, i);
-    Type_Decl *call = *mp_vector_at(tmpl->call, Type_Decl*, i);
-    if(spec->xid == call->xid) {
-      if (!nspc_lookup_type1(env->curr, spec->xid))
-        call->xid = insert_symbol("auto");
-      else {
-         const Type t = nspc_lookup_type1(env->curr, spec->xid);
-         Type_Decl *td = type2td(env->gwion, t, call->pos);
-         free_type_decl(env->gwion->mp, call);
-         mp_vector_set(tmpl->call, Type_Decl*, i, td);
+    Specialized *spec = i < tmpl->list->len
+       ? mp_vector_at(tmpl->list, Specialized, i)
+       : NULL;
+    TmplArg *targ = mp_vector_at(tmpl->call, TmplArg, i);
+    if(spec && strcmp(s_name(spec->xid), "...")) {
+      //spec->is_const) exit(12);
+      if(spec->xid == targ->d.td->xid) {
+        if (!nspc_lookup_type1(env->curr, spec->xid))
+          targ->d.td->xid = insert_symbol("auto");
+        else {
+           const Type t = nspc_lookup_type1(env->curr, spec->xid);
+           Type_Decl *td = type2td(env->gwion, t, targ->d.td->pos);
+           free_type_decl(env->gwion->mp, targ->d.td);
+           targ->d.td = td;
+        }
       }
+    } else {
+      //if(targ->type == tmplarg_td)
+      //  targ->d.td->xid = insert_symbol("auto");
+      //else what
     }
   }
 }
+
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
   if (tmpl->call) check_call(env, tmpl);
@@ -144,15 +156,69 @@ ANN2(1,2) static m_bool check_tmpl(const Env env, const Type_List tl, const Spec
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
      ERR_B(pos, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
-    Type_Decl *tmp = *mp_vector_at(tl, Type_Decl*, i);
-    DECL_OB(const Type, t, = known_type(env, tmp));
+    TmplArg *arg = mp_vector_at(tl, TmplArg, i);
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if(spec->traits) {
-      Symbol missing = miss_traits(t, spec);
-      if (missing) {
-        ERR_B(pos, "does not implement requested trait '{/}%s{0}'",
-              s_name(missing));
+    if(arg->type == tmplarg_td) {
+
+    // could be an enum or smth
+      if(spec->td) {
+
+Type_Decl *base = arg->d.td;
+Type_Decl *next = base;
+Type_Decl *last = next->next;
+while(next && last) {
+  if(!last->next) break;
+  last = last->next;
+  next = next->next;
+}
+
+if(last) {
+  next->next = NULL;
+const Type t = known_type(env, base);
+// check no array?
+// no template?
+if(t) {
+  arg->type = tmplarg_exp;
+  Exp e = new_exp_td(env->gwion->mp, base, base->pos);
+  arg->d.exp = new_exp_dot(env->gwion->mp, e, last->xid, base->pos);
+free_type_decl(env->gwion->mp, last);
+//  arg->d
+
+//turn into an exp;
+i--;continue;
+}
+  next->next = last;
+
+}
+
+//exit(3);
+        ERR_B(pos, "template type argument mismatch. expected %s",
+              spec->td ? "constant" : "type");
       }
+
+      DECL_OB(const Type, t, = known_type(env, arg->d.td));
+      if(spec->traits) {
+        Symbol missing = miss_traits(t, spec);
+        if (missing) {
+          ERR_B(pos, "does not implement requested trait '{/}%s{0}'",
+              s_name(missing));
+        }
+      }
+    } else {
+        if(!spec->td) {
+          ERR_B(pos, "template const argument mismatch. expected %s",
+              spec->td ? "constant" : "type");
+      }
+
+      DECL_OB(const Type, t, = known_type(env, spec->td));
+CHECK_OB(check_exp(env, arg->d.exp));
+//      DECL_OB(const Type, t, = nspc_lookup_valueh);
+if(isa(arg->d.exp->type,t) < 0)
+          ERR_B(pos, "invalid type %s for template argument. expected %s",
+              arg->d.exp->type->name, t->name);
+  
+// exit(13);
+//puts("we could check here");
     }
   }
   return GW_OK;
@@ -170,7 +236,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
       if(!d->types) {
         if(!single_variadic)
           ERR_O(td->pos, _("you must provide template types for type '%s'"), t->name);
-        d->types = new_mp_vector(env->gwion->mp, Type_Decl*, 0);
+        d->types = new_mp_vector(env->gwion->mp, TmplArg, 0);
       }
       const Type ret = _scan_type(env, t, d);
       free_type_decl(env->gwion->mp, new_td);

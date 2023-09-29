@@ -228,22 +228,24 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   return true;
 }
 
+ANN static void op_tmpl_set(const Gwion gwion, Type_List tl,
+      const Type t, const loc_t pos, const uint32_t idx) {
+  TmplArg arg = {.type = tmplarg_td, .d = { .td = type2td(gwion, t, pos)}};
+  mp_vector_set(tl, TmplArg, idx, arg);
+}
+
 //! make template operator Func_def
 ANN static Type op_def(const Env env, struct Op_Import *const opi,
                 const Func_Def fdef) {
   const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
   tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
-    Type_Decl*, fdef->base->tmpl->list->len);
+    TmplArg, fdef->base->tmpl->list->len); // we need to check op def for type, maybe
   if (opi->lhs) {
-     uint32_t idx = 0;
-     const Type lhs = find_type(env, mp_vector_at(fdef->base->args, Arg, 0)->td);
-     if(!lhs)
-       mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, idx++, type2td(env->gwion, opi->lhs, opi->pos));
-     const Type rhs = find_type(env, mp_vector_at(fdef->base->args, Arg, 1)->td);
-     if(!rhs)
-       mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, idx, type2td(env->gwion, opi->rhs, opi->pos));
+     op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->lhs, opi->pos, 0);
+     if(opi->rhs)
+       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->pos, 1);
   } else
-     mp_vector_set(tmpl_fdef->base->tmpl->call, Type_Decl*, 0, type2td(env->gwion, opi->rhs, opi->pos));
+       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->pos, 0);
   if (traverse_func_def(env, tmpl_fdef) < 0) {
     if (!tmpl_fdef->base->func) func_def_cleaner(env->gwion, tmpl_fdef);
     return NULL;
@@ -484,4 +486,14 @@ ANN void op_cpy(const Env env, const struct Op_Import *opi) {
   op_visit(env->gwion->mp, opi->lhs->info->value->from->owner, opi, &visited);
   op_visit(env->gwion->mp, env->curr, opi, &visited);
   vector_release(&visited);
+}
+
+ANN m_bool add_op_func_check(const Env env, const Type t, const struct Op_Func *opfunc, const m_uint idx) {
+  const Func f = (Func)vector_at(&t->nspc->vtable, idx);
+  const struct Op_Import opi = {
+      .rhs  = f->value_ref->type,
+      .func = opfunc,
+      .data = (uintptr_t)f,
+      .op   = insert_symbol(env->gwion->st, "@func_check")};
+  return add_op(env->gwion, &opi);
 }

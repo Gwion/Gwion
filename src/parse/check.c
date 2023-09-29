@@ -751,7 +751,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
   Specialized_List sl = tm->list;
   const bool spread = is_spread_tmpl(fdef->base->tmpl);
   const uint32_t len = sl->len - spread;
-  Type_List    tl = new_mp_vector(env->gwion->mp, Type_Decl*, len);
+  Type_List    tl = new_mp_vector(env->gwion->mp, TmplArg, len);
   m_uint       args_number = 0;
 
   if(exp->other) {
@@ -760,15 +760,21 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
       if (tmpl_arg_match(env, spec->xid, fdef->base->td->xid, fdef->base->ret_type)) {
         CHECK_OO(check_exp(env, exp->other));
          if(!is_func(env->gwion, exp->other->type)) {
-           Type_Decl *td = type2td(env->gwion, exp->other->type, fdef->base->td->pos);
-           mp_vector_set(tl, Type_Decl*, 0, td);
+           TmplArg targ = {
+             .type = tmplarg_td,
+             .d = { .td = type2td(env->gwion, exp->other->type, fdef->base->td->pos) }
+           };
+           mp_vector_set(tl, TmplArg, 0, targ);
          } else {
            Func func = exp->other->type->info->func;
            do {
              if(mp_vector_len(func->def->base->args) == 1) {
                Arg *arg = mp_vector_at(func->def->base->args, Arg, 0);
-               Type_Decl *td = cpy_type_decl(env->gwion->mp, arg->td);
-               mp_vector_set(tl, Type_Decl*, 0, td);
+               TmplArg targ = {
+                 .type = tmplarg_td,
+                 .d = { .td = cpy_type_decl(env->gwion->mp, arg->td) }
+               };
+               mp_vector_set(tl, TmplArg, 0, targ);
                break;
              }
            } while((func = func->next));
@@ -787,8 +793,11 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     while (count < args_len && template_arg) {
       Arg *arg = mp_vector_at(args, Arg, count);
       if (tmpl_arg_match(env, spec->xid, arg->td->xid, template_arg->type)) {
-        mp_vector_set(tl, Type_Decl*, args_number,
-          mk_td(env, arg->td, template_arg->type, fdef->base->pos));
+        TmplArg targ = {
+          .type = tmplarg_td,
+          .d = { .td = mk_td(env, arg->td, template_arg->type, fdef->base->pos) }
+        };
+        mp_vector_set(tl, TmplArg, args_number, targ);
         ++args_number;
         break;
       }
@@ -804,7 +813,11 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
     if(fdef->base->args)
     for(uint32_t i = 0; i < fdef->base->args->len && e; i++) e = e->next;
     while(e) {
-      mp_vector_add(env->gwion->mp, &tl, Type_Decl*, type2td(env->gwion, e->type, e->pos));
+      TmplArg targ = {
+        .type = tmplarg_td,
+        .d = { .td = type2td(env->gwion, e->type, e->pos) }
+      };
+      mp_vector_add(env->gwion->mp, &tl, TmplArg, targ);
       e = e->next;
     }
   }
@@ -1130,10 +1143,12 @@ ANN2(1) static inline bool is_partial(const Env env, Exp exp) {
 ANN static bool tl_match(const Env env, const Type_List tl0, const Type_List tl1) {
   if (tl0->len != tl1->len) return false;
   for(uint32_t i = 0; i < tl0->len; i++) {
-    Type_Decl *td0 = *mp_vector_at(tl0, Type_Decl*, i);
-    Type_Decl *td1 = *mp_vector_at(tl1, Type_Decl*, i);
-    if(known_type(env, td0) != known_type(env, td1))
+    TmplArg targ0 = *mp_vector_at(tl0, TmplArg, i);
+    TmplArg targ1 = *mp_vector_at(tl1, TmplArg, i);
+    if (targ0.type != targ1.type) return false;
+    if(targ0.type == tmplarg_td && known_type(env, targ0.d.td) != known_type(env, targ1.d.td))
       return false;
+    // how do we check exps???
   }
   return true;
 }
@@ -2047,25 +2062,6 @@ ANN m_bool check_abstract(const Env env, const Class_Def cdef) {
   }
   return !err ? GW_OK : GW_ERROR;
 }
-/*
-ANN static inline void ctor_effects(const Env env) {
-  const Vector v  = &env->scope->effects;
-  MP_Vector *const w = (MP_Vector*)vector_back(v);
-  if (!w) return;
-  vector_init(&env->class_def->effects);
-  for (uint32_t j = 0; j < w->len; j++) {
-    struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
-    vector_add(&env->class_def->effects, (m_uint)eff->sym);
-  }
-  free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
-  vector_pop(v);
-}
-*/
-ANN static m_bool check_body(const Env env, Section *const section) {
-  const m_bool ret = check_section(env, section);
-//  ctor_effects(env);
-  return ret;
-}
 
 ANN static bool class_def_has_body(Ast ast) {
   const Section *section = mp_vector_at(ast, Section, 0);
@@ -2166,12 +2162,36 @@ ANN static m_bool recursive_type_base(const Env env, const Type t) {
 }
 
 ANN bool check_trait_requests(const Env env, const Type t, const ID_List list, const ValueFrom *from);
+
+ANN static m_bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nspc) {
+  if(tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
+    for(uint32_t i = 0; i < tmpl->list->len; i++) {
+      const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+      if(likely(targ.type == tmplarg_td)) continue;
+      CHECK_OB(check_exp(env, targ.d.exp));
+//      if(isa(targ.d.exp->type, known_type(env, spec)
+      const Specialized spec = *mp_vector_at(tmpl->list, Specialized, i);
+      const Value v = new_value(env, targ.d.exp->type, s_name(spec.xid), targ.d.exp->pos);
+      valuefrom(env, v->from);
+      set_vflag(v, vflag_valid);
+      nspc_add_value(nspc, spec.xid, v);
+//      valid_value(env, spec.xid, v);
+      SET_FLAG(v, const| ae_flag_static);
+      set_vflag(v, vflag_builtin);
+
+      // set value type
+    }
+  }
+  return GW_OK;
+}
+
 ANN static m_bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if (cdef->base.ext) CHECK_BB(cdef_parent(env, cdef));
   if (!tflag(t, tflag_struct)) inherit(t);
+  if(cdef->base.tmpl) CHECK_BB(check_class_tmpl(env, cdef->base.tmpl, cdef->base.type->nspc));
   if (cdef->body) {
-    CHECK_BB(env_body(env, cdef, check_body));
+    CHECK_BB(env_body(env, cdef, check_section));
     if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
 //    if (class_def_has_body(cdef->body))
       set_tflag(t, tflag_ctor);

@@ -799,7 +799,7 @@ static OP_CHECK(opck_array_scan) {
   const Type           t_array = env->gwion->type[et_array];
   const Class_Def      c       = t_array->info->cdef;
   DECL_ON(const Type, base,
-          = ts->t != t_array ? ts->t : known_type(env, *mp_vector_at(ts->td->types, Type_Decl*, 0)));
+          = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
                 "/dev/null", (loc_t) {}, 0);
@@ -818,8 +818,9 @@ static OP_CHECK(opck_array_scan) {
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
   cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
   cdef->base.xid        = sym;
-  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, Type_Decl*, 1);
-  mp_vector_set(cdef->base.tmpl->call, Type_Decl*, 0, type2td(env->gwion, base, (loc_t) {}));
+  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, (loc_t) {})} };
+  mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,

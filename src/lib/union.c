@@ -188,28 +188,14 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_func_arg(gwi, "int", "id"))
   GWI_BB(gwi_func_arg(gwi, "T", "value"))
   GWI_BB(gwi_func_end(gwi, union_new, ae_flag_none))
-  
+
   GWI_BB(gwi_class_end(gwi))
 
-  const Func             f      = (Func)vector_at(&t_union->nspc->vtable, 0);
-  const struct Op_Func   opfunc = {.ck = opck_union_is};
-  const struct Op_Import opi    = {
-      .rhs  = f->value_ref->type,
-      .func = &opfunc,
-      .data = (uintptr_t)f,
-      .pos  = gwi->loc,
-      .op   = insert_symbol(gwi->gwion->st, "@func_check")};
-  CHECK_BB(add_op(gwi->gwion, &opi));
+  const struct Op_Func   opfunc0 = {.ck = opck_union_is};
+  GWI_BB(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
 
-  const Func             f1      = (Func)vector_at(&t_union->nspc->vtable, 1);
   const struct Op_Func   opfunc1 = {.ck = opck_union_new};
-  const struct Op_Import opi1    = {
-      .rhs  = f1->value_ref->type,
-      .func = &opfunc1,
-      .data = (uintptr_t)f1,
-      .pos  = gwi->loc,
-      .op   = insert_symbol(gwi->gwion->st, "@func_check")};
-  CHECK_BB(add_op(gwi->gwion, &opi1));
+  GWI_BB(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))

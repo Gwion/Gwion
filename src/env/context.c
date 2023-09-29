@@ -44,7 +44,7 @@ ANN static void clean(const Nspc nspc, const Env env) {
 
 ANN void unload_context(const Context ctx, const Env env) {
   const Nspc global = ctx->nspc->parent;
-  if(global != env->global_nspc) exit(3);
+  if(global != env->global_nspc) exit(53);
   context_remref(ctx, env->gwion);
   env->curr = (Nspc)vector_pop(&env->scope->nspc_stack);
   const Nspc user = (Nspc)vector_at(&env->scope->nspc_stack, 1);

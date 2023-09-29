@@ -109,8 +109,8 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
     for(uint32_t idx = 0; idx < ra->types->len; idx++) {
       char c[256];
       sprintf(c, "arg%u", idx);
-      Type_Decl *td = *mp_vector_at(ra->types, Type_Decl*, idx);
-      Arg arg = { .td = cpy_type_decl(env->gwion->mp, td), .var_decl = {.xid = insert_symbol(c), /*.value = v*/ }};
+      TmplArg targ = *mp_vector_at(ra->types, TmplArg, idx);
+      Arg arg = { .td = cpy_type_decl(env->gwion->mp, targ.d.td), .var_decl = {.xid = insert_symbol(c), /*.value = v*/ }};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
     fdef->base->args = args;
@@ -181,12 +181,16 @@ ANN static Func _find_template_match(const Env env, const Value v,
   Type_List        tl = exp->tmpl->call;
   Specialized_List sl = f->def->base->tmpl->list;
   for(uint32_t i = 0; i < tl->len; i++) {
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    DECL_OO(const Type, t, = known_type(env, td));
-    if(t->info->traits) {
-      Specialized * spec = mp_vector_at(sl, Specialized, i);
-      if (miss_traits(t, spec)) return NULL;
+    Specialized * spec = mp_vector_at(sl, Specialized, i);
+    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    if(unlikely(spec->td)) {
+// check argument in call exp
+      continue;
+
     }
+    DECL_OO(const Type, t, = known_type(env, arg.d.td));
+    if(t->info->traits && miss_traits(t, spec))
+      return NULL;
   }
   return f;
 }

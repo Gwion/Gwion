@@ -568,6 +568,18 @@ ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   return ret;
 }
 
+ANN m_bool scan2_class_body(const Env env, const Class_Def c) {
+  const Tmpl *tmpl = c->base.tmpl;
+  if(tmpl && tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
+    for(uint32_t i = 0; i < tmpl->list->len; i++) {
+      const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+      if(unlikely(targ.type != tmplarg_td))
+        CHECK_BB(scan2_exp(env, targ.d.exp));
+    }
+  }
+  return scan2_ast(env, &c->body);
+}
+
 ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
@@ -580,7 +592,7 @@ ANN m_bool scan2_class_def(const Env env, const Class_Def cdef) {
     const Tmpl *tmpl = cdef->base.tmpl;
     if(tmpl && tmpl->call && tmpl->call != (Type_List)1 && tmpl->list)
       template_push_types(env, tmpl);
-    const m_bool ret = scan2_ast(env, &c->body);
+    const m_bool ret = scan2_class_body(env, c);
     if(tmpl && tmpl->call && tmpl->call != (Type_List)1 && tmpl->list)
       nspc_pop_type(env->gwion->mp, env->curr);
     env_pop(env, scope);

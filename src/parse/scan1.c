@@ -835,6 +835,33 @@ ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
   return env_body(env, cdef, scan1_section);
 }
 
+ANN static m_bool scan1_class_tmpl(const Env env, const Class_Def c) {
+  Specialized_List sl = c->base.tmpl->list;
+  Type_List tl = c->base.tmpl->call;
+  env_push_type(env, c->base.type);
+  m_bool ret = GW_OK;
+// check len
+  for(uint32_t i = 0; i < sl->len; i++) {
+    const TmplArg targ = *mp_vector_at(tl, TmplArg, i);
+//      const Specialized spec = *mp_vector_at(sl, Specialized, i);
+    if (targ.type == tmplarg_td) continue;
+    if(scan1_exp(env, targ.d.exp) < 0) {
+      ret = GW_ERROR;
+      break;
+    }
+/*
+      const Value v = new_value(env, env->gwion->type[et_int], s_name(spec.xid), targ.d.exp->pos);
+      valuefrom(env, v->from);
+      valid_value(env, spec.xid, v);
+      SET_FLAG(v, const| ae_flag_static);
+      set_vflag(v, vflag_builtin);
+      v->d.num = targ.d.exp->d.prim.d.gwint.num;
+*/
+  }
+  env_pop(env, 0);
+  return ret;
+}
+
 ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   if (tmpl_base(cdef->base.tmpl)) return GW_OK;
   const Type      t = cdef->base.type;
@@ -843,6 +870,7 @@ ANN m_bool scan1_class_def(const Env env, const Class_Def cdef) {
   const Class_Def c = t->info->cdef;
   if (c->base.ext) CHECK_BB(cdef_parent(env, c));
   if (c->body) CHECK_BB(scan1_class_def_body(env, c));
+  if (c->base.tmpl) CHECK_BB(scan1_class_tmpl(env, c));
   return GW_OK;
 }
 

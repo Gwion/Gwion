@@ -167,8 +167,10 @@ ANN static void _fptr_tmpl_push(const Env env, const Func f) {
   Specialized_List sl = tmpl->list;
   for(uint32_t i = 0; i < sl->len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    const Type t = known_type(env, td);
+    // can it be called with consts?
+    if(spec->td) continue;
+    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    const Type t = known_type(env, arg.d.td);
     nspc_add_type(env->curr, spec->xid, t);
   }
 }
@@ -659,8 +661,10 @@ static FREEARG(freearg_dottmpl) {
 
 ANN static bool is_base(const Env env, const Type_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    if(known_type(env, td) == env->gwion->type[et_auto])
+    // can call with const happen?
+    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    if(unlikely(arg.type == tmplarg_exp)) continue;
+    if(known_type(env, arg.d.td) == env->gwion->type[et_auto])
       return true;
   }
   return false;

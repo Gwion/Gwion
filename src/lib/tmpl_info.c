@@ -99,8 +99,9 @@ ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
 
 ANN bool tmpl_global(const Env env, Type_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
-    Type_Decl *td = *mp_vector_at(tl, Type_Decl*, i);
-    const Type t = known_type(env, td);
+    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    if(unlikely(arg.type == tmplarg_exp)) continue;
+    const Type t = known_type(env, arg.d.td);
     if(!t || !type_global(env, t))
       return false;
   }

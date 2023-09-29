@@ -2913,6 +2913,37 @@ ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
   return ret;
 }
 
+static INSTR(set) {
+  Value v = *(Value*)(shred->reg + -SZ_INT);
+  shred->reg -= instr->m_val;
+  memcpy(&v->d.ptr, shred->reg, instr->m_val2);
+}
+
+ANN static m_bool emit_class_tmpl(const Emitter emit, const Tmpl *tmpl, const Nspc nspc) {
+  if(tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
+    emit_push_code(emit, "tmpl");
+    for(uint32_t i = 0; i < tmpl->list->len; i++) {
+      const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+      if(likely(targ.type == tmplarg_td)) continue;
+      CHECK_BB(emit_exp(emit, targ.d.exp));
+      const Specialized spec = *mp_vector_at(tmpl->list, Specialized, i);
+      const Value v = nspc_lookup_value1(nspc, spec.xid);
+      emit_pushimm(emit, (m_uint)v);
+      const Instr instr = emit_add_instr(emit, set);
+      instr->m_val2 = targ.d.exp->type->size;
+      instr->m_val = instr->m_val2 + SZ_INT;
+    }
+    VM_Code code = finalyze(emit, EOC);
+    VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
+    vm_add_shred(emit->gwion->vm, shred);
+    const bool loop = emit->gwion->vm->shreduler->loop;
+    vm_run(emit->gwion->vm);
+    emit->gwion->vm->bbq->is_running = true;
+    emit->gwion->vm->shreduler->loop = loop;
+  }
+  return GW_OK;
+}
+
 ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type      t = cdef->base.type;
   set_tflag(t, tflag_emit);
@@ -2920,6 +2951,7 @@ ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
   if (c->base.ext && t->info->parent->info->cdef &&
       !tflag(t->info->parent, tflag_emit)) // ?????
     CHECK_BB(cdef_parent(emit, c));
+  if (c->base.tmpl) CHECK_BB(emit_class_tmpl(emit, c->base.tmpl, c->base.type->nspc));
   if (c->body)
     return scanx_body(emit->env, c, (_exp_func)emit_section, emit);
   return GW_OK;

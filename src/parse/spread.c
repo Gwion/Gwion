@@ -17,10 +17,12 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
   DECL_OB(FILE *,f, = fmemopen(data, strlen(data), "r"));
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     fseek(f, 0, SEEK_SET);
-    Type_Decl* td = *mp_vector_at(tmpl->call, Type_Decl*, i);
-    DECL_OB(const Type, t, = known_type(env, td));
+    const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+    // skip or error on const?
+    // or do smth else?
+    DECL_OB(const Type, t, = known_type(env, targ.d.td));
     struct AstGetter_ arg =  {env->name, f, env->gwion->st, .ppa = env->gwion->ppa};
-    const m_str type = type2str(env->gwion, t, td->pos);
+    const m_str type = type2str(env->gwion, t, targ.d.td->pos);
     sprintf(c, "%s=%s", s_name(spread->xid), type);
     free_mstr(env->gwion->mp, type);
     pparg_add(env->gwion->ppa, c);

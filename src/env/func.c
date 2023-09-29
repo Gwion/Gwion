@@ -40,14 +40,20 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
   f->code = new_vmcode(gwion->mp, NULL, NULL, f->name, f->def->stack_depth, true, false);
   f->code->native_func = (m_uint)func_ptr;
   f->code->ret_type = f->def->base->ret_type;
-  if(f->def->base->tmpl && f->def->base->tmpl->call) {
+  if(f->def->base->tmpl) {
+    const Type_List tl = f->def->base->tmpl->call;
+    if(!tl) return;
     const Specialized *spec = mp_vector_at(f->def->base->tmpl->list, Specialized, f->def->base->tmpl->list->len - 1);
     if(!strcmp(s_name(spec->xid), "...")) {
-      f->code->types = new_mp_vector(gwion->mp, Type_Decl*, f->def->base->tmpl->call->len);
-      for(uint32_t i = 0; i < f->def->base->tmpl->call->len; i++)  {
-        Type_Decl *const td = *mp_vector_at(f->def->base->tmpl->call, Type_Decl*, i);
-        mp_vector_set(f->code->types, Type, i, known_type(gwion->env, td));
+      const uint32_t len = tmplarg_ntypes(tl);
+      f->code->types = new_mp_vector(gwion->mp, Type, len);
+      uint32_t n = 0;
+      for(uint32_t i = 0; i < tl->len; i++)  {
+        const TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+        if(likely(arg.type == tmplarg_td))
+          mp_vector_set(f->code->types, Type, n++, known_type(gwion->env, arg.d.td));
       }
+//      f->code->types->len = n;
     }
   }
 }
