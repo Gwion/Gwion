@@ -97,4 +97,5 @@ ANN static inline void set_decl_ref(const Exp e) {
 }
 
 ANN void func_operator(const Func_Def fdef, struct Op_Import *opi);
+ANN m_bool add_op_func_check(const Env env, const Type t, const struct Op_Func *opfunc, const m_uint idx);
 #endif
