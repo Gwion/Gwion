@@ -144,11 +144,11 @@ static OP_CHECK(opck_array_at) {
       ERR_N(exp_self(bin)->pos, _("array depths do not match."));
   }
   if (bin->rhs->exp_type == ae_exp_decl) {
-    Type_Decl *td = bin->rhs->d.exp_decl.td;
+    Type_Decl *td = bin->rhs->d.exp_decl.var.td;
     if (td->array && td->array->exp)
       ERR_N(exp_self(bin)->pos,
             _("do not provide array for 'xxx => declaration'."));
-    SET_FLAG(bin->rhs->d.exp_decl.vd.value, late);
+    SET_FLAG(bin->rhs->d.exp_decl.var.vd.value, late);
   }
   bin->rhs->ref = bin->lhs;
 //  bin->rhs->data = bin->lhs;
@@ -264,7 +264,7 @@ static OP_CHECK(opck_array_cast) {
   Type parent = t;
   while(parent) {
     if (tflag(parent, tflag_cdef) && parent->info->cdef->base.ext && parent->info->cdef->base.ext->array) {
-      ERR_N(cast->td->pos, "can only cast to simple array types");
+      ERR_N(cast->td->tag.loc, "can only cast to simple array types");
     }
     parent = parent->info->parent;
   }
@@ -816,10 +816,10 @@ static OP_CHECK(opck_array_scan) {
   const Type   type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if (type) return type;
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
-  cdef->base.ext        = type2td(env->gwion, t_array, (loc_t) {});
-  cdef->base.xid        = sym;
+  cdef->base.ext        = type2td(env->gwion, t_array, (loc_t){});
+  cdef->base.tag.sym    = sym;
   cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, TmplArg, 1);
-  TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, (loc_t) {})} };
+  TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, (loc_t){})} };
   mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
@@ -840,8 +840,8 @@ static OP_CHECK(opck_array_scan) {
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);
   set_tflag(t, tflag_cdef | tflag_tmpl);
-  
-  builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), get_rem(t)); 
+
+  builtin_func(env->gwion, (Func)vector_at(&t->nspc->vtable, 0), get_rem(t));
   array_func(env, t, "insert", get_insert(t));
   array_func(env, t, "size", vm_vector_size);
   array_func(env, t, "depth", vm_vector_depth);
@@ -1193,7 +1193,7 @@ ANN static bool last_is_zero(Exp e) {
 ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, const Exp args) {
   if (!last_is_zero(td->array->exp)) {
     if (!args)
-      ERR_B(td->pos, "declaration of abstract type arrays needs lambda");
+      ERR_B(td->tag.loc, "declaration of abstract type arrays needs lambda");
   } else {
     if(args)
       gwerr_warn("array is empty", "no need to provide a lambda",

@@ -1,4 +1,3 @@
-
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -32,7 +31,7 @@ static OP_CHECK(opck_object_at) {
   if (opck_rassign(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
   if (bin->rhs->exp_type == ae_exp_decl) {
-    Var_Decl vd = bin->rhs->d.exp_decl.vd;
+    Var_Decl vd = bin->rhs->d.exp_decl.var.vd;
     SET_FLAG(vd.value, late);
   }
   exp_setvar(bin->rhs, 1);
@@ -46,14 +45,14 @@ static OP_CHECK(opck_object_instance) {
   Exp rhs = bin->rhs;
   if (rhs->exp_type != ae_exp_decl)
     return NULL;
-  if (rhs->d.exp_decl.td->array)
+  if (rhs->d.exp_decl.var.td->array)
     return NULL;
   Exp lhs = bin->lhs;
   Exp e = exp_self(bin);
   Exp_Decl *const decl = &e->d.exp_decl;
   e->exp_type = ae_exp_decl;
-  decl->td = cpy_type_decl(env->gwion->mp, rhs->d.exp_decl.td);
-  decl->vd = rhs->d.exp_decl.vd;
+  decl->var.td = cpy_type_decl(env->gwion->mp, rhs->d.exp_decl.var.td);
+  decl->var.vd = rhs->d.exp_decl.var.vd;
   decl->type = rhs->type;
   decl->args = lhs;
   free_exp(env->gwion->mp, rhs);
@@ -94,7 +93,8 @@ ANN /*static*/ Type scan_class(const Env env, const Type t,
 
 static OP_CHECK(opck_struct_scan) {
   struct TemplateScan *ts = (struct TemplateScan *)data;
-  if(ts->t->info->cdef->base.tmpl->call) return ts->t;
+  const Tmpl *tmpl = get_tmpl(ts->t);
+  if(tmpl->call) return ts->t;
   return scan_class(env, ts->t, ts->td) ?: env->gwion->type[et_error];
 }
 
@@ -119,7 +119,7 @@ ANN static void emit_dottmpl(const Emitter emit, const Func f) {
   struct dottmpl_ *dt = mp_malloc(emit->gwion->mp, dottmpl);
   dt->nspc = emit->env->curr;
   dt->type = emit->env->class_def;
-  dt->tmpl_name = tl2str(emit->gwion, f->def->base->tmpl->call, f->def->base->pos);
+  dt->tmpl_name = tl2str(emit->gwion, f->def->base->tmpl->call, f->def->base->tag.loc);
   instr->m_val2 = (m_uint)dt;
 }
 
@@ -279,7 +279,7 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def cdef = new_class_def(
       env->gwion->mp, c->flag, info->name,
       c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
-      NULL, c->pos);
+      NULL, c->base.tag.loc);
   if(c->body) cdef->body = cpy_ast(env->gwion->mp, c->body);
   cdef->cflag      = c->cflag;
   cdef->base.tmpl  = mk_tmpl(env, c->base.tmpl, info->td->types);
@@ -295,8 +295,8 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u    = info->base->info->udef;
   const Union_Def udef = new_union_def(
-      env->gwion->mp, cpy_union_list(env->gwion->mp, u->l), u->pos);
-  udef->xid  = info->name;
+      env->gwion->mp, cpy_variable_list(env->gwion->mp, u->l), u->tag.loc);
+  udef->tag.sym  = info->name;
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
   // resolve the template here
   if (GET_FLAG(info->base, global)) SET_FLAG(udef, global);
@@ -320,7 +320,7 @@ ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
 
 ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   struct tmpl_info info = {
-      .base = t, .td = td, .list = t->info->cdef->base.tmpl->list};
+      .base = t, .td = td, .list = get_tmpl(t)->list};
   const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es    = {.env   = env,

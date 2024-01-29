@@ -1,7 +1,6 @@
 #ifndef __GWION
 #define __GWION
 
-// typedef struct Gwion_* Gwion;
 #include "arg.h"
 #include "plug.h"
 #include "driver.h"
@@ -49,5 +48,11 @@ ANN static inline void shred_pool_run(const VM_Shred shred, void (*fun)(void*), 
   threadpool_add(shred->info->vm->gwion->data->tpool, fun, arg);
 }
 
+typedef struct {
+  VM_Shred shred;
+  m_bit *mem;
+  m_bit *RETURN;
+  MemPool mp;
+} TpShredInfo;
 
 #endif

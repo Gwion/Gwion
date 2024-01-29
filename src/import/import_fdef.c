@@ -101,7 +101,7 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
   DECL_OB(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n) > 0) {
-    Arg arg = { .td = td, .var_decl = var };
+    Arg arg = { .var = MK_VAR(td, var) };
     mp_vector_add(gwi->gwion->mp, &gwi->ck->mpv, Arg, arg);
     return GW_OK;
   }

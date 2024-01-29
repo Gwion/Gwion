@@ -22,8 +22,8 @@ ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, const E
       char c[256];
       sprintf(c, "@%u", args->len);
       const Arg *src = mp_vector_at(base, Arg, i);
-      Type_Decl *td = src->td ? cpy_type_decl(env->gwion->mp, src->td) : NULL;
-      Arg arg = { .td = td, .var_decl = { .xid = insert_symbol(c) }};
+      Type_Decl *td = src->var.td ? cpy_type_decl(env->gwion->mp, src->var.td) : NULL;
+      Arg arg = { .var = MK_VAR(td, (Var_Decl){ .tag = MK_TAG(insert_symbol(c), src->var.vd.tag.loc)})};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
     i++;
@@ -49,7 +49,7 @@ ANN static Exp partial_exp(const Env env, Arg_List args, Exp e, const uint i) {
     char c[256];
     sprintf(c, "@%u", i);
     const Exp exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
-    exp->type = known_type(env, mp_vector_at(args, Arg, i)->td);
+    exp->type = known_type(env, mp_vector_at(args, Arg, i)->var.td);
     exp->d.prim.value = new_value(env, exp->type, c, e->pos);
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
@@ -117,7 +117,7 @@ ANN static void print_arg(Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
     gw_err("{G}%s{0} {/}%s{0}", arg->type ? arg->type->name : NULL,
-           arg->var_decl.xid ? s_name(arg->var_decl.xid) : "");
+           arg->var.vd.tag.sym ? s_name(arg->var.vd.tag.sym) : "");
     if(i < args->len - 1) gw_err(", ");
   }
 }

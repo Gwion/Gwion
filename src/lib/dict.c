@@ -17,6 +17,7 @@
 #include "array.h"
 #include "looper.h"
 #include "dict.h"
+#include "template.h"
 
 #define HMAP_MIN_CAP 32
 #define HMAP_MAX_LOAD 0.75
@@ -554,19 +555,20 @@ static OP_CHECK(opck_dict_each_val) {
 
 static OP_CHECK(opck_dict_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
-  if(ts->t->info->cdef->base.tmpl->call) return ts->t;
+  const Tmpl *tmpl = get_tmpl(ts->t);
+  if(tmpl->call) return ts->t;
   struct tmpl_info     info = {
-      .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
+      .base = ts->t, .td = ts->td, .list = tmpl->list};
   const Type  exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   if(!ts->td->types || ts->td->types->len != 2) return env->gwion->type[et_error];
   DECL_ON(const Type, key, = known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   DECL_ON(const Type, val, = known_type(env, mp_vector_at(ts->td->types, TmplArg, 1)->d.td));
   if(tflag(key, tflag_ref) || tflag(val, tflag_ref))
-    ERR_N(ts->td->pos, "can't use Ref:[] in dicts");
+    ERR_N(ts->td->tag.loc, "can't use Ref:[] in dicts");
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, env->gwion->type[et_dict]->info->cdef);
-  cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], (loc_t) {});
-  cdef->base.xid        = info.name;
+  cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], (loc_t){});
+  cdef->base.tag.sym    = info.name;
   cdef->base.tmpl->call = cpy_type_list(env->gwion->mp, info.td->types);
 
   const bool is_global = tmpl_global(env, ts->td->types);

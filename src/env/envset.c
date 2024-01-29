@@ -29,9 +29,10 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
              t->info->value->from->ctx ? t->info->value->from->ctx->nspc
                                        : es->env->curr);
   env_push_type((void *)es->env, t); // do not push if is a function?
-  if (tflag(t, tflag_tmpl))
-    CHECK_BB(template_push_types(
-        es->env, t->info->cdef->base.tmpl)); // incorrect templates?
+  if (tflag(t, tflag_tmpl)) {
+    const Tmpl *tmpl = get_tmpl(t);
+    CHECK_BB(template_push_types(es->env, tmpl));
+  }
   return GW_OK;
 }
 

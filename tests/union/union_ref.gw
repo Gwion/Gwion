@@ -1,3 +1,4 @@
+#! [contains] can't declare ref type in union
 union U {
   &int i;
 }

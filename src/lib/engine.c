@@ -138,6 +138,12 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
   GWI_BB(gwi_oper_end(gwi, ".", NULL))
 
+  // allow const generics in functions
+  GWI_BB(gwi_oper_ini(gwi, "function", (m_str)OP_ANY_TYPE, NULL))
+  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
+  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
+  GWI_BB(gwi_oper_end(gwi, ".", NULL))
+
   GWI_BB(gwimport_class(gwi))
 
   gwidoc(gwi, "allow static access.");

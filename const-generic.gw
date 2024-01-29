@@ -1,0 +1,22 @@
+#!enum Enum {
+#!  bar,
+#!  foo
+#!}
+#!class C:[const int N] {
+#!class C:[const Enum N] {
+#!  N :=> var auto n;
+#!  <<< "N:${N} n:${n}" >>>;
+#!}
+
+fun void foo:[T, const float N]() {
+#!   <<< __func__ >>>;
+   <<< N >>>;
+#!  <<< "heyo">>>;
+}
+#!const int i;
+#!new C:[Enum.foo];
+#!new C:[2];
+#!r
+#!foo:[int, Enum.foo]();
+foo:[int, .2]();
+#!foo:[int, 2]();

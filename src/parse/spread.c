@@ -22,8 +22,8 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
     // or do smth else?
     DECL_OB(const Type, t, = known_type(env, targ.d.td));
     struct AstGetter_ arg =  {env->name, f, env->gwion->st, .ppa = env->gwion->ppa};
-    const m_str type = type2str(env->gwion, t, targ.d.td->pos);
-    sprintf(c, "%s=%s", s_name(spread->xid), type);
+    const m_str type = type2str(env->gwion, t, targ.d.td->tag.loc);
+    sprintf(c, "%s=%s", s_name(spread->tag.sym), type);
     free_mstr(env->gwion->mp, type);
     pparg_add(env->gwion->ppa, c);
     for(uint32_t j = 0; j < spread->list->len; j++) {
@@ -32,8 +32,8 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
       sprintf(c, "%s=%s%u", name, name, i);
       pparg_add(env->gwion->ppa, c);
     }
-    Ast ast = parse_pos(&arg, spread->pos);
-    pparg_rem(env->gwion->ppa, s_name(spread->xid));
+    Ast ast = parse_pos(&arg, spread->tag.loc.first);
+    pparg_rem(env->gwion->ppa, s_name(spread->tag.sym));
     for(uint32_t j = 0; j < spread->list->len;j++) {
       const Symbol sym = *mp_vector_at(spread->list, Symbol, j);
       m_str name = s_name(sym);

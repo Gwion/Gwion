@@ -77,13 +77,13 @@ static OP_CHECK(opck_fptr_call) {
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
-  const Value v = nspc_lookup_value1(env->curr, cap->xid);
-  if(!v) ERR_O(cap->pos, _("non existing value")); // did_you_mean
+  const Value v = nspc_lookup_value1(env->curr, cap->tag.sym);
+  if(!v) ERR_O(cap->tag.loc, _("non existing value")); // did_you_mean
   if(cap->is_ref && not_upvalue(env, v))
-    ERR_O(cap->pos, _("can't take ref of a scoped value"));
+    ERR_O(cap->tag.loc, _("can't take ref of a scoped value"));
   cap->orig = v;
   const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
-  return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->pos);
+  return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->tag.loc);
 }
 
 ANN void free_captures(const VM_Shred shred, m_bit *const caps) {
@@ -119,17 +119,17 @@ static INSTR(fptr_assign) {
 
 ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Type rhs) {
   const Instr instr = emit_add_instr(emit, fptr_assign);
-  if(rhs->info->cdef && rhs->info->cdef->base.tmpl)
+  if(rhs->info->cdef && get_tmpl(rhs))
     instr->m_val = SZ_INT * 2;
   if(!lhs->info->func) {
     const Func_Def fdef = lhs->info->func->def;
     const Capture_List captures = fdef->captures;
     if(captures) {
       uint32_t offset = 0;
-      Exp e = new_prim_id(emit->gwion->mp, fdef->base->xid, fdef->base->pos); // free me
+      Exp e = new_prim_id(emit->gwion->mp, fdef->base->tag.sym, fdef->base->tag.loc); // free me
       for(uint32_t i = 0; i < captures->len; i++) {
         Capture *const cap = mp_vector_at(captures, Capture, i);
-        e->d.prim.d.var = cap->xid;
+        e->d.prim.d.var = cap->tag.sym;
         e->d.prim.value = cap->orig;
         e->type = cap->orig->type;
         exp_setvar(e, cap->is_ref);
@@ -171,7 +171,7 @@ ANN static void _fptr_tmpl_push(const Env env, const Func f) {
     if(spec->td) continue;
     TmplArg arg = *mp_vector_at(tl, TmplArg, i);
     const Type t = known_type(env, arg.d.td);
-    nspc_add_type(env->curr, spec->xid, t);
+    nspc_add_type(env->curr, spec->tag.sym, t);
   }
 }
 
@@ -205,7 +205,7 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
     if (arg0->type && arg1->type)
       CHECK_BB(isa(arg0->type, arg1->type));
     else if(!tmpl_base(base[0]->tmpl) && !tmpl_base(base[1]->tmpl)){
-      Type_Decl *td[2] = {arg0->td, arg1->td};
+      Type_Decl *td[2] = {arg0->var.td, arg1->var.td};
       CHECK_BB(td_match(env, td));
     }
   }
@@ -246,12 +246,12 @@ ANN static inline m_bool fptr_rettype(const Env env, struct FptrInfo *info) {
 ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   const Value v     = info->lhs->value_ref;
   const Nspc  nspc  = v->from->owner;
-  const m_str c     = s_name(info->lhs->def->base->xid),
+  const m_str c     = s_name(info->lhs->def->base->tag.sym),
               stmpl = !info->rhs->def->base->tmpl ? NULL : "template";
   for (m_uint i = 0; i <= v->from->offset; ++i) {
     const Symbol sym = (!info->lhs->def->base->tmpl || i != 0)
                            ? func_symbol(env, nspc->name, c, stmpl, i)
-                           : info->lhs->def->base->xid;
+                           : info->lhs->def->base->tag.sym;
     if (!is_class(env->gwion, info->lhs->value_ref->type)) {
       if (!(info->lhs = nspc_lookup_func1(nspc, sym))) {
         const Value v = nspc_lookup_value1(nspc, insert_symbol(c));
@@ -260,7 +260,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
       }
     } else {
       DECL_OO(const Type, t,
-              = nspc_lookup_type1(nspc, info->lhs->def->base->xid));
+              = nspc_lookup_type1(nspc, info->lhs->def->base->tag.sym));
       info->lhs = actual_type(env->gwion, t)->info->func;
     }
     Type       type    = NULL;
@@ -287,10 +287,10 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     // here move to arguments
     for(uint32_t i = 0; i < l->def->captures->len; i++) {
       Capture *cap = mp_vector_at(l->def->captures, Capture, i);
-      const Value v = nspc_lookup_value1(env->curr, cap->xid);
-      if(!v) ERR_B(cap->pos, _("unknown value in capture"));
+      const Value v = nspc_lookup_value1(env->curr, cap->tag.sym);
+      if(!v) ERR_B(cap->tag.loc, _("unknown value in capture"));
       DECL_OB(const Type, t, = upvalue_type(env, cap));
-      cap->temp = new_value(env, t, s_name(cap->xid), cap->pos);
+      cap->temp = new_value(env, t, s_name(cap->tag.sym), cap->tag.loc);
       cap->orig = v;
     }
   }
@@ -303,16 +303,17 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
                       .flag  = tflag_scan0};
   CHECK_BB(envset_pushv(&es, owner->info->value));
   while(owner) {
-    if(owner->info->cdef->base.tmpl)
-      template_push_types(env, owner->info->cdef->base.tmpl);
+    const Tmpl *tmpl = get_tmpl(owner);
+    if(tmpl)
+      template_push_types(env, tmpl);
     owner = owner->info->value->from->owner_class;
   }
   if(bases) {
     for(uint32_t i = 0; i < bases->len; i++) {
       Arg *base = mp_vector_at(bases, Arg, i);
       Arg *arg  = mp_vector_at(args, Arg, i);
-      DECL_OB(const Type, arg_type, = known_type(env, base->td));
-      arg->td = type2td(env->gwion, arg_type, exp_self(l)->pos);
+      DECL_OB(const Type, arg_type, = known_type(env, base->var.td));
+      arg->var.td = type2td(env->gwion, arg_type, exp_self(l)->pos);
     }
   }
   DECL_OB(const Type, ret_type, = known_type(env, fdef->base->td));
@@ -341,7 +342,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   }
   /*Type*/ owner = fdef->base->func->value_ref->from->owner_class->info->value->from->owner_class;
   while(owner) {
-    if(owner->info->cdef->base.tmpl)
+    if(get_tmpl(owner))
     nspc_pop_type(env->gwion->mp, env->curr);
     owner = owner->info->value->from->owner_class;
   }
@@ -350,8 +351,8 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
         Arg *arg  = mp_vector_at(args, Arg, i);
-        free_value(arg->var_decl.value, env->gwion);
-        arg->var_decl.value = NULL;
+        free_value(arg->var.vd.value, env->gwion);
+        arg->var.vd.value = NULL;
       }
     }
   }
@@ -383,7 +384,7 @@ ANN static Type partial2auto(const Env env, const Exp_Binary *bin) {
   set_fbflag(fdef->base, fbflag_lambda);
   const Type actual = fdef->base->func->value_ref->type;
   set_fbflag(fdef->base, fbflag_lambda);
-  Var_Decl vd = bin->rhs->d.exp_decl.vd;
+  Var_Decl vd = bin->rhs->d.exp_decl.var.vd;
 exp_setvar(bin->rhs, true);
   return vd.value->type = bin->rhs->type = bin->rhs->d.exp_decl.type = actual;
 }
@@ -392,7 +393,7 @@ static OP_CHECK(opck_auto_fptr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   // we'll only deal with auto fptr declaration
   if (bin->rhs->exp_type != ae_exp_decl &&
-      bin->rhs->d.exp_decl.td->xid != insert_symbol("auto"))
+      bin->rhs->d.exp_decl.var.td->tag.sym != insert_symbol("auto"))
     ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
     ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
@@ -411,11 +412,11 @@ static OP_CHECK(opck_auto_fptr) {
             num_digit(bin->rhs->pos.first.column)];
   sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->pos.first.line,
           bin->rhs->pos.first.column);
-  fptr_def->base->xid = insert_symbol(name);
+  fptr_def->base->tag.sym = insert_symbol(name);
   const m_bool ret    = traverse_fptr_def(env, fptr_def);
   const Type   t      = fptr_def->cdef->base.type;
   free_fptr_def(env->gwion->mp, fptr_def);
-  Var_Decl vd = bin->rhs->d.exp_decl.vd;
+  Var_Decl vd = bin->rhs->d.exp_decl.var.vd;
   vd.value->type = bin->rhs->type =
       bin->rhs->d.exp_decl.type                = t;
   return ret > 0 ? t : env->gwion->type[et_error];
@@ -443,7 +444,7 @@ static OP_CHECK(opck_fptr_impl) {
 
 static OP_EMIT(opem_fptr_impl) {
   struct Implicit *impl = (struct Implicit *)data;
-  if(!impl->e->type->info->func->def->base->tmpl && impl->t->info->cdef->base.tmpl) {
+  if(!impl->e->type->info->func->def->base->tmpl && get_tmpl(impl->t)) {
     const Instr instr = (Instr)vector_back(&emit->code->instr);
     instr->opcode = eRegPushImm;
     instr->m_val = (m_uint)impl->e->type->info->func;
@@ -510,14 +511,14 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
       safe_tflag(func->value_ref->from->owner_class, tflag_tmpl);
   if (owner_tmpl)
     template_push_types(
-        env, func->value_ref->from->owner_class->info->cdef->base.tmpl);
+        env, get_tmpl(func->value_ref->from->owner_class));
   const bool func_tmpl = fflag(func, fflag_tmpl);
   if (func_tmpl) template_push_types(env, func->def->base->tmpl);
 
   Arg_List args = func->def->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    if (!arg->type) arg->type = known_type(env, arg->td);
+    if (!arg->type) arg->type = known_type(env, arg->var.td);
   }
   if (!func->def->base->ret_type)
     func->def->base->ret_type = known_type(env, func->def->base->td);
@@ -546,12 +547,12 @@ static OP_CHECK(opck_op_impl) {
       .d        = {.prim = {.d = {.var = lhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg0->type,
-      .pos      = arg0->td->pos};
+      .pos      = arg0->var.td->tag.loc};
   struct Exp_ _rhs = {
       .d        = {.prim = {.d = {.var = rhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg1->type,
-      .pos      = arg1->td->pos};
+      .pos      = arg1->var.td->tag.loc};
   struct Exp_ self = {.pos = impl->e->pos};
   self.d.exp_binary.lhs = &_lhs;
   self.d.exp_binary.rhs = &_rhs;
@@ -586,10 +587,10 @@ static OP_CHECK(opck_op_impl) {
     }
   }
   const Arg_List args = cpy_arg_list(env->gwion->mp, func->def->base->args);
-  Arg *larg0 = (Arg*)(args->ptr);
-  Arg *larg1 = (Arg*)(args->ptr + sizeof(Arg));
-  larg0->var_decl.xid = lhs_sym;
-  larg1->var_decl.xid = rhs_sym;
+  Arg *larg0 = mp_vector_at(args, Arg, 0);
+  Arg *larg1 = mp_vector_at(args, Arg, 1);
+  larg0->var.vd.tag.sym = lhs_sym;
+  larg1->var.vd.tag.sym = rhs_sym;
   Func_Base *base =
       new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
                     impl->e->d.prim.d.var, args, ae_flag_none, impl->e->pos);
@@ -601,9 +602,9 @@ static OP_CHECK(opck_op_impl) {
     free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
   }
   const Exp lhs =
-      new_prim_id(env->gwion->mp, larg0->var_decl.xid, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg0->var.vd.tag.sym, impl->e->pos);
   const Exp rhs =
-      new_prim_id(env->gwion->mp, larg1->var_decl.xid, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg1->var.vd.tag.sym, impl->e->pos);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->pos);
   Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
@@ -613,7 +614,7 @@ static OP_CHECK(opck_op_impl) {
     .pos = impl->e->pos
   }));
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
-  def->base->xid       = impl->e->d.prim.d.var;
+  def->base->tag.sym   = impl->e->d.prim.d.var;
 // use envset
 // or better, some function with envset and traverse
   const m_uint scope   = env_push(env, NULL, opi.nspc);
@@ -673,17 +674,17 @@ ANN static bool is_base(const Env env, const Type_List tl) {
 static OP_CHECK(opck_closure_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
   struct tmpl_info     info = {
-      .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
+      .base = ts->t, .td = ts->td, .list = get_tmpl(ts->t)->list};
   const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const Func_Base *base = closure_def(ts->t)->base;
   const Arg_List args = base->args ? cpy_arg_list(env->gwion->mp, base->args) : NULL;
-  Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), info.name, args, ae_flag_none, base->pos);
+  Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), info.name, args, ae_flag_none, base->tag.loc);
   fbase->tmpl = cpy_tmpl(env->gwion->mp, base->tmpl);
   if(!is_base(env, ts->td->types))
     fbase->tmpl->call = cpy_type_list(env->gwion->mp, ts->td->types);
   const Fptr_Def fdef = new_fptr_def(env->gwion->mp, cpy_func_base(env->gwion->mp, fbase));
-  fdef->base->xid = info.name;
+  fdef->base->tag.sym = info.name;
   struct EnvSet es    = {.env   = env,
                       .data  = env,
                       .func  = (_exp_func)traverse_cdef,

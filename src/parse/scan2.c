@@ -31,14 +31,14 @@ ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
 ANN static m_bool scan2_decl(const Env env, const Exp_Decl *decl) {
   const Type t = decl->type;
   CHECK_BB(ensure_scan2(env, t));
-  const Var_Decl vd   = decl->vd;
-  nspc_add_value(env->curr, vd.xid, vd.value);
+  const Var_Decl vd   = decl->var.vd;
+  nspc_add_value(env->curr, vd.tag.sym, vd.value);
   return GW_OK;
 }
 
 ANN m_bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
   if(decl->args) CHECK_BB(scan2_exp(env, decl->args));
-  const bool   global = GET_FLAG(decl->td, global);
+  const bool   global = GET_FLAG(decl->var.td, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret    = scan2_decl(env, decl);
   if (global) env_pop(env, scope);
@@ -49,7 +49,7 @@ ANN static m_bool scan2_args(const Func_Def f) {
   Arg_List   args   = f->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    const Value v   = arg->var_decl.value;
+    const Value v   = arg->var.vd.value;
     v->from->offset = f->stack_depth;
     f->stack_depth += v->type->size;
     set_vflag(v, vflag_arg);
@@ -278,22 +278,22 @@ ANN static m_bool scan2_func_def_overload(const Env env, const Func_Def f,
                                           const Value overload) {
   if (!is_func(env->gwion, overload->type)) {
     if (!fbflag(f->base, fbflag_internal))
-      ERR_B(f->base->pos,
+      ERR_B(f->base->tag.loc,
             _("function name '%s' is already used by another value"),
             overload->name)
   }
   const Func obase = overload->d.func_ref;
   if (GET_FLAG(obase->def->base, final) && (!env->class_def || (obase->value_ref->from->owner_class != env->class_def))) {
-    env_err(env, f->base->pos, _("can't overload final function `{G}%s{0}`"), s_name(f->base->xid));
+    env_err(env, f->base->tag.loc, _("can't overload final function `{G}%s{0}`"), s_name(f->base->tag.sym));
     declared_here(obase->value_ref);
     return GW_ERROR;
   }
   const m_bool base = tmpl_base(f->base->tmpl);
   const m_bool tmpl = fflag(obase, fflag_tmpl);
   if ((!tmpl && base) || (tmpl && !base && !f->base->tmpl))
-    ERR_B(f->base->pos, _("must overload template function with template"))
+    ERR_B(f->base->tag.loc, _("must overload template function with template"))
   if (GET_FLAG(f->base, global) != GET_FLAG(obase->def->base, global))
-    ERR_B(f->base->pos, _("function is declared global")) // improve me
+    ERR_B(f->base->tag.loc, _("function is declared global")) // improve me
   return GW_OK;
 }
 
@@ -321,20 +321,20 @@ ANN static Type func_type(const Env env, const Func func) {
 ANN static void func_no_overload(const Env env, const Func f, const Value v) {
   const Type t = v->type;
   value_addref(v);
-  nspc_add_value_front(env->curr, f->def->base->xid, v);
+  nspc_add_value_front(env->curr, f->def->base->tag.sym, v);
 
   const Type newt  = type_copy(env->gwion->mp, t);
   t->info->parent  = newt;
-  newt->name       = s_name(f->def->base->xid);
+  newt->name       = s_name(f->def->base->tag.sym);
   newt->info->func = f;
-  nspc_add_type_front(env->curr, f->def->base->xid, newt);
+  nspc_add_type_front(env->curr, f->def->base->tag.sym, newt);
   newt->info->value = v;
 }
 
 ANN2(1, 2)
 static Value func_value(const Env env, const Func f, const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = t->info->value = new_value(env, t, t->name, f->def->base->pos);
+  const Value v = t->info->value = new_value(env, t, t->name, f->def->base->tag.loc);
   valuefrom(env, v->from);
   CHECK_OO(scan2_func_assign(env, f->def, f, v));
   if (!overload)
@@ -351,7 +351,7 @@ static Value func_value(const Env env, const Func f, const Value overload) {
 ANN2(1, 2)
 static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
                               const Value overload) {
-  const m_str name  = s_name(f->base->xid);
+  const m_str name  = s_name(f->base->tag.sym);
   const Func  func  = scan_new_func(env, f, name);
   const Value value = func_value(env, func, overload);
   set_fflag(func, fflag_tmpl);
@@ -362,7 +362,7 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   Nspc nspc = env->curr;
   uint i    = 0;
   do {
-    const Value v = nspc_lookup_value0(nspc, f->base->xid);
+    const Value v = nspc_lookup_value0(nspc, f->base->tag.sym);
     if (v) {
       Func ff = v->d.func_ref;
       if (!ff) continue;
@@ -373,14 +373,14 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
         }
         if (compat_func(ff->def, f) > 0) {
           if (ff->value_ref->from->owner == env->curr)
-            ERR_B(f->base->pos,
+            ERR_B(f->base->tag.loc,
                   "template function '%s' already defined with those arguments "
                   "in this namespace",
                   name)
           const Symbol sym =
               func_symbol(env, env->curr->name, name, "template", ff->def->vt_index);
           nspc_add_value(env->curr, sym, value);
-          if (!overload) nspc_add_value(env->curr, f->base->xid, value);
+          if (!overload) nspc_add_value(env->curr, f->base->tag.sym, value);
           nspc_add_func(env->curr, sym, func);
           func->def->vt_index = ff->def->vt_index;
           return GW_OK;
@@ -392,17 +392,17 @@ static m_bool scan2_fdef_tmpl(const Env env, const Func_Def f,
   const Symbol sym = func_symbol(env, env->curr->name, name, "template", i);
   nspc_add_value(env->curr, sym, value);
   nspc_add_func(env->curr, sym, func);
-  if (!overload) nspc_add_value(env->curr, f->base->xid, value);
+  if (!overload) nspc_add_value(env->curr, f->base->tag.sym, value);
   else func->def->vt_index = ++overload->from->offset;
   return GW_OK;
 }
 
 ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
-  const m_str      str    = s_name(f->base->xid);
+  const m_str      str    = s_name(f->base->tag.sym);
   struct Op_Func   opfunc = {.ck = strcmp(str, "@implicit") ? 0
                                                             : opck_usr_implicit};
   struct Op_Import opi    = {.ret  = f->base->ret_type,
-                          .pos  = f->base->pos,
+                          .pos  = f->base->tag.loc,
                           .data = (uintptr_t)f->base->func,
                           .func = &opfunc};
   func_operator(f, &opi);
@@ -430,14 +430,14 @@ ANN static m_bool scan2_func_def_code(const Env env, const Func_Def f) {
 
 ANN static void scan2_func_def_flag(const Env env, const Func_Def f) {
   set_fflag(f->base->func, fflag_pure);
-  if (f->base->xid == insert_symbol("@dtor"))
+  if (f->base->tag.sym == insert_symbol("@dtor"))
     set_tflag(env->class_def, tflag_dtor);
 }
 
 
 ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
-  const m_str      name = s_name(f->base->xid);
-  m_str tmpl_name = tl2str(env->gwion, f->base->tmpl->call, f->base->pos); 
+  const m_str      name = s_name(f->base->tag.sym);
+  m_str tmpl_name = tl2str(env->gwion, f->base->tmpl->call, f->base->tag.loc);
   const Symbol sym = func_symbol(env, env->curr->name, name, tmpl_name,
                                  (m_uint)f->vt_index);
   return s_name(sym);
@@ -457,7 +457,7 @@ static Value func_create(const Env env, const Func_Def f, const Value overload,
 ANN2(1, 2)
 static m_str func_name(const Env env, const Func_Def f, const Value v) {
   if (!f->base->tmpl) {
-    const Symbol sym = func_symbol(env, env->curr->name, s_name(f->base->xid),
+    const Symbol sym = func_symbol(env, env->curr->name, s_name(f->base->tag.sym),
                                    NULL, v ? ++v->from->offset : 0);
     return s_name(sym);
   }
@@ -483,7 +483,7 @@ m_bool scan2_fdef_std(const Env env, const Func_Def f, const Value overload) {
 
 //! use function from parent class as next.
 ANN static void upfunction(const Env env, const Func_Base *fb) {
-  const Value v = find_value(env->class_def->info->parent, fb->xid);
+  const Value v = find_value(env->class_def->info->parent, fb->tag.sym);
   if (!v) return;
   Func func = fb->func;
   while (func->next && func->next->value_ref->from->owner == env->curr)
@@ -492,7 +492,7 @@ ANN static void upfunction(const Env env, const Func_Base *fb) {
 }
 
 ANN m_bool scan2_fdef(const Env env, const Func_Def fdef) {
-  const Value overload = nspc_lookup_value2(env->curr, fdef->base->xid);
+  const Value overload = nspc_lookup_value2(env->curr, fdef->base->tag.sym);
   if (overload) CHECK_BB(scan2_func_def_overload(env, fdef, overload));
   CHECK_BB((!tmpl_base(fdef->base->tmpl) ? scan2_fdef_std : scan2_fdef_tmpl)(
       env, fdef, overload));
@@ -519,7 +519,7 @@ ANN m_bool _scan2_func_def(const Env env, const Func_Def fdef) {
     return GW_OK;
   if(is_new(fdef)) {
     if(!env->class_def)
-      ERR_B(fdef->base->pos, _("{G+}new{0} operator must be set inside {C+}class{0}"));
+      ERR_B(fdef->base->tag.loc, _("{G+}new{0} operator must be set inside {C+}class{0}"));
     SET_FLAG(env->class_def, abstract);
     if(!fdef->base->ret_type)
 //      fdef->base->ret_type = env->class_def;

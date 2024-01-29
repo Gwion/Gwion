@@ -75,9 +75,8 @@ ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_
   DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
   struct AC ac = {.str = tdc.str, .pos = pos};
   CHECK_BB(ac_run(gwion, &ac));
-  vd->xid = sym;
+  vd->tag = MK_TAG(sym, pos);
   vd->value = NULL;
-  vd->pos = pos;
   return GW_OK;
 }
 
@@ -86,19 +85,13 @@ ANN static bool _tmpl_list(const Gwion        gwion,
                                        struct td_checker *tdc, Specialized_List *sl) {
   if(unlikely(!strncmp(tdc->str, "...", 3))) {
     tdc->str += 3;
-    Specialized spec = {
-      .xid = insert_symbol(gwion->st, "..."),
-      .pos = tdc->pos
-    };
+    Specialized spec = { .tag = MK_TAG(insert_symbol(gwion->st, "..."), tdc->pos) };
     mp_vector_add(gwion->mp, sl, Specialized, spec);
     return true;
   }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   // TODO: handle traits?
-  Specialized spec = {
-    .xid = sym,
-    .pos = tdc->pos
-  };
+  Specialized spec = { .tag = MK_TAG(sym, tdc->pos) };
   mp_vector_add(gwion->mp, sl, Specialized, spec);
   if (*tdc->str == ',') {
     ++tdc->str;
@@ -133,6 +126,7 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 
 ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc);
 ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
+  // we probably need smth better
   if(isalpha(*tdc->str)) {
     TmplArg targ = {
       .type = tmplarg_td,
@@ -145,7 +139,7 @@ ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
       if (!str2tl(gwion, tdc, tl))
         return false;
     }
-  } else exit(6);
+  } else GWION_ERR_B(tdc->pos, "invalid character in template list");
   return true;
 }
 
@@ -190,7 +184,7 @@ ANN static Arg_List fptr_args(const Gwion gwion, struct td_checker *tdc) {
       free_arg_list(gwion->mp, args);
       return (Arg_List)GW_ERROR;
     }
-    mp_vector_add(gwion->mp, &args, Arg, (Arg){ .td = td });
+    mp_vector_add(gwion->mp, &args, Arg, (Arg){ .var = {.td = td }});
   } while(*tdc->str == ',' && tdc->str++);
   return args;
 }
@@ -298,22 +292,54 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
   text_add(text, t->name);
 }
 
+ANN Exp td2exp(const MemPool mp, const Type_Decl *td) {
+  Exp base = new_prim_id(mp, td->tag.sym, td->tag.loc);
+  Type_Decl *next = td->next;
+  while(next) {
+    base = new_exp_dot(mp, base, next->tag.sym, td->tag.loc);
+    next = next->next;
+  }
+  return base;
+}
+
 ANN static m_bool td_info_run(const Env env, struct td_info *info) {
+  const Gwion gwion = env->gwion;
   Type_List tl = info->tl;
   for(uint32_t i = 0; i < tl->len; i++) {
     if (i) text_add(&info->fmt->ls->text, ",");
-    TmplArg targ = *mp_vector_at(tl, TmplArg, i);
-    if(targ.type == tmplarg_td) {
-      DECL_OB(const Type, t, = known_type(env, targ.d.td));
-      td_fullname(env, &info->fmt->ls->text, t);
-    } else gwfmt_exp(info->fmt, targ.d.exp);
+    TmplArg *targ = mp_vector_at(tl, TmplArg, i);
+    if(targ->type == tmplarg_td) {
+      // we may need to stop errors
+      if(env->context) env->context->error = true;
+      const Type t = known_type(env, targ->d.td);
+      if(env->context) env->context->error = false;
+      if(t)
+        td_fullname(env, &info->fmt->ls->text, t);
+      else {
+        const Exp exp = td2exp(gwion->mp, targ->d.td);
+        if(traverse_exp(env, exp) > 0) {
+          if(is_class(gwion, exp->type)) {
+            td_fullname(env, &info->fmt->ls->text, exp->type);
+            free_exp(gwion->mp, exp);
+          } else gwfmt_exp(info->fmt, exp);
+        } else GWION_ERR_B(targ->d.td->tag.loc, "invalid template argument");
+      }
+    } else {
+      Exp exp = targ->d.exp;
+      if(check_exp(env, targ->d.exp)) {
+        if(!is_class(gwion, exp->type))
+          gwfmt_exp(info->fmt, exp);
+        else
+          td_fullname(env, &info->fmt->ls->text, targ->d.exp->type);
+      }
+    }
   }
   return GW_OK;
 }
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t,
                         const loc_t pos NUSED) {
-  GwText     text;
+  GwText text;
   text_init(&text, gwion->mp);
   td_fullname(gwion->env, &text, t);
   return text.str;

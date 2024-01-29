@@ -181,14 +181,15 @@ ANN void env_error_footer(const Env env) {
   bool ctor = false;
   if (env->func && env->func->def) {
      if(!is_ctor(env->func->def))
-      gwerr_secondary("in function", env->name, env->func->def->base->pos);
+      gwerr_secondary("in function", env->name, env->func->def->base->tag.loc);
     else {
-      gwerr_secondary("in class pre constructor", env->name, env->class_def->info->cdef->pos);
+      gwerr_secondary("in class pre constructor", env->name,
+        env->class_def->info->cdef->base.tag.loc);
       ctor = true;
     }
   }
   if (!ctor && env->class_def && tflag(env->class_def, tflag_cdef))
-    gwerr_secondary("in class", env->name, env->class_def->info->cdef->pos);
+    gwerr_secondary("in class", env->name, env->class_def->info->cdef->base.tag.loc);
 }
 
 ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt,

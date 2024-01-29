@@ -20,14 +20,15 @@ ANN static inline m_bool type_cyclic(const Env env, const Type t,
     Type parent = t;
     do {
       if (parent == owner)
-        ERR_B(td->pos, _("%s declared inside %s"), t->name, owner->name);
+        ERR_B(td->tag.loc, _("%s declared inside %s"), t->name, owner->name);
     } while ((parent = parent->info->parent));
   } while ((owner = owner->info->value->from->owner_class));
   return GW_OK;
 }
 
 ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
-  if (tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
+//  if (tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
+  if (tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_union)))
     return GW_OK;
   struct EnvSet es = {.env   = env,
                       .data  = env,
@@ -64,15 +65,15 @@ ANN static Type scan1_type(const Env env, Type_Decl *td) {
 ANN static Type void_type(const Env env, Type_Decl *td) {
   DECL_OO(const Type, type, = scan1_type(env, td));
   if (type->size) return type;
-  ERR_O(td->pos, _("cannot declare variables of size '0' (i.e. 'void')..."))
+  ERR_O(td->tag.loc, _("cannot declare variables of size '0' (i.e. 'void')..."))
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
   if (decl->type) return decl->type;
-  DECL_OO(const Type, t, = void_type(env, decl->td));
-  if(env->class_def && type_global(env, env->class_def) && !check_global(env, t, decl->td->pos))
+  DECL_OO(const Type, t, = void_type(env, decl->var.td));
+  if(env->class_def && type_global(env, env->class_def) && !check_global(env, t, decl->var.td->tag.loc))
       return NULL;
-  if (decl->td->xid == insert_symbol("auto") && decl->type) return decl->type;
+  if (decl->var.td->tag.sym == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
     ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
   if (GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
@@ -86,11 +87,11 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
   const Value v = ((!env->class_def || !GET_FLAG(env->class_def, final) ||
         env->scope->depth)
            ? nspc_lookup_value1
-           : nspc_lookup_value2)(env->curr, var->xid);
+           : nspc_lookup_value2)(env->curr, var->tag.sym);
   if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class) > 0))
-    ERR_B(var->pos,
+    ERR_B(var->tag.loc,
           _("variable %s has already been defined in the same scope..."),
-          s_name(var->xid))
+          s_name(var->tag.sym))
   return GW_OK;
 }
 
@@ -105,30 +106,30 @@ ANN m_bool abstract_array(const Env env, const Array_Sub array) {
 }
 
 ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
-  const bool decl_ref = decl->td->array && !decl->td->array->exp;
-  Var_Decl *const vd = &decl->vd;
-  CHECK_BB(isres(env, vd->xid, exp_self(decl)->pos));
+  const bool decl_ref = decl->var.td->array && !decl->var.td->array->exp;
+  Var_Decl *const vd = &decl->var.vd;
+  CHECK_BB(isres(env, vd->tag));
   Type t = decl->type;
   CHECK_BB(scan1_defined(env, vd));
   const Type base = array_base_simple(t);
-  if(decl->td->array) {
-    if (!GET_FLAG(decl->td, late) && !decl->td->array->exp)
-      ERR_B(decl->td->pos, _("arrays with no expressions should be declared `late`"));
-    if (GET_FLAG(decl->td, late) && decl->td->array->exp)
-      ERR_B(decl->td->array->exp->pos, _("late array should have no size"));
-    if (!decl->args && GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->td->array));
+  if(decl->var.td->array) {
+    if (!GET_FLAG(decl->var.td, late) && !decl->var.td->array->exp)
+      ERR_B(decl->var.td->tag.loc, _("arrays with no expressions should be declared `late`"));
+    if (GET_FLAG(decl->var.td, late) && decl->var.td->array->exp)
+      ERR_B(decl->var.td->array->exp->pos, _("late array should have no size"));
+    if (!decl->args && GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->var.td->array));
   }
   const Value v = vd->value =
-      vd->value ?: new_value(env, t, s_name(vd->xid), vd->pos);
-  if (GET_FLAG(t, abstract) && !decl->args && !GET_FLAG(decl->td, late)) SET_FLAG(v, late);
+      vd->value ?: new_value(env, t, s_name(vd->tag.sym), vd->tag.loc);
+  if (GET_FLAG(t, abstract) && !decl->args && !GET_FLAG(decl->var.td, late)) SET_FLAG(v, late);
   v->type = t;
   if (decl_ref) SET_FLAG(v, late);
-  v->flag |= decl->td->flag;
+  v->flag |= decl->var.td->flag;
   if (!env->scope->depth) {
     valuefrom(env, v->from);
     if (env->class_def) {
       if (env->class_def->info->tuple) tuple_contains(env, v);
-      if (!GET_FLAG(decl->td, static)) {
+      if (!GET_FLAG(decl->var.td, static)) {
         set_vflag(v, vflag_member);
         if(tflag(t, tflag_release))
           set_tflag(env->class_def, tflag_release);
@@ -139,23 +140,23 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
           env->class_def->size += t->size;
         }
       }
-    } else if (GET_FLAG(decl->td, global))
+    } else if (GET_FLAG(decl->var.td, global))
       SET_FLAG(v, global);
     else if(env->context)
     set_vflag(v, vflag_fglobal); // file global
-  } else if (GET_FLAG(decl->td, global))
+  } else if (GET_FLAG(decl->var.td, global))
     SET_FLAG(v, global);
-  nspc_add_value(env->curr, vd->xid, v);
-  ((Exp_Decl *)decl)->type = decl->vd.value->type;
+  nspc_add_value(env->curr, vd->tag.sym, v);
+  ((Exp_Decl *)decl)->type = decl->var.vd.value->type;
   return GW_OK;
 }
 
 ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
-  CHECK_BB(env_storage(env, decl->td->flag, exp_self(decl)->pos));
+  CHECK_BB(env_storage(env, decl->var.td->flag, exp_self(decl)->pos));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
   CHECK_OB(decl->type);
   if(decl->args) CHECK_BB(scan1_exp(env, decl->args));
-  const bool global = GET_FLAG(decl->td, global);
+  const bool global = GET_FLAG(decl->var.td, global);
   if (global) {
     if (env->context) env->context->global = true;
     if (!type_global(env, decl->type))
@@ -301,12 +302,12 @@ ANN static inline m_bool scan1_stmt_try(const restrict Env env,
 
 ANN static inline m_bool stmt_each_defined(const restrict Env env,
                                            const Stmt_Each    stmt) {
-  if (nspc_lookup_value1(env->curr, stmt->sym))
+  if (nspc_lookup_value1(env->curr, stmt->tag.sym))
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"),
-          s_name(stmt->sym))
-  if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->sym))
-    ERR_B(stmt->idx->pos, _("foreach index '%s' is already defined"),
-          s_name(stmt->idx->sym))
+          s_name(stmt->tag.sym))
+  if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->tag.sym))
+    ERR_B(stmt->idx->tag.loc, _("foreach index '%s' is already defined"),
+          s_name(stmt->idx->tag.sym))
   return GW_OK;
 }
 
@@ -320,25 +321,23 @@ ANN static inline m_bool shadow_err(const Env env, const Value v,
   return GW_ERROR;
 }
 
-ANN static inline m_bool shadow_arg(const Env env, const Symbol sym,
-                                    const loc_t loc) {
+ANN static inline m_bool shadow_arg(const Env env, const Tag tag) {
   Nspc nspc = env->curr;
   do {
-    const Value v = nspc_lookup_value0(nspc, sym);
+    const Value v = nspc_lookup_value0(nspc, tag.sym);
     if (v && !env->func->def->builtin) {
       const Type owner = v->from->owner_class;
       if (owner && env->class_def && isa(env->class_def, owner) < 0)
         continue;
-      return shadow_err(env, v, loc);
+      return shadow_err(env, v, tag.loc);
     }
   } while ((nspc = nspc->parent));
   return GW_OK;
 }
 
-ANN static inline m_bool shadow_var(const Env env, const Symbol sym,
-                                    const loc_t loc) {
-  const Value v = nspc_lookup_value1(env->curr, sym);
-  return !v ? GW_OK : shadow_err(env, v, loc);
+ANN static inline m_bool shadow_var(const Env env, const Tag tag){
+  const Value v = nspc_lookup_value1(env->curr, tag.sym);
+  return !v ? GW_OK : shadow_err(env, v, tag.loc);
 }
 
 #define describe_ret_nspc(name, type, prolog, exp)                             \
@@ -351,7 +350,7 @@ describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->sym, stmt->idx->pos)) < 0 ||
+describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->tag)) < 0 ||
     scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 
@@ -400,11 +399,11 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
     EnumValue ev = *mp_vector_at(list, EnumValue, i);
-    const Value v = new_value(env, t, s_name(ev.xid), edef->pos);
+    const Value v = new_value(env, t, s_name(ev.tag.sym), ev.tag.loc);
     v->d.num = (ev.set ? ev.gwint.num : last);
     last = v->d.num + 1;
     valuefrom(env, v->from);
-    nspc_add_value(env->curr, ev.xid, v);
+    nspc_add_value(env->curr, ev.tag.sym, v);
     SET_FLAG(v, static | ae_flag_const);
     SET_ACCESS(edef, v)
     SET_ACCESS(edef, t)
@@ -415,28 +414,28 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
 }
 
 ANN static Value arg_value(const Env env, Arg *const arg) {
-  const Var_Decl *vd = &arg->var_decl;
+  const Var_Decl *vd = &arg->var.vd;
   const Value    v   = new_value(env, arg->type,
-                            vd->xid ? s_name(vd->xid) : (m_str) __func__, arg->var_decl.pos);
-  if (arg->td)
-    v->flag = arg->td->flag;
+                            vd->tag.sym ? s_name(vd->tag.sym) : (m_str) __func__, arg->var.vd.tag.loc);
+  if (arg->var.td)
+    v->flag = arg->var.td->flag;
   return v;
 }
 
 ANN static m_bool scan1_args(const Env env, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    Var_Decl *const vd = &arg->var_decl;
-    if (vd->xid) CHECK_BB(isres(env, vd->xid, vd->pos));
-    if (arg->td) {
-      SET_FLAG(arg->td, late);
-      CHECK_OB((arg->type = void_type(env, arg->td)));
+    Var_Decl *const vd = &arg->var.vd;
+    if (vd->tag.sym) CHECK_BB(isres(env, vd->tag));
+    if (arg->var.td) {
+      SET_FLAG(arg->var.td, late);
+      CHECK_OB((arg->type = void_type(env, arg->var.td)));
       if (GET_FLAG(env->func->def->base, global) && !type_global(env, arg->type))
-        ERR_B(arg->td->pos, "is not global");
-      UNSET_FLAG(arg->td, late);
+        ERR_B(arg->var.td->tag.loc, "is not global");
+      UNSET_FLAG(arg->var.td, late);
     }
     vd->value = arg_value(env, arg);
-    if (vd->xid) nspc_add_value(env->curr, vd->xid, vd->value);
+    if (vd->tag.sym) nspc_add_value(env->curr, vd->tag.sym, vd->value);
   }
   return GW_OK;
 }
@@ -445,14 +444,14 @@ ANN static Type scan1_noret(const Env env, const Func_Base *base) {
   assert(base->td);
   DECL_OO(const Type, t, = known_type(env, base->td));
   if (!tflag(t, tflag_noret)) return t;
-  ERR_O(base->pos, _("Can't use type `{+G}%s{0}` for return"), t->name);
+  ERR_O(base->tag.loc, _("Can't use type `{+G}%s{0}` for return"), t->name);
 }
 
 ANN static m_bool _scan1_fbase_tmpl(const Env env, Func_Base *base) {
   Specialized_List sl = base->tmpl->list;
   for(uint32_t i = 0; i < sl->len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    nspc_add_type(env->curr, spec->xid, env->gwion->type[et_auto]);
+    nspc_add_type(env->curr, spec->tag.sym, env->gwion->type[et_auto]);
   }
   CHECK_OB((base->ret_type = scan1_noret(env, base)));
   return GW_OK;
@@ -477,7 +476,7 @@ ANN static bool spec_acc_has(const MemPool mp, MP_Vector **acc, const Symbol xid
 ANN static bool find_op_template_type(const MemPool mp, const Symbol xid, const Specialized_List sl, MP_Vector **acc) {
   for(uint32_t i = 0; i < sl->len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if (xid == spec->xid) {
+    if (xid == spec->tag.sym) {
       spec_acc_has(mp, acc, xid);
       return true;
     }
@@ -493,13 +492,13 @@ ANN static m_bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   MP_Vector *acc = new_mp_vector(env->gwion->mp, Symbol, 0);
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    if (!arg->td->next) {
-      find_op_template_type(env->gwion->mp, arg->td->xid, sl, &acc);
+    if (!arg->var.td->next) {
+      find_op_template_type(env->gwion->mp, arg->var.td->tag.sym, sl, &acc);
     }
   }
   const uint32_t len = acc->len;
   free_mp_vector(env->gwion->mp, Symbol, acc);
-  if (len < sl->len) ERR_B(base->pos, "too many template types for operator");
+  if (len < sl->len) ERR_B(base->tag.loc, "too many template types for operator");
   if (!env->curr->operators)
   env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
   const Vector v = &env->curr->operators->tmpl;
@@ -519,7 +518,7 @@ ANN m_bool scan1_fptr_def(const Env env, const Fptr_Def fptr) {
 ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
   if (tdef->when) CHECK_BB(scan1_exp(env, tdef->when));
   if(tflag(tdef->type->info->parent, tflag_ref))
-    ERR_B(tdef->pos, "can't typedef a reference type");
+    ERR_B(tdef->tag.loc, "can't typedef a reference type");
   if (tflag(tdef->type, tflag_cdef))
     return scan1_class_def(env, tdef->type->info->cdef);
   return tdef->type->info->cdef ? scan1_cdef(env, tdef->type) : GW_OK;
@@ -528,22 +527,22 @@ ANN m_bool scan1_type_def(const Env env, const Type_Def tdef) {
 ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
                                                     Union_Def udef) {
   nspc_allocdata(env->gwion->mp, udef->type->nspc);
-  Union_List  l  = udef->l;
+  Variable_List  l  = udef->l;
   m_uint      sz = 0;
-  const Value v = new_value(env, env->gwion->type[et_int], "@index", udef->pos);
+  const Value v = new_value(env, env->gwion->type[et_int], "@index", udef->tag.loc);
   nspc_add_value_front(env->curr, insert_symbol("@index"), v);
   valuefrom(env, v->from);
   for(uint32_t i = 0; i < l->len; i++) {
-    Union_Member *um = mp_vector_at(l, Union_Member, i);
+    Variable *um = mp_vector_at(l, Variable, i);
     DECL_OB(const Type, t, = known_type(env, um->td));
-    if (nspc_lookup_value0(env->curr, um->vd.xid))
-      ERR_B(um->vd.pos, _("'%s' already declared in union"), s_name(um->vd.xid))
+    if (nspc_lookup_value0(env->curr, um->vd.tag.sym))
+      ERR_B(um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym))
     if(tflag(t, tflag_ref))
-      ERR_B(um->vd.pos, _("can't declare ref type in union"));
-    const Value v = new_value(env, t, s_name(um->vd.xid), um->vd.pos);
+      ERR_B(um->vd.tag.loc, _("can't declare ref type in union"));
+    const Value v = new_value(env, t, s_name(um->vd.tag.sym), um->vd.tag.loc);
     tuple_contains(env, v);
     valuefrom(env, v->from);
-    nspc_add_value_front(env->curr, um->vd.xid, v);
+    nspc_add_value_front(env->curr, um->vd.tag.sym, v);
     if (t->size > sz) sz = t->size;
   }
   udef->type->nspc->offset = SZ_INT + sz;
@@ -635,11 +634,11 @@ ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
 ANN static m_bool class_internal(const Env env, const Func_Base *base) {
   assert(base->td);
   if (!env->class_def)
-    ERR_B(base->td->pos, _("'%s' must be in class def!!"), s_name(base->xid))
+    ERR_B(base->td->tag.loc, _("'%s' must be in class def!!"), s_name(base->tag.sym))
   if (base->args)
-    ERR_B(base->td->pos, _("'%s' must not have args"), s_name(base->xid))
+    ERR_B(base->td->tag.loc, _("'%s' must not have args"), s_name(base->tag.sym))
   if (base->ret_type != env->gwion->type[et_void])
-    ERR_B(base->td->pos, _("'%s' must return 'void'"), s_name(base->xid))
+    ERR_B(base->td->tag.loc, _("'%s' must return 'void'"), s_name(base->tag.sym))
   return GW_OK;
 }
 
@@ -647,8 +646,8 @@ ANN static inline m_bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
   if (mp_vector_len(base->args) == 1) return GW_OK;
   assert(base->td);
-  ERR_B(base->td->pos, _("'%s' must have one (and only one) argument"),
-        s_name(base->xid))
+  ERR_B(base->td->tag.loc, _("'%s' must have one (and only one) argument"),
+        s_name(base->tag.sym))
 }
 
 ANN static inline m_bool scan_internal_int(const Env        env,
@@ -656,14 +655,14 @@ ANN static inline m_bool scan_internal_int(const Env        env,
   assert(base->td);
   CHECK_BB(scan_internal_arg(env, base));
   if (isa(base->ret_type, env->gwion->type[et_int]) > 0) return GW_OK;
-  ERR_B(base->td->pos, _("'%s' must return 'int'"), s_name(base->xid))
+  ERR_B(base->td->tag.loc, _("'%s' must return 'int'"), s_name(base->tag.sym))
 }
 
 ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
-  const Symbol op = base->xid;
+  const Symbol op = base->tag.sym;
   if (op == insert_symbol("@dtor")) {
     if(safe_tflag(env->class_def, tflag_struct))
-      ERR_B(base->pos, "can't use '@dtor' for structures");
+      ERR_B(base->tag.loc, "can't use '@dtor' for structures");
     return class_internal(env, base);
   }
   if (op == insert_symbol("@gack"))
@@ -678,14 +677,14 @@ ANN static m_bool scan_internal(const Env env, const Func_Base *base) {
      op == insert_symbol("@each_init")  ||
      op == insert_symbol("@each_val")   ||
      op == insert_symbol("@partial"))
-      ERR_B(base->pos, "operator '%s' not allowed", s_name(op));
+      ERR_B(base->tag.loc, "operator '%s' not allowed", s_name(op));
   return GW_OK;
 }
 
 ANN static m_bool scan1_fdef_args(const Env env, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    CHECK_BB(shadow_arg(env, arg->var_decl.xid, arg->var_decl.pos));
+    CHECK_BB(shadow_arg(env, arg->var.vd.tag));
   }
   return GW_OK;
 }
@@ -716,40 +715,40 @@ ANN m_bool scan1_fdef(const Env env, const Func_Def fdef) {
 
 ANN static inline m_bool scan1_fdef_defined(const Env      env,
                                             const Func_Def fdef) {
-  const Value v = nspc_lookup_value1(env->curr, fdef->base->xid);
+  const Value v = nspc_lookup_value1(env->curr, fdef->base->tag.sym);
   if (!v) return GW_OK;
   if (is_func(env->gwion, actual_type(env->gwion, v->type))) return GW_OK; // is_callable
   if(fdef->builtin) return GW_OK;
   if ((!env->class_def || !GET_FLAG(env->class_def, final)) &&
-      !nspc_lookup_value0(env->curr, fdef->base->xid))
-    ERR_B(fdef->base->pos,
+      !nspc_lookup_value0(env->curr, fdef->base->tag.sym))
+    ERR_B(fdef->base->tag.loc,
           _("function '%s' has already been defined in the same scope..."),
-          s_name(fdef->base->xid))
+          s_name(fdef->base->tag.sym));
   return GW_OK;
 }
 
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if(GET_FLAG(fdef->base, abstract) && !env->class_def)
-    ERR_B(fdef->base->pos, "file scope function can't be abstract");
-  CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->pos));
+    ERR_B(fdef->base->tag.loc, "file scope function can't be abstract");
+  CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->tag.loc));
   CHECK_BB(scan1_fdef_defined(env, fdef));
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
   if (tmpl_base(fdef->base->tmpl)) return scan1_fdef_base_tmpl(env, fdef);
-  struct Func_ fake = {.name = s_name(fdef->base->xid), .def = fdef }, *const former =
+  struct Func_ fake = {.name = s_name(fdef->base->tag.sym), .def = fdef }, *const former =
                                                              env->func;
   env->func = &fake;
   const m_bool ret = scanx_fdef(env, env, fdef, (_exp_func)scan1_fdef);
   env->func = former;
   if (global) env_pop(env, scope);
-  if ((strcmp(s_name(fdef->base->xid), "@implicit") || fbflag(fdef->base, fbflag_internal)) && !fdef->builtin && fdef->base->ret_type &&
+  if ((strcmp(s_name(fdef->base->tag.sym), "@implicit") || fbflag(fdef->base, fbflag_internal)) && !fdef->builtin && fdef->base->ret_type &&
        fdef->base->ret_type != env->gwion->type[et_void] && fdef->d.code &&
        !fake.memoize)
-     ERR_B(fdef->base->td->pos,
+     ERR_B(fdef->base->td->tag.loc,
            _("missing return statement in a non void function"));
-  if (fdef->base->xid == insert_symbol("@gack") && !fake.weight) {
+  if (fdef->base->tag.sym == insert_symbol("@gack") && !fake.weight) {
     gwerr_basic(_("`@gack` operator does not print anything"), NULL,
-      _("use `<<<` `>>>` in the function"), env->name, fdef->base->pos, 0);
+      _("use `<<<` `>>>` in the function"), env->name, fdef->base->tag.loc, 0);
     env_set_error(env,  true);
     return GW_ERROR;
   }
@@ -774,19 +773,20 @@ ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   Type t = parent;
   do
     if (tdef->type == t)
-      ERR_O(tdef->ext->pos, _("recursive (%s <= %s) class declaration."),
+      ERR_O(tdef->ext->tag.loc, _("recursive (%s <= %s) class declaration."),
             tdef->type->name, t->name)
   while ((t = t->info->parent));
   return parent;
 }
 
 ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
-  const loc_t pos = cdef->base.ext->pos;
+  const loc_t pos = cdef->base.ext->tag.loc;
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp));
   DECL_OB(const Type, parent, = scan1_get_parent(env, &cdef->base));
   if (isa(parent, env->gwion->type[et_object]) < 0 &&
-      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
+//      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
+      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_union)))
     ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
   if (type_ref(parent)) ERR_B(pos, _("can't use ref type in class extend"))
   return GW_OK;
@@ -795,7 +795,7 @@ ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
 ANN static inline Type scan1_final(const Env env, Type_Decl *td, const bool tdef) {
   DECL_OO(const Type, t, = known_type(env, td));
   if (!GET_FLAG(t, final) || tdef) return t;
-  ERR_O(td->pos, _("can't inherit from final parent class '%s'\n."), t->name);
+  ERR_O(td->tag.loc, _("can't inherit from final parent class '%s'\n."), t->name);
 }
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
@@ -824,9 +824,9 @@ ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
         }
       } else mp_vector_add(mp, &body, Section, section);
     }
-    Type_Decl *td = type2td(env->gwion, env->gwion->type[et_void], cdef->base.pos);
+    Type_Decl *td = type2td(env->gwion, env->gwion->type[et_void], cdef->base.tag.loc);
     Symbol sym = insert_symbol("@ctor");
-    Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.pos);
+    Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.tag.loc);
     Func_Def  fdef = new_func_def(mp, fb, ctor);
     mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
     free_mp_vector(mp, Section, base);

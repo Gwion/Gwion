@@ -44,7 +44,7 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
     const Type_List tl = f->def->base->tmpl->call;
     if(!tl) return;
     const Specialized *spec = mp_vector_at(f->def->base->tmpl->list, Specialized, f->def->base->tmpl->list->len - 1);
-    if(!strcmp(s_name(spec->xid), "...")) {
+    if(!strcmp(s_name(spec->tag.sym), "...")) {
       const uint32_t len = tmplarg_ntypes(tl);
       f->code->types = new_mp_vector(gwion->mp, Type, len);
       uint32_t n = 0;

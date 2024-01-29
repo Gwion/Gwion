@@ -42,7 +42,7 @@ ANN2(1)
 m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   CHECK_BB(ck_ok(gwi, ck_item));
   const Env env                     = gwi->gwion->env;
-  gwi->ck->exp->d.exp_decl.td->flag = flag;
+  gwi->ck->exp->d.exp_decl.var.td->flag = flag;
   if (gwi->gwion->data->cdoc) {
     gwfmt_indent(gwi->gwfmt);
     gwfmt_exp(gwi->gwfmt, gwi->ck->exp);
@@ -52,7 +52,7 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_BB(traverse_exp(env, gwi->ck->exp));
-  const Value value = gwi->ck->exp->d.exp_decl.vd.value;
+  const Value value = gwi->ck->exp->d.exp_decl.var.vd.value;
   value->d          = addr;
   set_vflag(value, vflag_builtin);
   if (!env->class_def) SET_FLAG(value, global);

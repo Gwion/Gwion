@@ -29,7 +29,7 @@ ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_BB(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
   CHECK_BB(check_typename_def(gwi, gwi->ck));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Union_Member, 0);
+  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Variable, 0);
   return GW_OK;
 }
 
@@ -38,9 +38,9 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type,
   CHECK_BB(ck_ok(gwi, ck_udef));
   DECL_OB(Type_Decl *, td, = str2td(gwi->gwion, type, gwi->loc));
   DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc));
-  Union_Member um = { .td = td, .vd = { .xid = xid, .pos = gwi->loc } };
-  mp_vector_add(gwi->gwion->mp, &gwi->ck->list, Union_Member, um);
-//  const Union_List l = new_union_list(gwi->gwion->mp, td, xid, gwi->loc);
+  Variable um = { .td = td, .vd = { .tag = MK_TAG(xid, gwi->loc) } };
+  mp_vector_add(gwi->gwion->mp, &gwi->ck->list, Variable, um);
+//  const Variable_List l = new_variable_list(gwi->gwion->mp, td, xid, gwi->loc);
 //  l->next            = gwi->ck->list;
 //  gwi->ck->list      = l;
   return GW_OK;
@@ -70,7 +70,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->mpv, gwi->loc);
   gwi->ck->list        = NULL;
   udef->flag           = flag;
-  udef->xid            = gwi->ck->sym;
+  udef->tag.sym        = gwi->ck->sym;
   if (gwi->ck->tmpl) {
     udef->tmpl    = gwi_tmpl(gwi);
     gwi->ck->tmpl = NULL;
@@ -82,6 +82,6 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
 }
 
 ANN void ck_clean_udef(MemPool mp, ImportCK *ck) {
-  if (ck->mpv) free_mp_vector(mp, Union_Member, ck->mpv);
+  if (ck->mpv) free_mp_vector(mp, Variable, ck->mpv);
   if (ck->tmpl) free_id_list(mp, ck->tmpl);
 }

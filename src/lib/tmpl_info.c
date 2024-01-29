@@ -43,11 +43,11 @@ ANN static inline size_t tmpl_set(struct tmpl_info *info, const m_str str) {
 
 ANN static ssize_t template_size(const Env env, struct tmpl_info *info) {
   DECL_OB(const m_str, str,
-          = tl2str(env->gwion, info->td->types, info->td->pos));
+          = tl2str(env->gwion, info->td->types, info->td->tag.loc));
   const size_t tmpl_sz = tmpl_set(info, str);
   const m_str  base    = !is_func(env->gwion, info->base)
    ? mstrdup(env->gwion->mp, info->base->name)
-   : type2str(env->gwion, info->base, info->td->pos);
+   : type2str(env->gwion, info->base, info->td->tag.loc);
   return tmpl_sz + tmpl_set(info, base) + 4;
 }
 
@@ -91,7 +91,7 @@ ANN static Type _tmpl_exists(const Env env, const Symbol name) {
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
   if (template_match(info->list, info->td->types) < 0) // invalid template
-    ERR_N(info->td->pos, _("invalid template types number"));
+    ERR_N(info->td->tag.loc, _("invalid template types number"));
   if (!info->name)
     info->name = template_id(env, info);
   return _tmpl_exists(env, info->name);

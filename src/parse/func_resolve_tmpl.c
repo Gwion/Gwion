@@ -77,7 +77,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   const Tmpl tmpl = {.list = base->base->tmpl->list, .call = ra->types};
   CHECK_BO(template_push_types(env, &tmpl));
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
-  fbase->xid             = sym;
+  fbase->tag.sym         = sym;
   fbase->tmpl->call      = cpy_type_list(env->gwion->mp, ra->types);
   const Fptr_Def fptr    = new_fptr_def(env->gwion->mp, fbase);
   const Func     m_func  = ensure_fptr(env, ra, fptr);
@@ -110,12 +110,11 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
       char c[256];
       sprintf(c, "arg%u", idx);
       TmplArg targ = *mp_vector_at(ra->types, TmplArg, idx);
-      Arg arg = { .td = cpy_type_decl(env->gwion->mp, targ.d.td), .var_decl = {.xid = insert_symbol(c), /*.value = v*/ }};
+      Arg arg = { .var = MK_VAR(cpy_type_decl(env->gwion->mp, targ.d.td), (Var_Decl){ .tag = MK_TAG(insert_symbol(c), fdef->base->tag.loc)})};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }
     fdef->base->args = args;
   }
-
   const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
   if (func && func->def->builtin) {
     builtin_func(env->gwion, func, (void*)ra->v->d.func_ref->code->native_func);
@@ -151,14 +150,14 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_BO(envset_pushv(&es, v));
   (void)env_push(env, v->from->owner_class, v->from->owner);
-  const bool in_tmpl = v->from->owner_class && v->from->owner_class->info->cdef &&
-      v->from->owner_class->info->cdef->base.tmpl;
-  if(in_tmpl)
-    (void)template_push_types(env, v->from->owner_class->info->cdef->base.tmpl);
+  const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
+      get_tmpl(v->from->owner_class) : NULL;
+  if(tmpl)
+    (void)template_push_types(env, tmpl);
   const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]) > 0;
   const Func m_func = !is_clos ? func_match(env, &ra)
                                : fptr_match(env, &ra);
-  if(in_tmpl)
+  if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, scope);
   envset_pop(&es, v->from->owner_class);
@@ -184,13 +183,21 @@ ANN static Func _find_template_match(const Env env, const Value v,
     Specialized * spec = mp_vector_at(sl, Specialized, i);
     TmplArg arg = *mp_vector_at(tl, TmplArg, i);
     if(unlikely(spec->td)) {
-// check argument in call exp
+      if(unlikely(arg.type == tmplarg_td))
+        ERR_O(exp_self(exp)->pos, "expected contant, not type");
+      // check argument in call exp
       continue;
 
+    } else {
+      if(unlikely(arg.type == tmplarg_exp)) {
+        ERR_O(exp_self(exp)->pos, "expected type, not constant");
+        // check argument in call exp?
+        continue;
+      }
+      DECL_OO(const Type, t, = known_type(env, arg.d.td));
+      if(t->info->traits && miss_traits(t, spec))
+        return NULL;
     }
-    DECL_OO(const Type, t, = known_type(env, arg.d.td));
-    if(t->info->traits && miss_traits(t, spec))
-      return NULL;
   }
   return f;
 }
@@ -211,7 +218,7 @@ ANN Func find_template_match(const Env env, const Value value,
   while (t && t->nspc) {
     const Func_Def fdef = value->d.func_ref ? value->d.func_ref->def
                                             : value->type->info->func->def;
-    const Value    v    = nspc_lookup_value0(t->nspc, fdef->base->xid);
+    const Value    v    = nspc_lookup_value0(t->nspc, fdef->base->tag.sym);
     if (v) {
       const Func f = _find_template_match(env, v, exp);
       if (f) return f;

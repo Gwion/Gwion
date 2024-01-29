@@ -101,7 +101,7 @@ static ID_CHECK(opck_this) {
       ERR_O(exp_self(prim)->pos,
           _("keyword 'this' cannot be used inside static functions..."))
     if (!exp_getuse(exp_self(prim)) &&
-        !strcmp(s_name(env->func->def->base->xid), "@gack"))
+        !strcmp(s_name(env->func->def->base->tag.sym), "@gack"))
       return get_gack(env->class_def->info->parent); // get_gack ?
   }
   return env->class_def;

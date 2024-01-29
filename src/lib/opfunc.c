@@ -128,9 +128,9 @@ OP_CHECK(opck_new) {
   }
   CHECK_BN(ensure_traverse(env, t));
   if (type_ref(t))
-    ERR_N(unary->ctor.td->pos, _("can't use 'new' on ref type '%s'\n"), t->name);
+    ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on ref type '%s'\n"), t->name);
   if (tflag(t, tflag_infer))
-    ERR_N(unary->ctor.td->pos, _("can't use 'new' on '%s'\n"),
+    ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on '%s'\n"),
           t->name);
   if (array) {
     CHECK_BN(check_subscripts(env, array, 1));
@@ -150,7 +150,7 @@ OP_CHECK(opck_new) {
   }
   if (GET_FLAG(t, abstract) &&
      (!array || (array->exp && exp_is_zero(array->exp))))
-    ERR_N(unary->ctor.td->pos, _("can't use 'new' on abstract type '%s'\n"),
+    ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on abstract type '%s'\n"),
           t->name);
   if (isa(t, env->gwion->type[et_object]) < 0)
     ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));

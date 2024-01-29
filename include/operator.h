@@ -93,7 +93,7 @@ ANN static inline void operator_resume(struct Op_Import *opi) {
 
 ANN static inline void set_decl_ref(const Exp e) {
   if (e->exp_type == ae_exp_decl)
-    SET_FLAG(e->d.exp_decl.vd.value, late);
+    SET_FLAG(e->d.exp_decl.var.vd.value, late);
 }
 
 ANN void func_operator(const Func_Def fdef, struct Op_Import *opi);

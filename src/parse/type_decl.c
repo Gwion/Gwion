@@ -15,8 +15,7 @@ ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
   mp_vector_set(tl, TmplArg, 0, arg);
-  Type_Decl         tmp = {
-      .xid = insert_symbol("Option"), .types = tl, .pos = td->pos};
+  Type_Decl         tmp = { .tag = MK_TAG(insert_symbol("Option"), td->tag.loc), .types = tl };
   const Type t = !(n - 1) ? known_type(env, &tmp) : _option(env, &tmp, n - 1);
   free_mp_vector(env->gwion->mp, TmplArg, tl);
   td->array = array;
@@ -35,7 +34,7 @@ ANN static Type _ref(const Env env, Type_Decl *td) {
   Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
   mp_vector_set(tl, TmplArg, 0, arg);
-  Type_Decl tmp = {.xid = insert_symbol("Ref"), .types = tl, .pos = td->pos};
+  Type_Decl tmp = {.tag = MK_TAG(insert_symbol("Ref"), td->tag.loc), .types = tl};
   const Type t = known_type(env, &tmp);
   free_mp_vector(env->gwion->mp, TmplArg, tl);
   return t;
@@ -53,7 +52,7 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
   text_init(&text, env->gwion->mp);
   text_add(&text, "(");
   DECL_OO(const Type, t, = known_type(env, base->td));
-  DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->pos));
+  DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->tag.loc));
   text_add(&text, name);
   free_mstr(env->gwion->mp, name);
 	text_add(&text, "(");
@@ -62,8 +61,8 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
     for(uint32_t i = 0; i < base->args->len; i++) {
       if(i) text_add(&text, ",");
       Arg *arg = mp_vector_at(base->args, Arg, i);
-      DECL_OO(const Type, t, = known_type(env, arg->td));
-      DECL_OO(const m_str, name, = type2str(env->gwion, t, arg->td->pos));
+      DECL_OO(const Type, t, = known_type(env, arg->var.td));
+      DECL_OO(const m_str, name, = type2str(env->gwion, t, arg->var.td->tag.loc));
       text_add(&text, name);
       free_mstr(env->gwion->mp, name);
       if(*global)
@@ -72,15 +71,15 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
   }
   text_add(&text, ")");
   text_add(&text, ")");
-  base->xid = insert_symbol(text.str);
+  base->tag.sym = insert_symbol(text.str);
   text_release(&text);
-  return base->xid;
+  return base->tag.sym;
 }
 
 ANN static inline Type find(const Env env, Type_Decl *td) {
   if (!td->fptr) return find_type(env, td);
   bool global = false;
-  CHECK_OO((td->xid = symname(env, td->fptr->base, &global)));
+  CHECK_OO((td->tag.sym = symname(env, td->fptr->base, &global)));
   const Fptr_Def fptr = td->fptr;
   td->fptr = NULL;
   const Type exists = find_type(env, td);
@@ -109,7 +108,7 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
   while (last->next) last = last->next;
   DECL_OO(const Type, base, = find(env, td));
   const Context ctx = base->info->value->from->ctx;
-  if (ctx && ctx->error) ERR_O(td->pos, _("type '%s' is invalid"), base->name)
+  if (ctx && ctx->error) ERR_O(td->tag.loc, _("type '%s' is invalid"), base->name)
   DECL_OO(const Type, type, = find1(env, base, td));
   DECL_OO(const Type, t,    = !td->ref ? type : ref(env, td));
   DECL_OO(const Type, ret,  = !td->option ? t : option(env, td));
@@ -118,7 +117,7 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
 }
 
 ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
-  env_err(env, td->pos, _("unknown type '%s'"), s_name(td->xid));
+  env_err(env, td->tag.loc, _("unknown type '%s'"), s_name(td->tag.sym));
   return NULL;
 }
 

@@ -194,7 +194,7 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
 ANN static bool op_template_type(const Symbol xid, const Specialized_List sl) {
   for(uint32_t i = 0; i < sl->len; i++) {
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if (xid == spec->xid) return true;
+    if (xid == spec->tag.sym) return true;
   }
   return false;
 }
@@ -202,7 +202,7 @@ ANN static bool op_template_type(const Symbol xid, const Specialized_List sl) {
 //! check if type matches for template operator
 ANN2(1,2,3) bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
                     Specialized_List sl) {
-  if (!td->next && !td->types && op_template_type(td->xid, sl))
+  if (!td->next && !td->types && op_template_type(td->tag.sym, sl))
     return true;
   const Type base = known_type(env, td);
   return base ? isa(t, base) > 0 : false;
@@ -216,14 +216,14 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   Arg *arg0 = mp_vector_at(args, Arg, 0);
   Arg *arg1 = args->len > 1 ? mp_vector_at(args, Arg, 1) : NULL;
   if (opi->lhs) {
-    if (!_tmpl_match(env, opi->lhs, arg0->td, sl)) return false;
+    if (!_tmpl_match(env, opi->lhs, arg0->var.td, sl)) return false;
     if (fbflag(base, fbflag_postfix)) return !!opi->rhs;
     if (!fbflag(base, fbflag_unary)) {
       if (!opi->rhs) return false;
-      if (!_tmpl_match(env, opi->rhs, arg1->td, sl)) return false;
+      if (!_tmpl_match(env, opi->rhs, arg1->var.td, sl)) return false;
     } else if (opi->rhs) return false;
   } else if (!fbflag(base, fbflag_unary) ||
-        !_tmpl_match(env, opi->rhs, arg0->td, sl))
+        !_tmpl_match(env, opi->rhs, arg0->var.td, sl))
       return false;
   return true;
 }
@@ -261,7 +261,7 @@ ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
     const Vector v = &nspc->operators->tmpl;
     for (m_uint i = vector_size(v) + 1; --i;) {
       const Func_Def fdef = (Func_Def)vector_at(v, i - 1);
-      if (opi->op != fdef->base->xid) continue;
+      if (opi->op != fdef->base->tag.sym) continue;
       if (!tmpl_match(env, opi, fdef->base)) continue;
       return op_def(env, opi, fdef);
     }
@@ -380,10 +380,10 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator *mo) {
     emit_pushfunc(emit, mo->func);
     CHECK_BB(emit_exp_call1(emit, mo->func,
           mo->func->def->base->ret_type->size, true));
-    if (mo->func->def->base->xid ==
+    if (mo->func->def->base->tag.sym ==
         insert_symbol(emit->gwion->st, "@conditional"))
       emit_add_instr(emit, BranchEqInt);
-    else if (mo->func->def->base->xid ==
+    else if (mo->func->def->base->tag.sym ==
              insert_symbol(emit->gwion->st, "@unconditional"))
       emit_add_instr(emit, BranchNeqInt);
     return GW_OK;

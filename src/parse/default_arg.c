@@ -8,7 +8,7 @@
 ANN2(1,2) static Exp base_args(const MemPool p, const Arg_List args, Exp next, const uint32_t min) {
   for(uint32_t i = min; i--;) {
     Arg *arg = mp_vector_at(args, Arg, i);
-    const Exp exp = new_prim_id(p, arg->var_decl.xid, arg->var_decl.pos);
+    const Exp exp = new_prim_id(p, arg->var.vd.tag.sym, arg->var.vd.tag.loc);
     exp->next = next;
     next = exp;
   }
@@ -46,23 +46,23 @@ ANN static Stmt_List code(const MemPool p, const Exp func, const Arg_List lst,
 
 ANN static Stmt_List std_code(const Env env, Func_Base *base, const uint32_t max) {
   const MemPool p = env->gwion->mp;
-  const Exp func = new_prim_id(p, base->xid, base->pos);
+  const Exp func = new_prim_id(p, base->tag.sym, base->tag.loc);
   return code(p, func, base->args, max, ae_stmt_return);
 }
 
 ANN static Stmt_List new_code(const Env env, Func_Base *base, const uint32_t max) {
   const MemPool p = env->gwion->mp;
   SymTable *st = env->gwion->st;
-  const Exp dbase  = new_prim_id(p, insert_symbol(st, "this"), base->pos);
+  const Exp dbase  = new_prim_id(p, insert_symbol(st, "this"), base->tag.loc);
   const Symbol sym = insert_symbol(st, "new");
-  const Exp func  = new_exp_dot(p, dbase, sym, base->pos);
+  const Exp func  = new_exp_dot(p, dbase, sym, base->tag.loc);
   return code(p, func, base->args, max, ae_stmt_exp);
 }
 
 
 ANN Func_Def default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max) {
   Func_Base *const base = cpy_func_base(env->gwion->mp, fb);
-  Stmt_List code = strcmp(s_name(base->xid), "new")
+  Stmt_List code = strcmp(s_name(base->tag.sym), "new")
       ? std_code(env, fb, max)
       : new_code(env, fb, max);
   const Func_Def  fdef  = new_func_def(env->gwion->mp, base, code);

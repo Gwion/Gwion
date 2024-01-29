@@ -3,7 +3,7 @@
 
 ANN static inline bool is_spread_tmpl(const Tmpl *tmpl) {
   const Specialized *spec = mp_vector_at(tmpl->list, Specialized, tmpl->list->len - 1);
-  return !strcmp(s_name(spec->xid), "...");
+  return !strcmp(s_name(spec->tag.sym), "...");
 }
 
 ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl);

@@ -53,9 +53,13 @@ ANN static void clean_var_decl(Clean *a, Var_Decl *b) {
   if (a->scope && b->value) value_remref(b->value, a->gwion);
 }
 
-ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
+ANN static void clean_variable(Clean *a, Variable *b) {
   if (b->td) clean_type_decl(a, b->td);
   clean_var_decl(a, &b->vd);
+}
+
+ANN static void clean_exp_decl(Clean *a, Exp_Decl *b) {
+  clean_variable(a, &b->var);
 }
 
 ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
@@ -254,8 +258,7 @@ ANN static void clean_stmt(Clean *a, Stmt b) {
 ANN static void clean_arg_list(Clean *a, Arg_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
     Arg *arg = mp_vector_at(b, Arg, i);
-    if (arg->td) clean_type_decl(a, arg->td);
-    clean_var_decl(a, &arg->var_decl);
+    clean_variable(a, &arg->var);
   }
 }
 
@@ -307,16 +310,16 @@ ANN void class_def_cleaner(const Gwion gwion, Class_Def b) {
 }
 
 #define clean_enum_def   clean_dummy
-ANN static void clean_union_list(Clean *a, Union_List b) {
+ANN static void clean_variable_list(Clean *a, Variable_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    Union_Member *tgt = mp_vector_at(b, Union_Member, i);
+    Variable *tgt = mp_vector_at(b, Variable, i);
     clean_type_decl(a, tgt->td);
     clean_var_decl(a, &tgt->vd);
   }
 }
 
 ANN static void clean_union_def(Clean *a, Union_Def b) {
-  clean_union_list(a, b->l);
+  clean_variable_list(a, b->l);
   if (b->tmpl) clean_tmpl(a, b->tmpl);
 }
 

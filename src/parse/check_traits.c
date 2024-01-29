@@ -52,7 +52,7 @@ ANN static bool check_trait_variables(const Env env, const Type t,
 }
 
 ANN static bool trait_inherit(const Env env, const Type t, const Func_Def req) {
-  const bool global = type_global(env, t) || !!nspc_lookup_value1(env->curr->parent, req->base->xid);
+  const bool global = type_global(env, t) || !!nspc_lookup_value1(env->curr->parent, req->base->tag.sym);
   nspc_push_type(env->gwion->mp, env->curr);
   nspc_add_type(env->curr, insert_symbol("Self"), t);
   const Func_Def cpy   = cpy_func_def(env->gwion->mp, req);
@@ -70,12 +70,12 @@ ANN static bool check_trait_args(const Env env, const Func f, const Func_Base *r
   if (mp_vector_len(f->def->base->args) + m != mp_vector_len(req->args)) return false;
   if(m) {
     const Arg *r = mp_vector_at(req->args, Arg, 0);
-    if(strcmp(s_name(r->td->xid), "Self"))
+    if(strcmp(s_name(r->var.td->tag.sym), "Self"))
     return false;
   }
   for(m_uint i = m; i < req->args->len; i++) {
     const Arg *r = mp_vector_at(req->args, Arg, i + m);
-    const Type t = known_type(env, r->td);
+    const Type t = known_type(env, r->var.td);
     const Arg *arg = mp_vector_at(f->def->base->args, Arg, i);
     if(arg->type != t) return false;
   }
@@ -84,7 +84,7 @@ ANN static bool check_trait_args(const Env env, const Func f, const Func_Base *r
 
 ANN static bool request_found(const Env env, const Type t,
                             const Func_Def request) {
-  const Value v = nspc_lookup_value0(t->nspc, request->base->xid);
+  const Value v = nspc_lookup_value0(t->nspc, request->base->tag.sym);
   if (!v) return false;
   if (!is_func(env->gwion, v->type)) {
     gwerr_basic_from("is not a function", NULL, NULL, v->from, 0);
@@ -124,7 +124,7 @@ ANN static bool ufcs_match(const Env env, const Value v,
 
 ANN static bool trait_ufcs(const Env env, const Type t,
                             const Func_Def request) {
-  const Value v = nspc_lookup_value1(env->curr, request->base->xid);
+  const Value v = nspc_lookup_value1(env->curr, request->base->tag.sym);
   if(v) {
     const bool global = type_global(env, t) || from_global_nspc(env, v->from->owner);
     nspc_push_type(env->gwion->mp, env->curr);
@@ -142,16 +142,16 @@ ANN static bool request_fun(const Env env, const Type t,
   if (trait_ufcs(env, t, request)) return true;
   if (!GET_FLAG(request->base, abstract))
     return trait_inherit(env, t, request);
-  const Value parent = nspc_lookup_value1(env->global_nspc, request->base->xid);
+  const Value parent = nspc_lookup_value1(env->global_nspc, request->base->tag.sym);
   if(parent) {
-    const Value v = nspc_lookup_value1(env->curr, request->base->xid);
+    const Value v = nspc_lookup_value1(env->curr, request->base->tag.sym);
     if(!env->context->error) {
       gwerr_basic_from("is missing {+G}global{0}", NULL, NULL, v->from, 0);
-      gwerr_secondary("from requested func", env->name, request->base->pos);
+      gwerr_secondary("from requested func", env->name, request->base->tag.loc);
       env_set_error(env, true);
     }
   } else gwerr_basic("missing requested function", NULL, NULL, env->name,
-              request->base->pos, 0);
+              request->base->tag.loc, 0);
   return false;
 }
 

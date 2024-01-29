@@ -32,7 +32,7 @@ ANN m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
 ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_BB(ck_ok(gwi, ck_edef));
   DECL_OB(const Symbol, xid, = gwi_str2sym(gwi, name));
-  const EnumValue ev = { .xid = xid, .gwint = { .num = i }, .set = true};
+  const EnumValue ev = { .tag = MK_TAG(xid, gwi->loc), .gwint = { .num = i }, .set = true};
   mp_vector_add(gwi->gwion->mp, &gwi->ck->tmpl, EnumValue, ev);
   return GW_OK;
 }

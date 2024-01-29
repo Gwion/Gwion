@@ -16,7 +16,7 @@ typedef struct ImportCK { // name_checker ?
     f_xfun addr;
   };
   union {
-    Union_List     list; // union
+    Variable_List     list; // union
     struct Vector_ v;
     MP_Vector *mpv;
     //    ID_List curr;// enum

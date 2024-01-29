@@ -193,6 +193,11 @@ ANN static void prim_implicit(const Env env, const Type t){
   add_op(env->gwion, &opi);
 }
 
+static OP_CHECK(opck_prim_cast) {
+  Exp_Cast *cast = data;
+  return known_type(env, cast->td);
+}
+
 ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
   m_uint sz = SZ_INT;
   while(sz < size) sz += SZ_INT;
@@ -204,7 +209,8 @@ ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
   scan_prim_op2(env, t);
   if(size < SZ_INT) {
     prim_op(env, t, ":=>", opck_rassign, opem_bitset);
-    prim_op(env, t, "$", NULL, opem_bitcast);
+//    prim_op(env, t, "$", NULL, opem_bitcast);
+    prim_op(env, t, "$", opck_prim_cast, opem_bitcast);
     prim_implicit(env, t);
   } else if(size == SZ_INT) {
     prim_op(env, t, ":=>", opck_rassign, (opem)dummy_func);

@@ -42,7 +42,7 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->temp = new_value(env, t, s_name(cap->xid), cap->pos);
+        cap->temp = new_value(env, t, s_name(cap->tag.sym), cap->tag.loc);
         cap->temp->from->offset = offset;
         offset += cap->temp->type->size;
       }
@@ -55,14 +55,14 @@ static OP_CHECK(opck_spork) {
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->xid, cap->temp);
+        valid_value(env, cap->tag.sym, cap->temp);
       }
     }
     const Func f = env->func;
     struct Value_ value = { .type = env->gwion->type[et_function]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .xid=insert_symbol("in spork"), .values = &upvalues, .fbflag = fbflag_lambda, .pos = exp_self(unary)->pos};
+    struct Func_Base_ fbase = { .tag=MK_TAG(insert_symbol("in spork"), exp_self(unary)->pos), .values = &upvalues, .fbflag = fbflag_lambda};
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;

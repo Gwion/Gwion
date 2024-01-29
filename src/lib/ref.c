@@ -146,7 +146,7 @@ ANN static void ref2ref(Env env, const Type lhs, const Type rhs) {
 static OP_CHECK(opck_ref_scan) {
   struct TemplateScan *ts   = (struct TemplateScan *)data;
   struct tmpl_info     info = {
-      .base = ts->t, .td = ts->td, .list = ts->t->info->cdef->base.tmpl->list};
+      .base = ts->t, .td = ts->td, .list = get_tmpl(ts->t)->list};
   const Type exists = tmpl_exists(env, &info);
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   const TmplArg arg = *mp_vector_at(ts->td->types, TmplArg, 0);
