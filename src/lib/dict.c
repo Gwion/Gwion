@@ -567,7 +567,7 @@ static OP_CHECK(opck_dict_scan) {
   if(tflag(key, tflag_ref) || tflag(val, tflag_ref))
     ERR_N(ts->td->tag.loc, "can't use Ref:[] in dicts");
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, env->gwion->type[et_dict]->info->cdef);
-  cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], (loc_t){});
+  cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], ts->td->tag.loc);
   cdef->base.tag.sym    = info.name;
   cdef->base.tmpl->call = cpy_type_list(env->gwion->mp, info.td->types);
 
