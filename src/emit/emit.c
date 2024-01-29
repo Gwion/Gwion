@@ -214,7 +214,7 @@ ANN static m_bool      emit_stmt(const Emitter emit, const Stmt stmt);
 ANN static m_bool      emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool      emit_exp_dot(const Emitter emit, const Exp_Dot *member);
 
-ANEW static Code *new_code(const Emitter emit, const m_str name) {
+ANEW Code *new_code(const Emitter emit, const m_str name) {
   Code *code = mp_calloc(emit->gwion->mp, Code);
   code->name = code_name_set(emit->gwion->mp, name, emit->env->name);
   vector_init(&code->instr);
@@ -255,16 +255,6 @@ ANN void emit_pop_scope(const Emitter emit) {
   }
   vector_pop(&emit->info->pure);
   if (emit->info->debug) emit_add_instr(emit, DebugPop);
-}
-
-ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
-  vector_add(&emit->stack, (vtype)emit->code);
-  emit->code = new_code(emit, name);
-  if (emit->info->debug) emit_add_instr(emit, DebugLine);
-}
-
-ANN static inline void emit_pop_code(const Emitter emit) {
-  emit->code = (Code *)vector_pop(&emit->stack);
 }
 
 ANN void emit_push_scope(const Emitter emit) {
@@ -523,7 +513,7 @@ ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary *prim) {
   return _emit_symbol(emit, &prim->d.var);
 }
 
-ANN static VM_Code finalyze(const Emitter emit, const f_instr exec) {
+ANN VM_Code finalyze(const Emitter emit, const f_instr exec) {
   emit_add_instr(emit, exec);
   const VM_Code code = emit->info->emit_code(emit);
   free_code(emit->gwion->mp, emit->code);
@@ -857,20 +847,13 @@ ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
     CHECK_OB(emit_ensure_func(emit, f));
   }
   CHECK_OB(emit_ensure_func(emit, emit->locale));
-  emit_push_code(emit, "locale"); // new code {
+  comptime_ini(emit, "locale");
   const M_Object string = new_string(emit->gwion, s_name(*id));
   emit_pushimm(emit, (m_uint)string);
   emit_pushimm(emit, (m_uint)emit->locale->code);
   CHECK_BB(emit_exp_call1(emit, emit->locale, SZ_FLOAT, true));
-  emit_regmove(emit, -emit->locale->def->base->ret_type->size);
-  const VM_Code code = finalyze(emit, EOC);
-  const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
-  vm_add_shred(emit->gwion->vm, shred);
-  shred->info->me->ref++;
-  vm_run(emit->gwion->vm);
-  emit->gwion->vm->bbq->is_running = true;
-  const m_float ret = *(m_float*)shred->reg;
-  release(shred->info->me, shred);
+  m_float ret;
+  comptime_end(emit, SZ_FLOAT, &ret);
   if(ret == -1.0)
     ERR_B(prim_pos(id), "error in locale");
   const Instr instr = emit_add_instr(emit, RegPushImm2);
@@ -2819,11 +2802,6 @@ ANN static void emit_lambda_capture(const Emitter emit, const Func_Def fdef) {
   emit_regtomem4(emit, fdef->stack_depth, offset);
 }
 
-static INSTR(ConstGenericEOC) {
-  shred->reg -= instr->m_val;
-  memcpy((void*)instr->m_val2, shred->reg, instr->m_val);
-//a  exit(12);
-}
 ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func   = f->base->func;
@@ -2849,7 +2827,7 @@ ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
       !global ? emit->env->scope->depth : env_push_global(emit->env);
   if(fdef->base->tmpl) { // check is call?
     if(tmplarg_ntypes(fdef->base->tmpl->call) != fdef->base->tmpl->call->len) {
-emit_push_code(emit, "const-generic"); // better name?
+      emit_push_code(emit, "function const generic");
 uint32_t size = 0;
 // create new code here
       for(uint32_t i = 0; i < fdef->base->tmpl->call->len; i++) {
@@ -2869,27 +2847,17 @@ size += targ->d.exp->type->size;
 //emit_regmove(emit, -size);
 fdef->base->func->value_ref->type->nspc->class_data_size = size;
 fdef->base->func->value_ref->type->nspc->class_data = _mp_malloc(emit->gwion->mp, size);
-const Instr instr = emit_add_instr(emit, ConstGenericEOC);
-instr->m_val = size;
-instr->m_val2 = (m_uint)fdef->base->func->value_ref->type->nspc->class_data;
-const VM_Code code = finalyze(emit, EOC);
-//const VM_Code code = finalyze(emit, ConstGenericEOC);
-const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
-vm_add_shred(emit->gwion->vm, shred);
-//shred->info->me->ref++;
+comptime_end(emit, size, fdef->base->func->value_ref->type->nspc->class_data);
+//const Instr instr = emit_add_instr(emit, ConstGenericEOC);
+//instr->m_val = size;
+//instr->m_val2 = (m_uint)fdef->base->func->value_ref->type->nspc->class_data;
+//const VM_Code code = finalyze(emit, EOC);
+//const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
+//vm_add_shred(emit->gwion->vm, shred);
+//const bool loop = emit->gwion->vm->shreduler->loop;
 //vm_run(emit->gwion->vm);
-//emit->gwion->vm->
-const bool loop = emit->gwion->vm->shreduler->loop;
-vm_run(emit->gwion->vm);
-// alloc space
-//fdef->base->func->value_ref->type->nspc->class_data_size = size;
-//fdef->base->func->value_ref->type->nspc->class_data = _mp_malloc(emit->gwion->mp, size);
-//memcpy(fdef->base->func->value_ref->type->nspc->class_data, shred->reg, size);
-// => copy data
-emit->gwion->vm->bbq->is_running = true;
-emit->gwion->vm->shreduler->loop = loop;
-//release(shred->info->me, emit->gwion->vm->cleaner_shred);
-//}
+//emit->gwion->vm->bbq->is_running = true;
+//emit->gwion->vm->shreduler->loop = loop;
     }
   }
   emit_func_def_init(emit, func);
@@ -2971,7 +2939,7 @@ static INSTR(set) {
 
 ANN static m_bool emit_class_tmpl(const Emitter emit, const Tmpl *tmpl, const Nspc nspc) {
   if(tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
-    emit_push_code(emit, "tmpl"); // make better name
+    comptime_ini(emit, "class tmpl");
     for(uint32_t i = 0; i < tmpl->list->len; i++) {
       const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
       if(likely(targ.type == tmplarg_td)) continue;
@@ -2983,13 +2951,7 @@ ANN static m_bool emit_class_tmpl(const Emitter emit, const Tmpl *tmpl, const Ns
       instr->m_val2 = targ.d.exp->type->size;
       instr->m_val = instr->m_val2 + SZ_INT;
     }
-    VM_Code code = finalyze(emit, EOC);
-    VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
-    vm_add_shred(emit->gwion->vm, shred);
-    const bool loop = emit->gwion->vm->shreduler->loop;
-    vm_run(emit->gwion->vm);
-    emit->gwion->vm->bbq->is_running = true;
-    emit->gwion->vm->shreduler->loop = loop;
+    comptime_end(emit, 0, NULL);
   }
   return GW_OK;
 }

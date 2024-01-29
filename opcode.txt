@@ -146,6 +146,7 @@ SetCode~i~i
 RegMove~i
 Reg2Mem~u~i
 Reg2Mem4~u~u
+_staticmemcpy_
 Overflow
 FuncUsrEnd
 FuncUsrEnd2

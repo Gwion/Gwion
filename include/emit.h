@@ -151,4 +151,19 @@ mk_emit_instr(regtomem4, Reg2Mem4);
 mk_emit_instr(regpushmem4, RegPushMem4);
 
 ANN void emit_struct_release(const Emitter, const Type , const m_uint offset);
+
+ANN void comptime_ini(const Emitter emit, const m_str name);
+ANN2(1) void comptime_end(const Emitter emit, const size_t size, void*);
+
+ANEW Code *new_code(const Emitter emit, const m_str name);
+ANN VM_Code finalyze(const Emitter emit, const f_instr exec);
+ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
+  vector_add(&emit->stack, (vtype)emit->code);
+  emit->code = new_code(emit, name);
+  if (emit->info->debug) emit_add_instr(emit, DebugLine);
+}
+
+ANN static inline void emit_pop_code(const Emitter emit) {
+  emit->code = (Code *)vector_pop(&emit->stack);
+}
 #endif

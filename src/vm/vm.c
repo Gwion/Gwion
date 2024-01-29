@@ -454,7 +454,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&fimul, &&fidiv, &&fiand, &&fior, &&fieq, &&fine, &&figt, &&fige, &&filt,
       &&file, &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv, &&itof,
       &&ftoi, &&timeadv, &&recurs, &&setcode, &&regmove,
-      &&regtomem, &&regtomemother,
+      &&regtomem, &&regtomemother, &&staticmemcpy,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
       &&sporkini, &&forkini, &&sporkfunc, &&sporkexp, &&sporkcode,
@@ -939,6 +939,9 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     regtomemother:
       memcpy(mem + VAL, reg, VAL2);
       DISPATCH()
+    staticmemcpy:
+      memcpy((void*)VAL, reg, VAL2);
+      DISPATCH()
     overflow:
       if (overflow_(mem + VAL2, shred)) {
         handle(shred, "StackOverflow");
@@ -1335,7 +1338,7 @@ static void *_dispatch[] = {
       &&_fimul, &&_fidiv, &&_fiand, &&_fior, &&_fieq, &&_fine, &&_figt, &&_fige, &&_filt,
       &&_file, &&_firassign, &&_firadd, &&_firsub, &&_firmul, &&_firdiv, &&_itof,
       &&_ftoi, &&_timeadv, &&_recurs, &&_setcode, &&_regmove,
-      &&_regtomem, &&_regtomemother,
+      &&_regtomem, &&_regtomemother, &&_staticmemcpy,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
       &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkexp, &&_sporkcode, &&_forkend,
@@ -1536,6 +1539,7 @@ return;
     PREPARE(regmove);
     PREPARE(regtomem);
     PREPARE(regtomemother);
+    PREPARE(staticmemcpy);
     PREPARE(overflow);
     PREPARE(funcusrend);
     PREPARE(funcusrend2);
