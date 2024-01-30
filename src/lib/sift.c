@@ -13,8 +13,8 @@
 static OP_CHECK(opck_sift) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Exp lhs = bin->lhs;
-  Stmt* stmt = mp_vector_at(lhs->d.exp_unary.code, struct Stmt_, 0);
-  Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, struct Stmt_, 0);
+  Stmt* stmt = mp_vector_at(lhs->d.exp_unary.code, Stmt, 0);
+  Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, Stmt, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
   Exp next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
   CHECK_BN(traverse_exp(env, next)); // how do we free it?
@@ -42,26 +42,26 @@ static OP_CHECK(opck_ctrl) {
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
   CHECK_BN(traverse_exp(env, func));
-  struct Stmt_ one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
+  Stmt one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
 
   Exp samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->loc);
   Exp _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->loc);
   Exp time = new_exp_binary(mp, samp, chuck, _now, func->loc);
   CHECK_BN(traverse_exp(env, time));
-  struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
+  Stmt two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
 
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);
-  Stmt_List slist = new_mp_vector(mp, struct Stmt_, 2);
-  mp_vector_set(slist, struct Stmt_, 0, one);
-  mp_vector_set(slist, struct Stmt_, 1, two);
+  Stmt_List slist = new_mp_vector(mp, Stmt, 2);
+  mp_vector_set(slist, Stmt, 0, one);
+  mp_vector_set(slist, Stmt, 1, two);
   Stmt* stmt = new_stmt_code(mp, slist, func->loc);
 
   const Exp cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->loc);
   check_exp(env, cond);
 
-  const Stmt_List code = new_mp_vector(mp, struct Stmt_, 1);
-  mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
+  const Stmt_List code = new_mp_vector(mp, Stmt, 1);
+  mp_vector_set(code, Stmt, 0, ((Stmt) {
       .stmt_type = ae_stmt_while,
       .d = {
         .stmt_flow = {

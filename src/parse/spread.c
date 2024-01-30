@@ -62,7 +62,7 @@ ANN Ast spread_class(const Env env, const Ast body) {
       Stmt_List list = section.d.stmt_list;
       Stmt_List acc = NULL;
       for(uint32_t j = 0; j < list->len; j++) {
-        const struct Stmt_ stmt = *mp_vector_at(list, struct Stmt_, j);
+        const Stmt stmt = *mp_vector_at(list, Stmt, j);
         if(stmt.stmt_type == ae_stmt_spread) {
           if(acc) {
             mp_vector_add(env->gwion->mp, &new_body, Section, MK_SECTION(stmt, stmt_list, acc));
@@ -80,8 +80,8 @@ ANN Ast spread_class(const Env env, const Ast body) {
           }
         } else {
           if(!acc)
-            acc = new_mp_vector(env->gwion->mp, struct Stmt_, 0);
-          mp_vector_add(env->gwion->mp, &acc, struct Stmt_, stmt);
+            acc = new_mp_vector(env->gwion->mp, Stmt, 0);
+          mp_vector_add(env->gwion->mp, &acc, Stmt, stmt);
         }
       }
       if(acc) {
@@ -96,10 +96,10 @@ ANN Ast spread_class(const Env env, const Ast body) {
 
 ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
   const Ast extend = env->context->extend;
-  Ast new_body = new_mp_vector(env->gwion->mp, struct Stmt_, 0);
+  Ast new_body = new_mp_vector(env->gwion->mp, Stmt, 0);
   uint32_t offset = 0;
   for(uint32_t i = 0; i < body->len; i++) {
-    const struct Stmt_ stmt = *mp_vector_at(body, struct Stmt_, i);
+    const Stmt stmt = *mp_vector_at(body, Stmt, i);
     if(stmt.stmt_type == ae_stmt_spread) {
       for(; offset < extend->len; offset++) {
         const Section section = *mp_vector_at(extend, Section, offset);
@@ -109,13 +109,13 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
           ERR_O(stmt.loc, "invalid section in variadic func");
         const Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
-          const struct Stmt_ stmt = *mp_vector_at(list, struct Stmt_, j);
-          mp_vector_add(env->gwion->mp, &new_body, struct Stmt_, stmt);
+          const Stmt stmt = *mp_vector_at(list, Stmt, j);
+          mp_vector_add(env->gwion->mp, &new_body, Stmt, stmt);
         }
         break;
       }
     } else {
-      mp_vector_add(env->gwion->mp, &new_body, struct Stmt_, stmt);
+      mp_vector_add(env->gwion->mp, &new_body, Stmt, stmt);
     }
   }
   free_mp_vector(env->gwion->mp, Stmt_List, body);

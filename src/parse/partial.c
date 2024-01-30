@@ -167,8 +167,8 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
 ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
   const Exp arg = partial_call(env, args, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
-  Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
-  mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
+  Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
+  mp_vector_set(code, Stmt, 0, ((Stmt) {
     .stmt_type = ae_stmt_return,
     .d = { .stmt_exp = { .val = exp }}
   }));

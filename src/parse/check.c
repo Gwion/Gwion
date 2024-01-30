@@ -1288,14 +1288,14 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     const Exp when   = tdef->when;
     tdef->when = NULL;
     when->next       = helper;
-    Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 2);
-    mp_vector_set(code, struct Stmt_, 0,
-      ((struct Stmt_) {
+    Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 2);
+    mp_vector_set(code, Stmt, 0,
+      ((Stmt) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
       .loc = when->loc
     }));
-    mp_vector_set(code, struct Stmt_, 1,
-      ((struct Stmt_) {
+    mp_vector_set(code, Stmt, 1,
+      ((Stmt) {
       .stmt_type = ae_stmt_exp,
       .loc = when->loc
     }));
@@ -1317,11 +1317,11 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     // casting while defining it*
     const Exp ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), when->loc);
     ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->tag.loc);
-    struct Stmt_ ret = {
+    Stmt ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
       .loc = when->loc
     };
-    mp_vector_set(fdef->d.code, struct Stmt_, 1, ret);
+    mp_vector_set(fdef->d.code, Stmt, 1, ret);
     ret_id->type = tdef->type;
   }
   if (tflag(tdef->type, tflag_cdef))
@@ -1630,7 +1630,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Match stmt) {
 
 ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   for(m_uint i = 0; i < stmt->list->len; i++) {
-    Stmt* s = mp_vector_at(stmt->list, struct Stmt_, i);
+    Stmt* s = mp_vector_at(stmt->list, Stmt, i);
     CHECK_BB(check_stmt_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -1736,7 +1736,7 @@ ANN m_bool check_stmt(const Env env, Stmt* stmt) {
 
 ANN m_bool check_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, Stmt, i);
     CHECK_BB(check_stmt(env, s));
   }
   return GW_OK;
@@ -2056,7 +2056,7 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
     if (section->section_type == ae_section_stmt) {
   Stmt_List l = section->d.stmt_list;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(l, Stmt, i);
         if (stmt->stmt_type == ae_stmt_exp) {
           CHECK_BB(traverse_exp(env, stmt->d.stmt_exp.val));
           Var_Decl vd = stmt->d.stmt_exp.val->d.exp_decl.var.vd;
@@ -2133,7 +2133,7 @@ ANN static bool class_def_has_body(Ast ast) {
   if(strcmp(s_name(f->base->tag.sym), "@ctor"))return false;
   Stmt_List l = f->d.code;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(l, Stmt, i);
     if (stmt->stmt_type == ae_stmt_pp) continue;
     if (stmt->stmt_type == ae_stmt_exp) {
       const Exp exp = stmt->d.stmt_exp.val;

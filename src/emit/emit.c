@@ -841,7 +841,7 @@ ANN m_bool emit_ensure_func(const Emitter emit, const Func f) {
 
 ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   if(emit->locale->def->d.code) {
-    const Stmt* stmt = mp_vector_at((emit->locale->def->d.code), struct Stmt_, 0);
+    const Stmt* stmt = mp_vector_at((emit->locale->def->d.code), Stmt, 0);
     const Func f = stmt->d.stmt_exp.val->d.exp_call.func->type->info->func;
     CHECK_OB(emit_ensure_func(emit, f));
   }
@@ -2555,7 +2555,7 @@ ANN static inline void match_unvec(struct Match_ *const match,
 
 ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list) {
   for(m_uint i = 0; i < list->len; i++) {
-    const Stmt* stmt = mp_vector_at(list, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(list, Stmt, i);
     CHECK_BB(emit_stmt_match_case(emit, &stmt->d.stmt_match));
   }
   return GW_OK;
@@ -2621,7 +2621,7 @@ ANN static m_bool emit_stmt(const Emitter emit, Stmt* stmt) {
 
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
+    Stmt* stmt = mp_vector_at(l, Stmt, i);
     CHECK_BB(emit_stmt(emit, stmt));
   }
   return GW_OK;

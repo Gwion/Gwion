@@ -35,9 +35,9 @@ ANN static Stmt_List code(const MemPool p, const Exp func, const Arg_List lst,
        const uint32_t max, const ae_stmt_t type) {
   const Exp arg = mk_args(p, lst, max);
   const Exp call = new_exp_call(p, func, arg, func->loc);
-  Stmt_List code = new_mp_vector(p, struct Stmt_, 1);
-  mp_vector_set(code, struct Stmt_, 0,
-    ((struct Stmt_) {
+  Stmt_List code = new_mp_vector(p, Stmt, 1);
+  mp_vector_set(code, Stmt, 0,
+    ((Stmt) {
       .stmt_type = type, .d = { .stmt_exp = { .val = call }},
       .loc = func->loc
   }));

@@ -268,7 +268,7 @@ ANN static inline m_bool
   if (stmt->where) CHECK_BB(scan1_stmt(env, stmt->where));
   Stmt_List l = stmt->list;
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, Stmt, i);
     CHECK_BB(scan1_stmt_match_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -358,7 +358,7 @@ ANN static inline bool if_stmt_is_return(Stmt* stmt) {
   if (stmt->stmt_type == ae_stmt_return) return true;
   if (stmt->stmt_type == ae_stmt_code) {
     if (mp_vector_len(stmt->d.stmt_code.stmt_list)) {
-      Stmt* s = mp_vector_back(stmt->d.stmt_code.stmt_list, struct Stmt_);
+      Stmt* s = mp_vector_back(stmt->d.stmt_code.stmt_list, Stmt);
       if (s->stmt_type == ae_stmt_return) return true;
     }
   }
@@ -614,7 +614,7 @@ ANN static inline bool end_flow(Stmt* s) {
 
 ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
   for(uint32_t i = len; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, Stmt, i);
     free_stmt(env->gwion->mp, s);
   }
   l->len = len;
@@ -623,7 +623,7 @@ ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   uint32_t i;
   for(i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, Stmt, i);
     CHECK_BB(scan1_stmt(env, s));
     if(end_flow(s)) break;
   }
@@ -812,15 +812,15 @@ ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
    isa(cdef->base.type, env->gwion->type[et_dict]) < 0) {
     MemPool mp = env->gwion->mp;
     Ast base = cdef->body;
-    Stmt_List ctor = new_mp_vector(mp, struct Stmt_, 0);
+    Stmt_List ctor = new_mp_vector(mp, Stmt, 0);
     Ast body = new_mp_vector(mp, Section, 1); // room for ctor
     for(uint32_t i = 0; i < base->len; i++) {
       Section section = *mp_vector_at(base, Section, i);
       if(section.section_type == ae_section_stmt) {
         Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
-          Stmt* stmt = mp_vector_at(list, struct Stmt_, j);
-          mp_vector_add(mp, &ctor, struct Stmt_, *stmt);
+          Stmt* stmt = mp_vector_at(list, Stmt, j);
+          mp_vector_add(mp, &ctor, Stmt, *stmt);
         }
       } else mp_vector_add(mp, &body, Section, section);
     }
