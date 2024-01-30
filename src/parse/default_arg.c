@@ -39,7 +39,7 @@ ANN static Stmt_List code(const MemPool p, const Exp func, const Arg_List lst,
   mp_vector_set(code, struct Stmt_, 0,
     ((struct Stmt_) {
       .stmt_type = type, .d = { .stmt_exp = { .val = call }},
-      .pos = func->pos
+      .loc = func->pos
   }));
   return code;
 }

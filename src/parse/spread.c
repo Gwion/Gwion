@@ -106,7 +106,7 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
         if(section.section_type == ae_section_stmt && !section.d.stmt_list)
           break;
         if(section.section_type != ae_section_stmt)
-          ERR_O(stmt.pos, "invalid section in variadic func");
+          ERR_O(stmt.loc, "invalid section in variadic func");
         const Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
           const struct Stmt_ stmt = *mp_vector_at(list, struct Stmt_, j);

@@ -303,7 +303,7 @@ ANN static inline m_bool scan1_stmt_try(const restrict Env env,
 ANN static inline m_bool stmt_each_defined(const restrict Env env,
                                            const Stmt_Each    stmt) {
   if (nspc_lookup_value1(env->curr, stmt->tag.sym))
-    ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"),
+    ERR_B(stmt_self(stmt)->loc, _("foreach value '%s' is already defined"),
           s_name(stmt->tag.sym))
   if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->var.tag.sym))
     ERR_B(stmt->idx->var.tag.loc, _("foreach index '%s' is already defined"),
@@ -575,7 +575,7 @@ ANN m_bool scan1_union_def(const Env env, const Union_Def udef) {
 
 ANN static m_bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
-    ERR_B(stmt_self(stmt)->pos,
+    ERR_B(stmt_self(stmt)->loc,
           _("'return' statement found outside function definition"))
   if (env->scope->depth == 1) env->func->memoize = 1;
   if(stmt->val) CHECK_BB(scan1_exp(env, stmt->val));
@@ -586,7 +586,7 @@ ANN static m_bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
   if (stmt->pp_type == ae_pp_pragma && !strcmp(stmt->data, "packed")) {
     if(env->class_def && !tflag(env->class_def, tflag_union)) set_tflag(env->class_def, tflag_packed);
-    else ERR_B(stmt_self(stmt)->pos, "`packed` pragma outside of {G+}class{0} or {G+}struct{0} declaration");
+    else ERR_B(stmt_self(stmt)->loc, "`packed` pragma outside of {G+}class{0} or {G+}struct{0} declaration");
   }
   return GW_OK;
 }
@@ -596,7 +596,7 @@ ANN static m_bool scan1_stmt_defer(const Env env, const Stmt_Defer stmt) {
 }
 
 ANN static m_bool scan1_stmt_spread(const Env env, const Spread_Def spread) {
-  ERR_B(stmt_self(spread)->pos, "spread statement outside of variadic environment");
+  ERR_B(stmt_self(spread)->loc, "spread statement outside of variadic environment");
 }
 
 DECL_STMT_FUNC(scan1, m_bool, Env)

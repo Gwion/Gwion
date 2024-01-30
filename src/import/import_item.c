@@ -22,7 +22,7 @@ ANN static m_int gwi_item_tmpl(const Gwi gwi) {
   mp_vector_set(slist, struct Stmt_, 0,  ((struct Stmt_) {
       .stmt_type = ae_stmt_exp,
       .d = { .stmt_exp = { .val = gwi->ck->exp } },
-      .pos = gwi->loc
+      .loc = gwi->loc
     }));
   Section section = (Section) {
     .section_type = ae_section_stmt,

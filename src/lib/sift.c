@@ -42,13 +42,13 @@ static OP_CHECK(opck_ctrl) {
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
   CHECK_BN(traverse_exp(env, func));
-  struct Stmt_ one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
+  struct Stmt_ one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .loc = func->pos };
 
   Exp samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->pos);
   Exp _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->pos);
   Exp time = new_exp_binary(mp, samp, chuck, _now, func->pos);
   CHECK_BN(traverse_exp(env, time));
-  struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .pos = func->pos };
+  struct Stmt_ two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .loc = func->pos };
 
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);
@@ -69,7 +69,7 @@ static OP_CHECK(opck_ctrl) {
           .body = stmt
         }
       },
-      .pos = func->pos
+      .loc = func->pos
     }));
   exp->exp_type = ae_exp_unary;
   exp->d.exp_unary.unary_type = unary_code;

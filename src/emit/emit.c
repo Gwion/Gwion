@@ -2053,7 +2053,7 @@ ANN static inline m_bool emit_jump(const Emitter    emit, const Stmt_Index stmt,
     vector_add(v, (vtype)emit_add_instr(emit, Goto));
   else if (stmt->idx) {
     if (emit_jump_index(emit, v, stmt->idx) < 0)
-      ERR_B(stmt_self(stmt)->pos, _("too many jumps required."))
+      ERR_B(stmt_self(stmt)->loc, _("too many jumps required."))
   }
   return GW_OK;
 }

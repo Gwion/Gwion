@@ -611,7 +611,7 @@ static OP_CHECK(opck_op_impl) {
   mp_vector_set(code, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
-    .pos = impl->e->pos
+    .loc = impl->e->pos
   }));
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->tag.sym   = impl->e->d.prim.d.var;

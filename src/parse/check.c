@@ -1292,12 +1292,12 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     mp_vector_set(code, struct Stmt_, 0,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
-      .pos = when->pos
+      .loc = when->pos
     }));
     mp_vector_set(code, struct Stmt_, 1,
       ((struct Stmt_) {
       .stmt_type = ae_stmt_exp,
-      .pos = when->pos
+      .loc = when->pos
     }));
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     tdef->when_def           = fdef;
@@ -1319,7 +1319,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->tag.loc);
     struct Stmt_ ret = {
       .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
-      .pos = when->pos
+      .loc = when->pos
     };
     mp_vector_set(fdef->d.code, struct Stmt_, 1, ret);
     ret_id->type = tdef->type;
@@ -1394,7 +1394,7 @@ ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) {
 
 ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
   if (!stmt->c2 || !stmt->c2->d.stmt_exp.val)
-    ERR_B(stmt_self(stmt)->pos,
+    ERR_B(stmt_self(stmt)->loc,
           _("empty for loop condition..."
             "...(note: explicitly use 'true' if it's the intent)"
             "...(e.g., 'for(; true;){{ /*...*/ }')"))
@@ -1487,7 +1487,7 @@ stmt_func_xxx(each, Stmt_Each, env_inline_mult(env, 1.5), do_stmt_each(env, stmt
 ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (is_new(env->func->def)) {
     if(stmt->val)
-      ERR_B(stmt_self(stmt)->pos,
+      ERR_B(stmt_self(stmt)->loc,
             _("'return' statement inside constructor function should have no expression"))
     return GW_OK;
   }
@@ -1505,23 +1505,23 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
     Arg *arg = mp_vector_at(env->func->def->base->args, Arg, 0);
     if (env->func->def->base->tag.sym == insert_symbol("@implicit") &&
         ret_type == arg->type)
-      ERR_B(stmt_self(stmt)->pos,
+      ERR_B(stmt_self(stmt)->loc,
             _("can't use implicit casting while defining it"))
     if (check_implicit(env, stmt->val, env->func->def->base->ret_type) > 0)
       return GW_OK;
-    ERR_B(stmt_self(stmt)->pos,
+    ERR_B(stmt_self(stmt)->loc,
           _("invalid return type: got '%s', expected '%s'"), ret_type->name,
           env->func->def->base->ret_type->name)
   }
   if (isa(env->func->def->base->ret_type, env->gwion->type[et_void]) > 0)
     return GW_OK;
-  ERR_B(stmt_self(stmt)->pos, _("missing value for return statement"))
+  ERR_B(stmt_self(stmt)->loc, _("missing value for return statement"))
 }
 
 #define describe_check_stmt_stack(stack, name)                                 \
   ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) {        \
     if (!vector_size(&env->scope->stack))                                      \
-      ERR_B(stmt->pos, _("'" #name "' found outside of for/while/until..."))   \
+      ERR_B(stmt->loc, _("'" #name "' found outside of for/while/until..."))   \
     return GW_OK;                                                              \
   }
 describe_check_stmt_stack(conts, continue);
@@ -1710,7 +1710,7 @@ ANN static m_bool check_stmt_pp(const Env env, const Stmt_PP stmt) {
       !strncmp(stmt->data, "memoize", strlen("memoize")))
     env->func->memoize = strtol(stmt->data + 7, NULL, 10);
   else if(stmt->pp_type == ae_pp_locale) {
-    const loc_t loc = stmt_self(stmt)->pos;
+    const loc_t loc = stmt_self(stmt)->loc;
     const Exp id   = new_prim_id(env->gwion->mp, stmt->xid, loc);
     const Exp arg   = new_prim_id(env->gwion->mp, insert_symbol("_"), loc);
     arg->next = stmt->exp;
