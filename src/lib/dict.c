@@ -297,7 +297,7 @@ static OP_CHECK(opck_dict_remove_toop) {
   const Type t = e->d.exp_binary.rhs->type;
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
   if(isa(args->type, hinfo->key) < 0 || args->next)
-    ERR_N(e->pos, "dict.remove must be called with one Key argument");
+    ERR_N(e->loc, "dict.remove must be called with one Key argument");
   return e->type = env->gwion->type[et_void];
 }
 

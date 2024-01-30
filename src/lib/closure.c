@@ -215,14 +215,14 @@ ANN static m_bool fptr_args(const Env env, Func_Base *base[2]) {
 ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
   if (!info->lhs->def->base->effects.ptr) return true;
   if (!info->rhs->def->base->effects.ptr) {
-    gwerr_secondary("too many effects", env->name, info->exp->pos);
+    gwerr_secondary("too many effects", env->name, info->exp->loc);
     return false;
   }
   const Vector lhs = &info->lhs->def->base->effects;
   const Vector rhs = &info->rhs->def->base->effects;
   for (m_uint i = 0; i < vector_size(lhs); i++) {
     if (vector_find(rhs, vector_at(lhs, 0)) == -1) {
-      gwerr_secondary("effect not handled", env->name, info->exp->pos);
+      gwerr_secondary("effect not handled", env->name, info->exp->loc);
       return false;
     }
   }
@@ -233,7 +233,7 @@ ANN static m_bool fptr_check(const Env env, struct FptrInfo *info) {
   //  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
   //    return GW_ERROR;
   if(!info->lhs)
-    ERR_B(info->exp->pos,
+    ERR_B(info->exp->loc,
           _("can't resolve operator"))
   return GW_OK;
 }
@@ -281,7 +281,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   Arg_List bases = fdef->base->args;
   Arg_List args = l->def->base->args;
   if (mp_vector_len(bases) != mp_vector_len(args))
-    ERR_B(exp_self(l)->pos, _("argument number does not match for lambda"))
+    ERR_B(exp_self(l)->loc, _("argument number does not match for lambda"))
 
   if(l->def->captures) {
     // here move to arguments
@@ -313,11 +313,11 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       Arg *base = mp_vector_at(bases, Arg, i);
       Arg *arg  = mp_vector_at(args, Arg, i);
       DECL_OB(const Type, arg_type, = known_type(env, base->var.td));
-      arg->var.td = type2td(env->gwion, arg_type, exp_self(l)->pos);
+      arg->var.td = type2td(env->gwion, arg_type, exp_self(l)->loc);
     }
   }
   DECL_OB(const Type, ret_type, = known_type(env, fdef->base->td));
-  l->def->base->td = type2td(env->gwion, ret_type, exp_self(l)->pos);
+  l->def->base->td = type2td(env->gwion, ret_type, exp_self(l)->loc);
   /*Type*/ owner = fdef->base->func->value_ref->from->owner_class;
 
   Upvalues upvalues = {
@@ -370,7 +370,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
   if(info->exp->type->info->func) {
     CHECK_BB(fptr_check(env, info));
     if (!(info->exp->type = fptr_type(env, info)))
-      ERR_B(info->exp->pos, _("no match found"))
+      ERR_B(info->exp->loc, _("no match found"))
     return GW_OK;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;
@@ -394,9 +394,9 @@ static OP_CHECK(opck_auto_fptr) {
   // we'll only deal with auto fptr declaration
   if (bin->rhs->exp_type != ae_exp_decl &&
       bin->rhs->d.exp_decl.var.td->tag.sym != insert_symbol("auto"))
-    ERR_N(bin->lhs->pos, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
+    ERR_N(bin->lhs->loc, "invalid {G+}function{0} {+}:=>{0} {+G}function{0} assignment");
   if (bin->lhs->exp_type == ae_exp_td)
-    ERR_N(bin->lhs->pos, "can't use {/}type decl expressions{0} in auto function pointer declarations");
+    ERR_N(bin->lhs->loc, "can't use {/}type decl expressions{0} in auto function pointer declarations");
 //  if(!bin->lhs->type->info->func)
   if(!bin->lhs->type->info->func || !strncmp(bin->lhs->type->name, "partial:", 8))
     return partial2auto(env, bin);
@@ -408,10 +408,10 @@ static OP_CHECK(opck_auto_fptr) {
   Func_Base *const fbase =
       cpy_func_base(env->gwion->mp, bin->lhs->type->info->func->def->base);
   const Fptr_Def fptr_def = new_fptr_def(env->gwion->mp, fbase);
-  char name[13 + strlen(env->curr->name) + num_digit(bin->rhs->pos.first.line) +
-            num_digit(bin->rhs->pos.first.column)];
-  sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->pos.first.line,
-          bin->rhs->pos.first.column);
+  char name[13 + strlen(env->curr->name) + num_digit(bin->rhs->loc.first.line) +
+            num_digit(bin->rhs->loc.first.column)];
+  sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->loc.first.line,
+          bin->rhs->loc.first.column);
   fptr_def->base->tag.sym = insert_symbol(name);
   const m_bool ret    = traverse_fptr_def(env, fptr_def);
   const Type   t      = fptr_def->cdef->base.type;
@@ -486,7 +486,7 @@ static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {
 }
 
 ANN Type check_op_call(const Env env, Exp_Call *const exp) {
-  CHECK_BO(op_call_narg(env, exp->args, exp->func->pos));
+  CHECK_BO(op_call_narg(env, exp->args, exp->func->loc));
   const Exp base   = exp_self(exp);
   const Exp op_exp = exp->func;
   base->exp_type   = ae_exp_binary;
@@ -537,7 +537,7 @@ static OP_EMIT(opem_op_impl) {
 static OP_CHECK(opck_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   const Func       func = closure_def(impl->t)->base->func;
-  CHECK_BN(op_impl_narg(env, func->def, impl->e->pos));
+  CHECK_BN(op_impl_narg(env, func->def, impl->e->loc));
   op_impl_ensure_types(env, func);
   const Symbol lhs_sym = insert_symbol("@lhs");
   const Symbol rhs_sym = insert_symbol("@rhs");
@@ -547,13 +547,13 @@ static OP_CHECK(opck_op_impl) {
       .d        = {.prim = {.d = {.var = lhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg0->type,
-      .pos      = arg0->var.td->tag.loc};
+      .loc      = arg0->var.td->tag.loc};
   struct Exp_ _rhs = {
       .d        = {.prim = {.d = {.var = rhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg1->type,
-      .pos      = arg1->var.td->tag.loc};
-  struct Exp_ self = {.pos = impl->e->pos};
+      .loc      = arg1->var.td->tag.loc};
+  struct Exp_ self = {.loc = impl->e->loc};
   self.d.exp_binary.lhs = &_lhs;
   self.d.exp_binary.rhs = &_rhs;
   self.d.exp_binary.op  = impl->e->d.prim.d.var;
@@ -561,13 +561,13 @@ static OP_CHECK(opck_op_impl) {
                           .lhs  = arg0->type,
                           .rhs  = arg1->type,
                           .data = (uintptr_t)&self.d.exp_binary,
-                          .loc  = impl->e->pos};
+                          .loc  = impl->e->loc};
   vector_add(&env->scope->effects, 0);
   DECL_ON(const Type, t, = op_check(env, &opi));
   CHECK_BN(isa(t, func->def->base->ret_type)); // error message?
   MP_Vector *const eff = (MP_Vector*)vector_back(&env->scope->effects);
 //  if (eff && !check_effect_overload(eff, func))
-//    ERR_N(impl->pos, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
+//    ERR_N(impl->loc, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
 //          s_name(impl->e->d.prim.d.var), func->name);
   const Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if (v) {
@@ -592,8 +592,8 @@ static OP_CHECK(opck_op_impl) {
   larg0->var.vd.tag.sym = lhs_sym;
   larg1->var.vd.tag.sym = rhs_sym;
   Func_Base *base =
-      new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->pos),
-                    impl->e->d.prim.d.var, args, ae_flag_none, impl->e->pos);
+      new_func_base(env->gwion->mp, type2td(env->gwion, t, impl->e->loc),
+                    impl->e->d.prim.d.var, args, ae_flag_none, impl->e->loc);
   if (eff) {
     for (m_uint i = 0; i < eff->len; i++) {
       struct ScopeEffect *effect = mp_vector_at(eff, struct ScopeEffect, i);
@@ -602,16 +602,16 @@ static OP_CHECK(opck_op_impl) {
     free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
   }
   const Exp lhs =
-      new_prim_id(env->gwion->mp, larg0->var.vd.tag.sym, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg0->var.vd.tag.sym, impl->e->loc);
   const Exp rhs =
-      new_prim_id(env->gwion->mp, larg1->var.vd.tag.sym, impl->e->pos);
+      new_prim_id(env->gwion->mp, larg1->var.vd.tag.sym, impl->e->loc);
   const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
-                                 rhs, impl->e->pos);
+                                 rhs, impl->e->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
   mp_vector_set(code, struct Stmt_, 0,
     ((struct Stmt_) {
     .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = bin }},
-    .loc = impl->e->pos
+    .loc = impl->e->loc
   }));
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->tag.sym   = impl->e->d.prim.d.var;
@@ -642,7 +642,7 @@ static OP_CHECK(opck_class_partial) {
   Exp_Call *call = (Exp_Call*)data;
   struct Op_Import opi = {.op   = insert_symbol("@partial"),
                           .lhs  = actual_type(env->gwion, call->func->type),
-                          .loc  = call->func->pos,
+                          .loc  = call->func->loc,
                           .data = (uintptr_t)data};
    return op_check(env, &opi);
 }

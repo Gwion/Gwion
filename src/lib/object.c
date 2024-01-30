@@ -94,11 +94,11 @@ ANN void free_object(MemPool p, const M_Object o) {
 
 static ID_CHECK(opck_this) {
   if (!env->class_def)
-    ERR_O(exp_self(prim)->pos,
+    ERR_O(exp_self(prim)->loc,
           _("keyword 'this' can be used only inside class definition..."))
   if(env->func) {
     if (!vflag(env->func->value_ref, vflag_member))
-      ERR_O(exp_self(prim)->pos,
+      ERR_O(exp_self(prim)->loc,
           _("keyword 'this' cannot be used inside static functions..."))
     if (!exp_getuse(exp_self(prim)) &&
         !strcmp(s_name(env->func->def->base->tag.sym), "@gack"))
@@ -122,7 +122,7 @@ static ID_EMIT(opem_this) {
 static ID_CHECK(opck_super) {
   const Exp self = exp_self(prim);
   if(!env->func || is_ctor(env->func->def))
-    ERR_O(self->pos, "can't use 'super' outside of constructor");
+    ERR_O(self->loc, "can't use 'super' outside of constructor");
   const Type parent = env->class_def->info->parent;
   DECL_OO(const Value, v, = find_value(parent, insert_symbol("new")));
   SET_FLAG(env->func, const);
@@ -133,7 +133,7 @@ static ID_EMIT(opem_super) {
   const Env env = emit->env;
   const Exp self = exp_self(prim);
   if(!self->is_call)
-    ERR_B(self->pos, "can only use 'super' as a function call");
+    ERR_B(self->loc, "can only use 'super' as a function call");
   emit_regpushmem(emit, 0, SZ_INT, false);
   emit_pushimm(emit, (m_uint)exp_self(prim)->type);
   return GW_OK;

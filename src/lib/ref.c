@@ -27,7 +27,7 @@ ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc) {
 static m_bool ref_access(const Env env, const Exp e) {
   const m_str access = exp_access(e);
   if (!access) return GW_OK;
-  env_err(env, e->pos, _("operand is %s"), access);
+  env_err(env, e->loc, _("operand is %s"), access);
   return GW_ERROR;
 }
 

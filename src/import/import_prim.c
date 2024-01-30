@@ -107,11 +107,11 @@ static OP_EMIT(opem_bit_exp) {
 static OP_CHECK(opck_bit_access) {
   Array_Sub array = data;
   const Exp e = array->exp;
-  if(e->next) ERR_N(e->next->pos, "too many expressions for bit access");
+  if(e->next) ERR_N(e->next->loc, "too many expressions for bit access");
   if(is_prim_int(e)) {
     m_int idx = e->d.prim.d.gwint.num;
     if(idx < 0 || idx >= (m_int)array->type->size * CHAR_BIT)
-      ERR_N(e->pos, "bit access out of bound");
+      ERR_N(e->loc, "bit access out of bound");
   }
   return env->gwion->type[et_bool];
 }

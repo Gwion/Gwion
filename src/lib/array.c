@@ -139,14 +139,14 @@ static OP_CHECK(opck_array_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   CHECK_NN(opck_const_rhs(env, data));
   if (bin->lhs->type != env->gwion->type[et_error]) {
-    ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->pos)
+    ARRAY_OPCK(bin->lhs, bin->rhs, exp_self(bin)->loc)
     if (bin->lhs->type->array_depth != bin->rhs->type->array_depth)
-      ERR_N(exp_self(bin)->pos, _("array depths do not match."));
+      ERR_N(exp_self(bin)->loc, _("array depths do not match."));
   }
   if (bin->rhs->exp_type == ae_exp_decl) {
     Type_Decl *td = bin->rhs->d.exp_decl.var.td;
     if (td->array && td->array->exp)
-      ERR_N(exp_self(bin)->pos,
+      ERR_N(exp_self(bin)->loc,
             _("do not provide array for 'xxx => declaration'."));
     SET_FLAG(bin->rhs->d.exp_decl.var.vd.value, late);
   }
@@ -174,12 +174,12 @@ ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
 
 static OP_CHECK(opck_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  return check_array_shift(env, bin->lhs, bin->rhs, "<<", exp_self(bin)->pos);
+  return check_array_shift(env, bin->lhs, bin->rhs, "<<", exp_self(bin)->loc);
 }
 
 static OP_CHECK(opck_array_sr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
-  return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->pos);
+  return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->loc);
 }
 
 ANN static inline m_bool emit_array_shift(const Emitter emit,
@@ -268,7 +268,7 @@ static OP_CHECK(opck_array_cast) {
     }
     parent = parent->info->parent;
   }
-  struct Exp_ e = { .type = l, .pos = cast->exp->pos };
+  struct Exp_ e = { .type = l, .loc = cast->exp->loc };
   CHECK_BN(check_implicit(env, &e, r));
   return t;
 }
@@ -382,7 +382,7 @@ static OP_CHECK(opck_array) {
   while ((e = e->next));
   const Type t = get_array_type(array->type);
   if (t->array_depth >= array->depth)
-    return array_type(env, array_base(t), t->array_depth - array->depth, array->exp->pos);
+    return array_type(env, array_base(t), t->array_depth - array->depth, array->exp->loc);
   const Exp         curr = take_exp(array->exp, t->array_depth);
 
   struct Array_Sub_ next = {curr->next, array_base(t),
@@ -887,12 +887,12 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   DECL_OO(const Type, t, = array_base_simple(base));
   if(!tflag(base, tflag_ref)) {
     const m_uint depth = base->array_depth - 1;
-    return depth ? array_type(env, t, depth, exp->pos) : t;
+    return depth ? array_type(env, t, depth, exp->loc) : t;
   }
   const Type  inner = (Type)vector_front(&base->info->tuple->contains);
   const Type  refbase = array_base_simple(inner);
   const m_uint depth = inner->array_depth - 1;
-  return depth ? array_type(env, refbase, depth, exp->pos) : refbase;
+  return depth ? array_type(env, refbase, depth, exp->loc) : refbase;
 }
 
 // rewrite me
@@ -900,7 +900,7 @@ static OP_CHECK(opck_array_each_val) {
   const Exp exp = (const Exp) data;
   DECL_ON(const Type, base, = foreach_type(env, exp));
   CHECK_BN(ensure_traverse(env, base));
-  return ref_type(env->gwion, base, exp->pos);
+  return ref_type(env->gwion, base, exp->loc);
 }
 
 static OP_EMIT(opem_array_each) {
@@ -1197,7 +1197,7 @@ ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, const Exp ar
   } else {
     if(args)
       gwerr_warn("array is empty", "no need to provide a lambda",
-          NULL, env->name, td->array->exp->pos);
+          NULL, env->name, td->array->exp->loc);
   }
   return GW_OK;
 }

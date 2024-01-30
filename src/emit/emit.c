@@ -509,7 +509,7 @@ ANN static m_bool _emit_symbol(const Emitter emit, const Symbol *data) {
 
 ANN static m_bool emit_symbol(const Emitter emit, const Exp_Primary *prim) {
   if (!prim->value) // assume it's an operator
-    ERR_B(exp_self(prim)->pos, "missing value for operator");
+    ERR_B(exp_self(prim)->loc, "missing value for operator");
   return _emit_symbol(emit, &prim->d.var);
 }
 
@@ -615,7 +615,7 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
   assert(e);
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
-                          .loc  = e->pos,
+                          .loc  = e->loc,
                           .data = (uintptr_t)prim_exp(data)};
   CHECK_BB(op_emit(emit, &opi));
   emit_local_exp(emit, prim_exp(data));
@@ -630,7 +630,7 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp *data) {
   Exp e = *data;
   const Type  key = e->type;
   const Type  val = e->next->type;
-  const Type t = dict_type(emit->gwion, key, val, e->pos);
+  const Type t = dict_type(emit->gwion, key, val, e->loc);
   const Instr init = emit_add_instr(emit, dict_ctor_alt);
   const Exp next = e->next;
   e->next = NULL;
@@ -706,7 +706,7 @@ ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
                           .rhs  = range->base->type,
-                          .loc  = e->pos,
+                          .loc  = e->loc,
                           .data = (uintptr_t)exp_self(range)};
   CHECK_BB(op_emit(emit, &opi));
   emit_local_exp(emit, exp_self(range));
@@ -1128,7 +1128,7 @@ ANN static m_bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
 ANN /*static */ m_bool emit_exp_decl(const Emitter emit, Exp_Decl *const decl) {
   const Type t = decl->type;
   if(decl->args && !strncmp(decl->args->type->name, "partial:", 8))
-    ERR_B(decl->args->pos, "unresolved partial");
+    ERR_B(decl->args->loc, "unresolved partial");
   CHECK_BB(ensure_emit(emit, t));
   const m_bool global = GET_FLAG(decl->var.td, global);
   const m_uint scope =
@@ -1326,7 +1326,7 @@ ANN static m_bool _emit_exp_call(const Emitter emit, const Exp_Call *call) {
     struct Op_Import opi = {.op   = insert_symbol("call_type"),
                             .rhs  = t,
                             .data = (uintptr_t)call,
-                            .loc  = exp_self(call)->pos};
+                            .loc  = exp_self(call)->loc};
     CHECK_BB(op_emit(emit, &opi));
   }
   const Func f = t->info->func;
@@ -1390,7 +1390,7 @@ ANN static m_bool emit_exp_binary(const Emitter emit, const Exp_Binary *bin) {
   struct Op_Import opi = {.op   = bin->op,
                           .lhs  = lhs->type,
                           .rhs  = rhs->type,
-                          .loc  = exp_self(bin)->pos,
+                          .loc  = exp_self(bin)->loc,
                           .data = (uintptr_t)bin};
   return op_emit(emit, &opi);
 }
@@ -1524,7 +1524,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg *arg) {
   struct Exp_      lhs  = {
     .exp_type = ae_exp_primary,
     .type = arg->type,
-    .pos = arg->var.td->tag.loc,
+    .loc = arg->var.td->tag.loc,
     .d = {
       .prim = { .prim_type = ae_prim_id }
     }
@@ -1532,7 +1532,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg *arg) {
   struct Exp_      rhs  = {
     .exp_type = ae_exp_primary,
     .type     = me->emit->gwion->type[et_bool],
-    .pos = arg->var.td->tag.loc,
+    .loc = arg->var.td->tag.loc,
     .d = {
       .prim = { .prim_type = ae_prim_id }
     }
@@ -1540,7 +1540,7 @@ static m_bool me_cmp(MemoizeEmitter *me, const Arg *arg) {
   struct Exp_      bin  = {
     .exp_type = ae_exp_binary,
     .type = arg->type,
-    .pos = arg->var.td->tag.loc,
+    .loc = arg->var.td->tag.loc,
     .d = {
       .exp_binary = {
         .lhs = &lhs,
@@ -1690,7 +1690,7 @@ ANN static m_bool spork_prepare_func(const Emitter         emit,
   if(!f->code && f != emit->env->func)
     CHECK_BB(emit_ensure_func(emit, f));
   push_spork_code(emit, sp->is_spork ? SPORK_FUNC_PREFIX : FORK_CODE_PREFIX,
-                  sp->exp->pos);
+                  sp->exp->loc);
   return emit_exp_call1(emit, f, f->def->base->ret_type->size, false);
 }
 
@@ -1736,7 +1736,7 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
       .code     = unary->unary_type == unary_code ? unary->code : NULL,
       .type     = exp_self(unary)->type,
       .captures = unary->captures,
-      .loc = exp_self(unary)->pos,
+      .loc = exp_self(unary)->loc,
       .is_spork = (unary->op == insert_symbol("spork")),
       .emit_var = exp_getvar(exp_self(unary))};
   CHECK_OB((sporker.vm_code = spork_prepare(emit, &sporker)));
@@ -1804,13 +1804,13 @@ ANN static m_bool emit_exp_unary(const Emitter emit, const Exp_Unary *unary) {
 ANN static m_bool emit_implicit_cast(const Emitter       emit,
                                      const restrict Exp  from,
                                      const restrict Type to) {
-  const struct Implicit imp = { .e=from, .t=to, . loc = from->pos};
+  const struct Implicit imp = { .e=from, .t=to, . loc = from->loc};
   // no pos
   struct Op_Import opi = {.op   = insert_symbol("@implicit"),
                           .lhs  = from->type,
                           .rhs  = to,
                           .data = (m_uint)&imp,
-                          .loc  = from->pos
+                          .loc  = from->loc
                          };
   return op_emit(emit, &opi);
 }
@@ -1830,7 +1830,7 @@ ANN2(1,2) static Instr _flow(const Emitter emit, const Exp e, Instr *const instr
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
       .rhs  = e->type,
-      .loc  = e->pos,
+      .loc  = e->loc,
       .data = (uintptr_t)e};
   CHECK_BO(op_emit(emit, &opi));
   return (Instr)vector_back(&emit->code->instr);
@@ -1949,9 +1949,9 @@ DECL_EXP_FUNC(emit, m_bool, Emitter)
 ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
   Exp exp = e;
   do {
-    if (emit->info->debug && emit->status.line < e->pos.first.line) {
+    if (emit->info->debug && emit->status.line < e->loc.first.line) {
       const Instr instr = emit_add_instr(emit, DebugLine);
-      instr->m_val = emit->status.line = e->pos.first.line;
+      instr->m_val = emit->status.line = e->loc.first.line;
     }
     CHECK_BB(emit_exp_func[exp->exp_type](emit, &exp->d));
     if (exp->cast_to) CHECK_BB(emit_implicit_cast(emit, exp, exp->cast_to));
@@ -1960,7 +1960,7 @@ ANN2(1) /*static */ m_bool emit_exp(const Emitter emit, /* const */ Exp e) {
         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.var.td, late) &&
         exp_getuse(e) && !exp_getvar(e) &&
         GET_FLAG(e->d.exp_decl.var.vd.value, late))
-    emit_fast_except(emit, e->d.exp_decl.var.vd.value->from, e->pos);
+    emit_fast_except(emit, e->d.exp_decl.var.vd.value->from, e->loc);
   } while ((exp = exp->next));
   return GW_OK;
 }
@@ -2428,12 +2428,12 @@ ANN static m_bool emit_case_head(const Emitter emit, const Exp base,
   CHECK_BB(emit_exp1(emit, base));
   CHECK_BB(emit_exp1(emit, e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = op};
-  struct Exp_      ebin = { .d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .pos = e->pos };
+  struct Exp_      ebin = { .d = {.exp_binary = bin}, .exp_type = ae_exp_binary, .loc = e->loc };
   struct Op_Import opi = {.op   = op,
                           .lhs  = base->type,
                           .rhs  = e->type,
                           .data = (uintptr_t)&ebin.d.exp_binary,
-                          .loc  = e->pos};
+                          .loc  = e->loc};
   CHECK_BB(op_emit(emit, &opi));
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(v, (vtype)instr);
@@ -2503,12 +2503,12 @@ ANN static Symbol case_op(const Emitter emit, const Exp base, const Exp e,
   emit_regmove(emit, SZ_INT);
   CHECK_BO(emit_exp(emit, e));
   const Exp_Binary bin  = {.lhs = base, .rhs = e, .op = insert_symbol("?=")};
-  struct Exp_      ebin = {.d = {.exp_binary = bin}, .pos = e->pos };
+  struct Exp_      ebin = {.d = {.exp_binary = bin}, .loc = e->loc };
   struct Op_Import opi = {.op   = insert_symbol("?="),
                           .lhs  = base->type,
                           .rhs  = e->type,
                           .data = (uintptr_t)&ebin.d.exp_binary,
-                          .loc  = e->pos};
+                          .loc  = e->loc};
   CHECK_BO(op_emit(emit, &opi));
   const Instr instr = emit_add_instr(emit, BranchEqInt);
   vector_add(vec, (vtype)instr);
@@ -2633,7 +2633,7 @@ ANN static m_bool emit_exp_dot(const Emitter emit, const Exp_Dot *member) {
                           .lhs  = member->base->type,
                           .rhs  = exp_self(member)->type,
                           .data = (uintptr_t)member,
-                          .loc  = exp_self(member)->pos};
+                          .loc  = exp_self(member)->loc};
   return op_emit(emit, &opi);
 }
 

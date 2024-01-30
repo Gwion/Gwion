@@ -51,7 +51,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
   if (func)
-    call_add_effect(env, func, exp->func->pos);
+    call_add_effect(env, func, exp->func->loc);
   return func;
 }
 
@@ -168,7 +168,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
 ANN static Func __find_template_match(const Env env, const Value v,
                                       Exp_Call *const exp) {
   DECL_OO(const m_str, tmpl_name,
-          = tl2str(env->gwion, exp->tmpl->call, exp->func->pos));
+          = tl2str(env->gwion, exp->tmpl->call, exp->func->loc));
   const Func f = find_tmpl(env, v, exp, tmpl_name);
   free_mstr(env->gwion->mp, tmpl_name);
   return f;
@@ -184,13 +184,13 @@ ANN static Func _find_template_match(const Env env, const Value v,
     TmplArg arg = *mp_vector_at(tl, TmplArg, i);
     if(unlikely(spec->td)) {
       if(unlikely(arg.type == tmplarg_td))
-        ERR_O(exp_self(exp)->pos, "expected contant, not type");
+        ERR_O(exp_self(exp)->loc, "expected contant, not type");
       // check argument in call exp
       continue;
 
     } else {
       if(unlikely(arg.type == tmplarg_exp)) {
-        ERR_O(exp_self(exp)->pos, "expected type, not constant");
+        ERR_O(exp_self(exp)->loc, "expected type, not constant");
         // check argument in call exp?
         continue;
       }
@@ -205,7 +205,7 @@ ANN static Func _find_template_match(const Env env, const Value v,
 ANN static inline m_bool check_call(const Env env, const Exp_Call *exp) {
   const ae_exp_t et = exp->func->exp_type;
   if (et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
-    ERR_B(exp->func->pos, _("invalid expression for function call."))
+    ERR_B(exp->func->loc, _("invalid expression for function call."))
   return GW_OK;
 }
 
@@ -225,5 +225,5 @@ ANN Func find_template_match(const Env env, const Value value,
     }
     t = t->info->parent;
   }
-  ERR_O(exp_self(exp)->pos, _("arguments do not match for template call"))
+  ERR_O(exp_self(exp)->loc, _("arguments do not match for template call"))
 }

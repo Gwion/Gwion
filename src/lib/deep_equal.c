@@ -20,7 +20,7 @@ static OP_##ACTION(op##action##_deep_##_t##_any) {             \
     .rhs  = bin->rhs->type,                                    \
     .op   = insert_symbol(_data->gwion->st, #_op),             \
     .data = (m_uint)bin,                                       \
-    .loc  = exp_self(bin)->pos                                 \
+    .loc  = exp_self(bin)->loc                                 \
   };                                                           \
   return op_##_name(_data, &opi);                              \
 }
@@ -79,7 +79,7 @@ ANN static inline void check_deep_equal_exp(const Env env, const Exp e, const Ve
     },                                                        \
     .type = _value->type,                                     \
     .exp_type = ae_exp_dot,                                   \
-    .pos = _exp->pos                                          \
+    .loc = _exp->loc                                          \
   }
 
 #define MK_BIN(_lhs, _rhs, _bin)                         \
@@ -92,7 +92,7 @@ ANN static inline void check_deep_equal_exp(const Env env, const Exp e, const Ve
       }                                                  \
     },                                                   \
     .exp_type = ae_exp_binary,                           \
-    .pos = exp_self(_bin)->pos                           \
+    .loc = exp_self(_bin)->loc                           \
   }
 
 static bool deep_check(const Env env, const Exp_Binary *bin,
@@ -121,7 +121,7 @@ static OP_CHECK(opck_deep_equal) {
                           .lhs  = bin->lhs->type,
                           .rhs  = bin->rhs->type,
                           .data = (uintptr_t)bin,
-                          .loc  = exp_self(bin)->pos};
+                          .loc  = exp_self(bin)->loc};
   if(op_get(env, &opi)) {
     bin->op = base_op;
     return op_check(env, &opi);
@@ -139,7 +139,7 @@ static OP_CHECK(opck_deep_equal) {
   const Type ret_type = check_exp(env, exp_self(bin));
   env_set_error(env,  false);
   if(ret_type) return env->gwion->type[et_bool];
-  ERR_N(exp_self(bin)->pos, "no deep operation for: {G+/}%s{0} {+}%s{0} {G+/}%s{0}",
+  ERR_N(exp_self(bin)->loc, "no deep operation for: {G+/}%s{0} {+}%s{0} {G+/}%s{0}",
       bin->lhs->type->name, s_name(op), bin->rhs->type->name);
 }
 
@@ -158,9 +158,9 @@ ANN static inline Type deep_type(const Gwion gwion, const Type t) {
 
 ANN static void deep_emit_init(const Emitter emit, struct DeepEmit *d, const m_int offset) {
   char name[256];
-  sprintf(name, "@%u:%u", d->exp->pos.first.line, d->exp->pos.first.column);
-  d->val = new_value(emit->env, deep_type(emit->gwion, d->exp->type), name, d->exp->pos);
-  d->tmp = new_prim_id(emit->gwion->mp, insert_symbol(emit->gwion->st, d->val->name), d->exp->pos);
+  sprintf(name, "@%u:%u", d->exp->loc.first.line, d->exp->loc.first.column);
+  d->val = new_value(emit->env, deep_type(emit->gwion, d->exp->type), name, d->exp->loc);
+  d->tmp = new_prim_id(emit->gwion->mp, insert_symbol(emit->gwion->st, d->val->name), d->exp->loc);
   d->tmp->d.prim.value = d->val;
   d->tmp->type = d->val->type;
   check_deep_equal_exp(emit->env, d->exp, &d->vec);

@@ -80,9 +80,9 @@ static OP_CHECK(opck_object_cast) {
   const Type      to   = known_type(env, cast->td);
   if (isa(cast->exp->type, to) < 0) {
     if (isa(to, cast->exp->type) > 0)
-      ERR_N(exp_self(cast)->pos, _("can't upcast '%s' to '%s'"),
+      ERR_N(exp_self(cast)->loc, _("can't upcast '%s' to '%s'"),
             cast->exp->type->name, to->name);
-    ERR_N(exp_self(cast)->pos, _("can't cast '%s' to '%s'"),
+    ERR_N(exp_self(cast)->loc, _("can't cast '%s' to '%s'"),
           cast->exp->type->name, to->name);
   }
   return exp_self(cast)->type;
@@ -189,7 +189,7 @@ ANN static m_bool member_access(const Env env, const Exp exp, const Value value)
   if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
-                  exp->pos, 0);
+                  exp->loc, 0);
       env_error_footer(env);
       defined_here(value);
       env_set_error(env, true);
@@ -215,16 +215,16 @@ OP_CHECK(opck_object_dot) {
           return v->type;
       }
     }
-    env_err(env, self->pos, _("class '%s' has no member '%s'"),
+    env_err(env, self->loc, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
-  CHECK_BN(not_from_owner_class(env, the_base, value, self->pos));
+  CHECK_BN(not_from_owner_class(env, the_base, value, self->loc));
   CHECK_BN(member_access(env, self, value));
   if ((base_static && vflag(value, vflag_member)) ||
       (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
-    ERR_N(self->pos,
+    ERR_N(self->loc,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
   if (GET_FLAG(value, const)) exp_setmeta(self, true);
@@ -270,7 +270,7 @@ OP_EMIT(opem_object_dot) {
   if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
-    emit_fast_except(emit, value->from, exp_self(member)->pos);
+    emit_fast_except(emit, value->from, exp_self(member)->loc);
   return GW_OK;
 }
 

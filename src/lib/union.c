@@ -71,13 +71,13 @@ static OP_CHECK(opck_union_is) {
   const Exp_Call *call = &e->d.exp_call;
   const Exp       exp  = call->args;
   if(!exp)
-    ERR_N(e->pos, "Union.is() takes one argument of form id");
+    ERR_N(e->loc, "Union.is() takes one argument of form id");
   if (exp->exp_type != ae_exp_primary || exp->d.prim.prim_type != ae_prim_id)
-    ERR_N(exp->pos, "Union.is() argument must be of form id");
+    ERR_N(exp->loc, "Union.is() argument must be of form id");
   const Type  t = call->func->d.exp_dot.base->type;
   const Value v = find_value(t, exp->d.prim.d.var);
   if (!v)
-    ERR_N(exp->pos, "'%s' has no member '%s'", t->name,
+    ERR_N(exp->loc, "'%s' has no member '%s'", t->name,
           s_name(exp->d.prim.d.var));
   const Map map = &t->nspc->info->value->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
@@ -89,8 +89,8 @@ static OP_CHECK(opck_union_is) {
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
       e->d.exp_binary.lhs->d.exp_dot.xid =
           insert_symbol(env->gwion->st, "index");
-      //      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->pos);
-      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i, e->pos);
+      //      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->loc);
+      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i, e->loc);
       free_exp(env->gwion->mp, exp_func);
       free_exp(env->gwion->mp, exp_args);
       e->d.exp_binary.op = insert_symbol(env->gwion->st, "==");
@@ -116,10 +116,10 @@ static OP_CHECK(opck_union_new) {
   Exp_Call *call = (Exp_Call *)data;
   const Exp name = call->args;
   if (!name)
-    ERR_N(call->func->pos, "Union constructor takes one or two arguments, "
+    ERR_N(call->func->loc, "Union constructor takes one or two arguments, "
                            "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
-    ERR_N(call->func->pos, "Union constructor first argument me be an identifier");
+    ERR_N(call->func->loc, "Union constructor first argument me be an identifier");
   const Exp  val  = name->next;
   const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
@@ -131,21 +131,21 @@ static OP_CHECK(opck_union_new) {
       name->d.prim.d.gwint.num = i;
       name->type               = env->gwion->type[et_int];
       if(!val && v->type == env->gwion->type[et_none]) {
-        const Exp e = new_prim_int(env->gwion->mp, SZ_INT, name->pos);
+        const Exp e = new_prim_int(env->gwion->mp, SZ_INT, name->loc);
         e->next = name;
         e->type = env->gwion->type[et_int];
-        name->next = new_prim_int(env->gwion->mp, 0, name->pos);
+        name->next = new_prim_int(env->gwion->mp, 0, name->loc);
         name->next->type = env->gwion->type[et_int];
         call->args = e;
       } else {
         if (val->next)
-          ERR_N(call->func->pos, "too many arguments for union constructor");
+          ERR_N(call->func->loc, "too many arguments for union constructor");
         DECL_ON(const Type, t, = check_exp(env, val));
         if (check_implicit(env, val, v->type) < 0) { // add implicit
-          ERR_N(val->pos, "Invalid type '%s' for '%s', should be '%s'", t->name,
+          ERR_N(val->loc, "Invalid type '%s' for '%s', should be '%s'", t->name,
                 v->name, v->type->name);
         }
-        const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->pos);
+        const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->loc);
         e->next = name;
         e->type = env->gwion->type[et_int];
         call->args = e;
@@ -153,7 +153,7 @@ static OP_CHECK(opck_union_new) {
       return base;
     }
   }
-  ERR_N(name->pos, "%s has no member %s\n", base->name, s_name(name->d.prim.d.var));
+  ERR_N(name->loc, "%s has no member %s\n", base->name, s_name(name->d.prim.d.var));
 }
 
 ANN GWION_IMPORT(union) {

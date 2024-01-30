@@ -31,7 +31,7 @@
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
     const Type            t   = TYPE;                                          \
-    if (!exp_self(bin)->pos.first.line) return t;                              \
+    if (!exp_self(bin)->loc.first.line) return t;                              \
     pre if (!funcl(bin->lhs) || !funcr(bin->rhs)) return t;                    \
     const ctype                  num =                                         \
         bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
@@ -48,10 +48,10 @@
   static OP_CHECK(opck_##ntype##_##name) {                                     \
     /*const*/ Exp_Binary *bin = (Exp_Binary *)data;                            \
     const Type            t   = TYPE;                                          \
-    if (!exp_self(bin)->pos.first.line) return t;                              \
+    if (!exp_self(bin)->loc.first.line) return t;                              \
     const bool rconst = funcr(bin->rhs);                                       \
     if(rconst && !bin->rhs->d.prim.d.retmember)                                \
-      ERR_N(bin->rhs->pos, _("ZeroDivideException"));                          \
+      ERR_N(bin->rhs->loc, _("ZeroDivideException"));                          \
     pre if (!funcl(bin->lhs) || !rconst) return t;                             \
     const ctype                  num =                                         \
         bin->lhs->d.prim.d.lmember OP bin->rhs->d.prim.d.rmember;              \
@@ -195,7 +195,7 @@ static OP_CHECK(opck_int_range) {
   const Exp    exp   = (Exp)data;
   const Range *range = exp->d.prim.d.range;
   const Exp    e     = range->start ?: range->end;
-  return array_type(env, e->type, 1, e->pos);
+  return array_type(env, e->type, 1, e->loc);
 }
 
 static OP_EMIT(opem_int_range) {
@@ -254,7 +254,7 @@ static OP_CHECK(bool2float) {
   struct Implicit *impl = (struct Implicit *)data;
   if(!env->context->error) {
     gwerr_basic("Can't implicitely cast {G+}bool{0} to {G+}float{0}", NULL, "Did you forget a cast?",
-       env->name, impl->e->pos, 0);
+       env->name, impl->e->loc, 0);
     env_set_error(env, true);
   }
   return env->gwion->type[et_error];

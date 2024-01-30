@@ -19,11 +19,11 @@ ANN static Type fork_type(const Env env, const Exp_Unary *unary) {
   sprintf(c, "TypedFork:[%s]", t->name);
   const Type fork = env->gwion->type[et_fork];
   UNSET_FLAG(fork, final);
-  const Type typed = str2type(env->gwion, "TypedFork", exp_self(unary)->pos);
+  const Type typed = str2type(env->gwion, "TypedFork", exp_self(unary)->loc);
   if (typed->nspc->offset == fork->nspc->offset)
     typed->nspc->offset += t->size;
   UNSET_FLAG(typed, final);
-  const Type ret = str2type(env->gwion, c, exp_self(unary)->pos);
+  const Type ret = str2type(env->gwion, c, exp_self(unary)->loc);
   SET_FLAG(typed, final);
   SET_FLAG(fork, final);
   return ret;
@@ -62,7 +62,7 @@ static OP_CHECK(opck_spork) {
     struct Value_ value = { .type = env->gwion->type[et_function]};
     if(env->class_def)
       set_vflag(&value, vflag_member);
-    struct Func_Base_ fbase = { .tag=MK_TAG(insert_symbol("in spork"), exp_self(unary)->pos), .values = &upvalues, .fbflag = fbflag_lambda};
+    struct Func_Base_ fbase = { .tag=MK_TAG(insert_symbol("in spork"), exp_self(unary)->loc), .values = &upvalues, .fbflag = fbflag_lambda};
     struct Func_Def_ fdef = { .base = &fbase};
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
@@ -75,7 +75,7 @@ static OP_CHECK(opck_spork) {
     return env->gwion
         ->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   }
-  ERR_O(exp_self(unary)->pos, _("only function calls can be sporked..."))
+  ERR_O(exp_self(unary)->loc, _("only function calls can be sporked..."))
 }
 
 static OP_EMIT(opem_spork) {

@@ -48,9 +48,9 @@ ANN static Exp partial_exp(const Env env, Arg_List args, Exp e, const uint i) {
   if(is_hole(env, e) || is_typed_hole(env, e)) {
     char c[256];
     sprintf(c, "@%u", i);
-    const Exp exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->pos);
+    const Exp exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->loc);
     exp->type = known_type(env, mp_vector_at(args, Arg, i)->var.td);
-    exp->d.prim.value = new_value(env, exp->type, c, e->pos);
+    exp->d.prim.value = new_value(env, exp->type, c, e->loc);
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
   }
@@ -166,7 +166,7 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
 
 ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
   const Exp arg = partial_call(env, args, earg);
-  const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->pos);
+  const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, struct Stmt_, 1);
   mp_vector_set(code, struct Stmt_, 0, ((struct Stmt_) {
     .stmt_type = ae_stmt_return,
@@ -175,7 +175,7 @@ ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, 
 //  stmt->stmt_type = ae_stmt_return;
 //  stmt->d.stmt_exp.val = exp;
   return code;
-//  return new_stmt_code(env->gwion->mp, slist, efun->pos);
+//  return new_stmt_code(env->gwion->mp, slist, efun->loc);
 }
 
 ANN static uint32_t count_args_exp(Exp args) {
@@ -210,18 +210,18 @@ ANN static Exp expand(const Env env, const Func func, const Exp e, const loc_t l
 
 ANN Type partial_type(const Env env, Exp_Call *const call) {
   const Func base = call->func->type->info->func;
-  if(!base) ERR_O(call->func->pos, _("can't do partial application on a literal lambda"));
-  const Func f = partial_match(env, base, call->args, call->func->pos);
+  if(!base) ERR_O(call->func->loc, _("can't do partial application on a literal lambda"));
+  const Func f = partial_match(env, base, call->args, call->func->loc);
   if(!f) {
-    const Exp e = expand(env, call->func->type->info->func, call->args, call->func->pos);
+    const Exp e = expand(env, call->func->type->info->func, call->args, call->func->loc);
     if(e) {
       call->args = e;
       return partial_type(env, call);
     }
-    ERR_O(call->func->pos, _("no match found for partial application"));
+    ERR_O(call->func->loc, _("no match found for partial application"));
   }
   nspc_push_value(env->gwion->mp, env->curr);
-  Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->pos);
+  Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->loc);
   const Stmt_List code = partial_code(env, f->def->base->args, call->func, call->args);
   const Exp exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);

@@ -37,9 +37,9 @@ OP_CHECK(opck_usr_implicit) {
       if(f) {
         // TODO: add call exp
         struct Exp_ call = { .exp_type=ae_exp_call,
-  .d={.exp_call={.args=imp->e}}, .pos=imp->e->pos, .type=f->value_ref->type };
+  .d={.exp_call={.args=imp->e}}, .pos=imp->e->loc, .type=f->value_ref->type };
         struct Op_Import opi = { .op=insert_symbol("@func_check"),
-          .rhs=f->value_ref->type, .pos=imp->e->pos, .data=(uintptr_t)&call };
+          .rhs=f->value_ref->type, .pos=imp->e->loc, .data=(uintptr_t)&call };
         CHECK_NN(op_check(env, &opi));
       }
     }
@@ -62,7 +62,7 @@ OP_CHECK(opck_const_rhs) {
   const Exp_Binary *bin    = (Exp_Binary *)data;
   const m_str       access = exp_access(bin->rhs);
   if (access)
-    ERR_N(bin->rhs->pos,
+    ERR_N(bin->rhs->loc,
           _("cannot assign '%s' on types '%s' and '%s'.\n"
             "  ...  (reason: --- right-side operand is %s.)"),
           s_name(bin->op), bin->lhs->type->name, bin->rhs->type->name, access);
@@ -93,7 +93,7 @@ OP_CHECK(opck_unary) {
   const Exp_Unary *unary  = (Exp_Unary *)data;
   const m_str      access = exp_access(unary->exp);
   if (access)
-    ERR_N(unary->exp->pos,
+    ERR_N(unary->exp->loc,
           _("unary operator '%s' cannot be used on %s data-types."),
           s_name(unary->op), access);
   exp_setvar(unary->exp, 1);
@@ -105,7 +105,7 @@ OP_CHECK(opck_post) {
   const Exp_Postfix *post   = (Exp_Postfix *)data;
   const m_str        access = exp_access(post->exp);
   if (access)
-    ERR_N(post->exp->pos,
+    ERR_N(post->exp->loc,
           _("post operator '%s' cannot be used on %s data-type."),
           s_name(post->op), access);
   exp_setvar(post->exp, 1);
@@ -138,9 +138,9 @@ OP_CHECK(opck_new) {
   if(unary->ctor.exp) {
     const Exp self   = exp_self(unary);
     const Exp args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
-    const Exp base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->pos);
+    const Exp base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->loc);
     base->type = t;
-    const Exp func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->pos);
+    const Exp func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->loc);
     self->d.exp_call.func = func;
     self->d.exp_call.args = args;
     self->d.exp_call.tmpl = NULL;
@@ -153,7 +153,7 @@ OP_CHECK(opck_new) {
     ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on abstract type '%s'\n"),
           t->name);
   if (isa(t, env->gwion->type[et_object]) < 0)
-    ERR_N(exp_self(unary)->pos, _("can't use 'new' on non-object types...\n"));
+    ERR_N(exp_self(unary)->loc, _("can't use 'new' on non-object types...\n"));
   return t;
 }
 

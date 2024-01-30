@@ -75,9 +75,9 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
       return NULL;
   if (decl->var.td->tag.sym == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
-    ERR_O(exp_self(decl)->pos, _("can't use private type %s"), t->name)
+    ERR_O(exp_self(decl)->loc, _("can't use private type %s"), t->name)
   if (GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
-    ERR_O(exp_self(decl)->pos, _("can't use protected type %s"), t->name)
+    ERR_O(exp_self(decl)->loc, _("can't use protected type %s"), t->name)
   return t;
 }
 
@@ -99,7 +99,7 @@ ANN m_bool abstract_array(const Env env, const Array_Sub array) {
   Exp e = array->exp;
   while(e) {
     if(!exp_is_zero(e))
-      ERR_B(e->pos, _("arrays of abstract type should use `0` size"));
+      ERR_B(e->loc, _("arrays of abstract type should use `0` size"));
     e = e->next;
   }
   return GW_OK;
@@ -116,7 +116,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     if (!GET_FLAG(decl->var.td, late) && !decl->var.td->array->exp)
       ERR_B(decl->var.td->tag.loc, _("arrays with no expressions should be declared `late`"));
     if (GET_FLAG(decl->var.td, late) && decl->var.td->array->exp)
-      ERR_B(decl->var.td->array->exp->pos, _("late array should have no size"));
+      ERR_B(decl->var.td->array->exp->loc, _("late array should have no size"));
     if (!decl->args && GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->var.td->array));
   }
   const Value v = vd->value =
@@ -152,7 +152,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
 }
 
 ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
-  CHECK_BB(env_storage(env, decl->var.td->flag, exp_self(decl)->pos));
+  CHECK_BB(env_storage(env, decl->var.td->flag, exp_self(decl)->loc));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
   CHECK_OB(decl->type);
   if(decl->args) CHECK_BB(scan1_exp(env, decl->args));
@@ -160,7 +160,7 @@ ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   if (global) {
     if (env->context) env->context->global = true;
     if (!type_global(env, decl->type))
-      ERR_B(exp_self(decl)->pos, _("type '%s' is not global"), decl->type->name)
+      ERR_B(exp_self(decl)->loc, _("type '%s' is not global"), decl->type->name)
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const m_bool ret   = scan1_decl(env, decl);
@@ -216,7 +216,7 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix *post) {
   CHECK_BB(scan1_exp(env, post->exp));
   const m_str access = exp_access(post->exp);
   if (!access) return GW_OK;
-  ERR_B(post->exp->pos,
+  ERR_B(post->exp->loc,
         _("post operator '%s' cannot be used"
           " on %s data-type..."),
         s_name(post->op), access);
@@ -850,7 +850,7 @@ ANN static m_bool scan1_class_tmpl(const Env env, const Class_Def c) {
       break;
     }
 /*
-      const Value v = new_value(env, env->gwion->type[et_int], s_name(spec.xid), targ.d.exp->pos);
+      const Value v = new_value(env, env->gwion->type[et_int], s_name(spec.xid), targ.d.exp->loc);
       valuefrom(env, v->from);
       valid_value(env, spec.xid, v);
       SET_FLAG(v, const| ae_flag_static);
