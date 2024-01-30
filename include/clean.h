@@ -39,7 +39,7 @@ ANN static void clean_stmt_return(Clean *a, Stmt_Exp b);
 ANN static void clean_case_list(Clean *a, Stmt_List b);
 ANN static void clean_stmt_match(Clean *a, Stmt_Match b);
 ANN static void clean_stmt_case(Clean *a, Stmt_Match b);
-ANN static void clean_stmt(Clean *a, Stmt b);
+ANN static void clean_stmt(Clean *a, Stmt* b);
 ANN static void clean_arg_list(Clean *a, Arg_List b);
 ANN static void clean_stmt_list(Clean *a, Stmt_List b);
 ANN static void clean_func_base(Clean *a, Func_Base *b);

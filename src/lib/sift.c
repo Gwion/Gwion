@@ -13,8 +13,8 @@
 static OP_CHECK(opck_sift) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Exp lhs = bin->lhs;
-  Stmt stmt = mp_vector_at(lhs->d.exp_unary.code, struct Stmt_, 0);
-  Stmt fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, struct Stmt_, 0);
+  Stmt* stmt = mp_vector_at(lhs->d.exp_unary.code, struct Stmt_, 0);
+  Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, struct Stmt_, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
   Exp next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
   CHECK_BN(traverse_exp(env, next)); // how do we free it?
@@ -55,7 +55,7 @@ static OP_CHECK(opck_ctrl) {
   Stmt_List slist = new_mp_vector(mp, struct Stmt_, 2);
   mp_vector_set(slist, struct Stmt_, 0, one);
   mp_vector_set(slist, struct Stmt_, 1, two);
-  const Stmt stmt = new_stmt_code(mp, slist, func->loc);
+  Stmt* stmt = new_stmt_code(mp, slist, func->loc);
 
   const Exp cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->loc);
   check_exp(env, cond);

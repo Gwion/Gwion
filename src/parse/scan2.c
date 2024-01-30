@@ -14,7 +14,7 @@
 #include "spread.h"
 #include "closure.h"
 
-ANN static m_bool scan2_stmt(const Env, const Stmt);
+ANN static m_bool scan2_stmt(const Env, Stmt*);
 ANN static m_bool scan2_stmt_list(const Env, Stmt_List);
 
 ANN static inline m_bool ensure_scan2(const Env env, const Type t) {
@@ -175,7 +175,7 @@ ANN static inline m_bool
   if (stmt->where) CHECK_BB(scan2_stmt(env, stmt->where));
   Stmt_List l = stmt->list;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan2_stmt_match_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -262,13 +262,13 @@ ANN static m_bool scan2_stmt_defer(const Env env, const Stmt_Defer stmt) {
 
 DECL_STMT_FUNC(scan2, m_bool, Env)
 
-ANN static m_bool scan2_stmt(const Env env, const Stmt stmt) {
+ANN static m_bool scan2_stmt(const Env env, Stmt* stmt) {
   return scan2_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
 ANN static m_bool scan2_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan2_stmt(env, s));
   }
   return GW_OK;

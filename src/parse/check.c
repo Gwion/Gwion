@@ -1375,17 +1375,17 @@ ANN static m_bool check_stmt_code(const Env env, const Stmt_Code stmt) {
   return GW_OK;
 }
 
-ANN static inline m_bool _check_breaks(const Env env, const Stmt b) {
+ANN static inline m_bool _check_breaks(const Env env, Stmt* b) {
     RET_NSPC(check_stmt(env, b))}
 
-ANN static m_bool check_breaks(const Env env, const Stmt a, const Stmt b) {
+ANN static m_bool check_breaks(const Env env, Stmt* a, Stmt* b) {
   vector_add(&env->scope->breaks, (vtype)a);
   const m_bool ret = _check_breaks(env, b);
   vector_pop(&env->scope->breaks);
   return ret;
 }
 
-ANN static m_bool check_conts(const Env env, const Stmt a, const Stmt b) {
+ANN static m_bool check_conts(const Env env, Stmt* a, Stmt* b) {
   vector_add(&env->scope->conts, (vtype)a);
   CHECK_BB(check_breaks(env, a, b));
   vector_pop(&env->scope->conts);
@@ -1519,7 +1519,7 @@ ANN static m_bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
 }
 
 #define describe_check_stmt_stack(stack, name)                                 \
-  ANN static m_bool check_stmt_##name(const Env env, const Stmt stmt) {        \
+  ANN static m_bool check_stmt_##name(const Env env, const Stmt* stmt) {        \
     if (!vector_size(&env->scope->stack))                                      \
       ERR_B(stmt->loc, _("'" #name "' found outside of for/while/until..."))   \
     return GW_OK;                                                              \
@@ -1630,7 +1630,7 @@ ANN static m_bool check_stmt_case(const Env env, const Stmt_Match stmt) {
 
 ANN static m_bool case_loop(const Env env, const Stmt_Match stmt) {
   for(m_uint i = 0; i < stmt->list->len; i++) {
-    const Stmt s = mp_vector_at(stmt->list, struct Stmt_, i);
+    Stmt* s = mp_vector_at(stmt->list, struct Stmt_, i);
     CHECK_BB(check_stmt_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -1730,13 +1730,13 @@ ANN static m_bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
 #define check_stmt_spread dummy_func
 DECL_STMT_FUNC(check, m_bool, Env)
 
-ANN m_bool check_stmt(const Env env, const Stmt stmt) {
+ANN m_bool check_stmt(const Env env, Stmt* stmt) {
   return check_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
 ANN m_bool check_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(check_stmt(env, s));
   }
   return GW_OK;
@@ -2056,7 +2056,7 @@ ANN static m_bool _check_trait_def(const Env env, const Trait_Def pdef) {
     if (section->section_type == ae_section_stmt) {
   Stmt_List l = section->d.stmt_list;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
         if (stmt->stmt_type == ae_stmt_exp) {
           CHECK_BB(traverse_exp(env, stmt->d.stmt_exp.val));
           Var_Decl vd = stmt->d.stmt_exp.val->d.exp_decl.var.vd;
@@ -2133,7 +2133,7 @@ ANN static bool class_def_has_body(Ast ast) {
   if(strcmp(s_name(f->base->tag.sym), "@ctor"))return false;
   Stmt_List l = f->d.code;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
     if (stmt->stmt_type == ae_stmt_pp) continue;
     if (stmt->stmt_type == ae_stmt_exp) {
       const Exp exp = stmt->d.stmt_exp.val;

@@ -201,7 +201,7 @@ ANN static void clean_stmt_return(Clean *a, Stmt_Exp b) {
 
 ANN static void clean_case_list(Clean *a, Stmt_List b) {
   for(m_uint i = 0; i < b->len; i++) {
-    const Stmt stmt = mp_vector_at(b, struct Stmt_, i);
+    Stmt* stmt = mp_vector_at(b, struct Stmt_, i);
     clean_stmt_case(a, &stmt->d.stmt_match);
   }
 }
@@ -251,7 +251,7 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_spread   clean_dummy
 
 DECL_STMT_FUNC(clean, void, Clean *)
-ANN static void clean_stmt(Clean *a, Stmt b) {
+ANN static void clean_stmt(Clean *a, Stmt* b) {
   clean_stmt_func[b->stmt_type](a, &b->d);
 }
 
@@ -264,7 +264,7 @@ ANN static void clean_arg_list(Clean *a, Arg_List b) {
 
 ANN static void clean_stmt_list(Clean *a, Stmt_List b) {
   for(m_uint i = 0; i < b->len; i++) {
-    const Stmt stmt = mp_vector_at(b, struct Stmt_, i);
+    Stmt* stmt = mp_vector_at(b, struct Stmt_, i);
     clean_stmt(a, stmt);
   }
 }

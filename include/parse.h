@@ -55,7 +55,7 @@ ANN m_bool scan2_exp(const Env, Exp);
     RET_NSPC(exp)                                                              \
   }
 
-ANN m_bool check_stmt(const Env env, const Stmt stmt);
+ANN m_bool check_stmt(const Env env, Stmt* stmt);
 ANN m_bool check_stmt_list(const Env env, const Stmt_List);
 
 typedef m_bool (*_exp_func)(const void *, const void *);

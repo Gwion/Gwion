@@ -7,7 +7,7 @@ typedef Instr (*f_looper)(const Emitter, const Looper *);
 
 struct Looper {
   const Exp           exp;
-  const Stmt          stmt;
+  Stmt *const          stmt;
   /*const */ m_uint   offset;
   const m_uint        n;
   const f_looper roll;

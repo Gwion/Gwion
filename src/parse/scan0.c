@@ -403,7 +403,7 @@ ANN static bool spreadable(const Env env) {
 
 ANN static m_bool scan0_stmt_list(const Env env, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
     if (stmt->stmt_type == ae_stmt_pp) {
       if (stmt->d.stmt_pp.pp_type == ae_pp_include)
         env->name = stmt->d.stmt_pp.data;
@@ -479,7 +479,7 @@ ANN static m_bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
     } else if (section->section_type == ae_section_stmt) {
       Stmt_List list = section->d.stmt_list;
       for(uint32_t i = 0; i < list->len; i++) {
-        Stmt stmt = mp_vector_at(list, struct Stmt_, i);
+        Stmt* stmt = mp_vector_at(list, struct Stmt_, i);
         if(stmt->d.stmt_exp.val->exp_type != ae_exp_decl)
         ERR_B(stmt->loc, "trait can only contains variable requests and functions");
       }

@@ -11,7 +11,7 @@
 #include "import.h"
 
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List list);
-ANN static m_bool scan1_stmt(const Env env, Stmt stmt);
+ANN static m_bool scan1_stmt(const Env env, Stmt* stmt);
 
 ANN static inline m_bool type_cyclic(const Env env, const Type t,
                                      const Type_Decl *td) {
@@ -268,7 +268,7 @@ ANN static inline m_bool
   if (stmt->where) CHECK_BB(scan1_stmt(env, stmt->where));
   Stmt_List l = stmt->list;
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt_match_case(env, &s->d.stmt_match));
   }
   return GW_OK;
@@ -354,11 +354,11 @@ describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stm
     scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 
-ANN static inline bool if_stmt_is_return(const Stmt stmt) {
+ANN static inline bool if_stmt_is_return(Stmt* stmt) {
   if (stmt->stmt_type == ae_stmt_return) return true;
   if (stmt->stmt_type == ae_stmt_code) {
     if (mp_vector_len(stmt->d.stmt_code.stmt_list)) {
-      Stmt s = mp_vector_back(stmt->d.stmt_code.stmt_list, struct Stmt_);
+      Stmt* s = mp_vector_back(stmt->d.stmt_code.stmt_list, struct Stmt_);
       if (s->stmt_type == ae_stmt_return) return true;
     }
   }
@@ -601,11 +601,11 @@ ANN static m_bool scan1_stmt_spread(const Env env, const Spread_Def spread) {
 
 DECL_STMT_FUNC(scan1, m_bool, Env)
 
-ANN static inline m_bool scan1_stmt(const Env env, const Stmt stmt) {
+ANN static inline m_bool scan1_stmt(const Env env, Stmt* stmt) {
   return scan1_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
-ANN static inline bool end_flow(Stmt s) {
+ANN static inline bool end_flow(Stmt* s) {
   const ae_stmt_t t = s->stmt_type;
   return t == ae_stmt_continue ||
          t == ae_stmt_break    ||
@@ -614,7 +614,7 @@ ANN static inline bool end_flow(Stmt s) {
 
 ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
   for(uint32_t i = len; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     free_stmt(env->gwion->mp, s);
   }
   l->len = len;
@@ -623,7 +623,7 @@ ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
 ANN static m_bool scan1_stmt_list(const Env env, Stmt_List l) {
   uint32_t i;
   for(i = 0; i < l->len; i++) {
-    const Stmt s = mp_vector_at(l, struct Stmt_, i);
+    Stmt* s = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(scan1_stmt(env, s));
     if(end_flow(s)) break;
   }
@@ -819,7 +819,7 @@ ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
       if(section.section_type == ae_section_stmt) {
         Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
-          Stmt stmt = mp_vector_at(list, struct Stmt_, j);
+          Stmt* stmt = mp_vector_at(list, struct Stmt_, j);
           mp_vector_add(mp, &ctor, struct Stmt_, *stmt);
         }
       } else mp_vector_add(mp, &body, Section, section);

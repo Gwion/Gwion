@@ -16,7 +16,7 @@
 #include "tmp_resolve.h"
 
 ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
-  const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
+  const Stmt* stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
   const Exp ecall = stmt->d.stmt_exp.val;
   const Exp_Call *call = &ecall->d.exp_call;
   Exp args = call->args;
@@ -60,7 +60,7 @@ ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp ar
 static OP_CHECK(opck_func_call) {
   Exp_Binary *bin  = (Exp_Binary *)data;
   if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
-    const Stmt stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
+    const Stmt* stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, struct Stmt_, 0);
     const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
     DECL_ON(const Exp, args, = uncurry(env, bin));
     return mk_call(env, exp_self(bin), call->func, args);

@@ -153,14 +153,14 @@ ANN void emit_struct_release(const Emitter emit, const Type type,
   instr->m_val2 = (m_uint)type;
 }
 
-ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt);
+ANN static m_bool emit_stmt(const Emitter emit, Stmt* stmt);
 
 ANN static m_bool emit_defers(const Emitter emit) {
   const Vector v = &emit->code->frame->defer;
   if (!vector_size(v)) return GW_OK;
   m_uint i;
   for(i = vector_size(v) + 1; --i;) {
-    const Stmt s = (Stmt)vector_at(v, i - 1);
+    Stmt* s = (Stmt*)vector_at(v, i - 1);
     if(s) CHECK_BB(emit_stmt(emit, s));
   }
   VLEN(v) = i;
@@ -170,7 +170,7 @@ ANN static m_bool emit_defers(const Emitter emit) {
 ANN static m_bool emit_defers2(const Emitter emit) {
   const Vector v = &emit->code->frame->defer;
   for (m_uint i = vector_size(v) + 1; --i;) {
-    const Stmt s = (Stmt)vector_at(v, i - 1);
+    Stmt* s = (Stmt*)vector_at(v, i - 1);
     if (!s) break;
     CHECK_BB(emit_stmt(emit, s));
   }
@@ -210,7 +210,6 @@ ANN static m_int frame_pop(const Emitter emit) {
 }
 
 ANN /*static */ m_bool emit_exp(const Emitter emit, Exp exp);
-ANN static m_bool      emit_stmt(const Emitter emit, const Stmt stmt);
 ANN static m_bool      emit_stmt_list(const Emitter emit, Stmt_List list);
 ANN static m_bool      emit_exp_dot(const Emitter emit, const Exp_Dot *member);
 
@@ -842,7 +841,7 @@ ANN m_bool emit_ensure_func(const Emitter emit, const Func f) {
 
 ANN static m_bool emit_prim_locale(const Emitter emit, const Symbol *id) {
   if(emit->locale->def->d.code) {
-    const Stmt stmt = mp_vector_at((emit->locale->def->d.code), struct Stmt_, 0);
+    const Stmt* stmt = mp_vector_at((emit->locale->def->d.code), struct Stmt_, 0);
     const Func f = stmt->d.stmt_exp.val->d.exp_call.func->type->info->func;
     CHECK_OB(emit_ensure_func(emit, f));
   }
@@ -1178,7 +1177,7 @@ ANN static inline void scoped_end(const Emitter emit) {
   --emit->env->scope->depth;
 }
 
-ANN static m_bool scoped_stmt(const Emitter emit, const Stmt stmt) {
+ANN static m_bool scoped_stmt(const Emitter emit, Stmt* stmt) {
   scoped_ini(emit);
   const m_bool ret = emit_stmt(emit, stmt);
   scoped_end(emit);
@@ -2173,7 +2172,7 @@ ANN static Instr each_op(const Emitter emit, const Looper *loop) {
 }
 
 ANN static inline m_bool roll(const Emitter emit, Looper*const loop) {
-const Instr instr = loop->roll(emit, loop);
+  const Instr instr = loop->roll(emit, loop);
 //  DECL_OB(const Instr, instr, = each_op(emit, loop)); // maybe check in check.c
   CHECK_BB(scoped_stmt(emit, loop->stmt));
   instr->m_val = emit_code_size(emit) + 1; // pass after goto
@@ -2556,7 +2555,7 @@ ANN static inline void match_unvec(struct Match_ *const match,
 
 ANN static m_bool emit_stmt_cases(const Emitter emit, Stmt_List list) {
   for(m_uint i = 0; i < list->len; i++) {
-    const Stmt stmt = mp_vector_at(list, struct Stmt_, i);
+    const Stmt* stmt = mp_vector_at(list, struct Stmt_, i);
     CHECK_BB(emit_stmt_match_case(emit, &stmt->d.stmt_match));
   }
   return GW_OK;
@@ -2613,7 +2612,7 @@ ANN static m_bool emit_stmt_retry(const Emitter                  emit,
 
 DECL_STMT_FUNC(emit, m_bool, Emitter);
 
-ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt) {
+ANN static m_bool emit_stmt(const Emitter emit, Stmt* stmt) {
   CHECK_BB(emit_stmt_func[stmt->stmt_type](emit, &stmt->d));
   if (stmt->stmt_type == ae_stmt_exp && stmt->d.stmt_exp.val)
     pop_exp(emit, stmt->d.stmt_exp.val);
@@ -2622,7 +2621,7 @@ ANN static m_bool emit_stmt(const Emitter emit, const Stmt stmt) {
 
 ANN static m_bool emit_stmt_list(const Emitter emit, Stmt_List l) {
   for(m_uint i = 0; i < l->len; i++) {
-    const Stmt stmt = mp_vector_at(l, struct Stmt_, i);
+    Stmt* stmt = mp_vector_at(l, struct Stmt_, i);
     CHECK_BB(emit_stmt(emit, stmt));
   }
   return GW_OK;
