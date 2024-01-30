@@ -19,7 +19,7 @@ struct ResolverArgs {
   const Value     v;
   Exp_Call *const e;
   const m_str     tmpl_name;
-  const Type_List types;
+  const TmplArg_List types;
 };
 
 ANN static inline Value template_get_ready(const Env env, const Value v,
@@ -78,7 +78,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   CHECK_BO(template_push_types(env, &tmpl));
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->tag.sym         = sym;
-  fbase->tmpl->call      = cpy_type_list(env->gwion->mp, ra->types);
+  fbase->tmpl->call      = cpy_tmplarg_list(env->gwion->mp, ra->types);
   const Fptr_Def fptr    = new_fptr_def(env->gwion->mp, fbase);
   const Func     m_func  = ensure_fptr(env, ra, fptr);
   if (m_func)
@@ -101,7 +101,7 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   DECL_OO(const Value, value, = template_get_ready(env, ra->v, "template", i));
   if (value->d.func_ref->def->builtin) set_vflag(value, vflag_builtin);
   const Func_Def fdef = cpy_func_def(env->gwion->mp, value->d.func_ref->def);
-  fdef->base->tmpl->call = cpy_type_list(env->gwion->mp, ra->types);
+  fdef->base->tmpl->call = cpy_tmplarg_list(env->gwion->mp, ra->types);
 
   fdef->vt_index = i;
   if(is_spread_tmpl(value->d.func_ref->def->base->tmpl)) {
@@ -138,7 +138,7 @@ ANN static Func func_match(const Env env, struct ResolverArgs *ra) {
 
 ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                           const m_str tmpl_name) {
-  const Type_List     types  = exp->tmpl->call;
+  const TmplArg_List     types  = exp->tmpl->call;
   const Func          former = env->func;
   const m_uint        scope  = env->scope->depth;
   struct EnvSet       es     = {.env   = env,
@@ -177,7 +177,7 @@ ANN static Func __find_template_match(const Env env, const Value v,
 ANN static Func _find_template_match(const Env env, const Value v,
                                      Exp_Call *const exp) {
   DECL_OO(const Func, f, = __find_template_match(env, v, exp));
-  Type_List        tl = exp->tmpl->call;
+  TmplArg_List        tl = exp->tmpl->call;
   Specialized_List sl = f->def->base->tmpl->list;
   for(uint32_t i = 0; i < tl->len; i++) {
     Specialized * spec = mp_vector_at(sl, Specialized, i);

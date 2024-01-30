@@ -68,7 +68,7 @@ ANEW ANN Type type_copy(MemPool, const Type type);
 ANN Value     find_value(const Type, const Symbol);
 ANN m_bool    isa(const Type, const Type) __attribute__((pure));
 ANN m_bool    isres(const Env, const Tag);
-ANN Type      array_type(const Env, const Type, const m_uint);
+ANN Type      array_type(const Env, const Type, const m_uint, const loc_t);
 ANN Type      find_common_anc(const Type, const Type) __attribute__((pure));
 ANN Type      array_base(Type) __attribute__((pure));
 ANN Symbol array_sym(const Env env, const Type src,

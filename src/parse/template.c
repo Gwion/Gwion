@@ -17,7 +17,7 @@
 ANN static m_bool _push_types(const Env env, const Nspc nspc,
                               const Tmpl *tmpl) {
   Specialized_List sl = tmpl->list;
-  Type_List        tl = tmpl->call;
+  TmplArg_List        tl = tmpl->call;
   Specialized *spec = mp_vector_at(sl, Specialized, sl->len - 1);
 
   const uint32_t len = strcmp(s_name(spec->tag.sym), "...") ? sl->len : sl->len-1;
@@ -108,9 +108,9 @@ ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   POP_RET(GW_ERROR);
 }
 
-ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const Type_List types) {
+ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const TmplArg_List types) {
   Tmpl *tmpl = new_tmpl(env->gwion->mp, tm->list);
-  tmpl->call = cpy_type_list(env->gwion->mp, types);
+  tmpl->call = cpy_tmplarg_list(env->gwion->mp, types);
   return tmpl;
 }
 
@@ -166,7 +166,7 @@ static ANN bool is_single_variadic(const MP_Vector *v) {
   return !strcmp(s_name(spec->tag.sym), "...");
 }
 
-ANN2(1,2) m_bool check_tmpl(const Env env, const Type_List tl, const Specialized_List sl, const loc_t pos, const bool is_spread) {
+ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t pos, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
      ERR_B(pos, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
@@ -242,7 +242,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
       return ret;
     }
     struct TemplateScan ts = {.t = t, .td = td};
-    Type_List           tl = td->types;
+    TmplArg_List           tl = td->types;
     Specialized_List    sl = tmpl
         ? tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(tmpl);
@@ -282,7 +282,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
     env->context = ctx;
     env->name = name;
     if (!td->array) return ret;
-    return array_type(env, ret, td->array->depth);
+    return array_type(env, ret, td->array->depth, td->tag.loc);
   }
   return !t->array_depth ? _scan_type(env, t, td) : t;
 }

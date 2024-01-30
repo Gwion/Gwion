@@ -13,7 +13,7 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
 #define clean_id_list(a, b) do {} while(0)
 #define clean_specialized_list(a, b) do {} while(0)
 
-ANN static void clean_type_list(Clean *a, Type_List b) {
+ANN static void clean_tmplarg_list(Clean *a, TmplArg_List b) {
   for(uint32_t i = 0; i < b->len; i++) {
     TmplArg arg = *mp_vector_at(b, TmplArg, i);
     if(arg.type == tmplarg_td)
@@ -25,7 +25,7 @@ ANN static void clean_type_list(Clean *a, Type_List b) {
 
 ANN static void clean_tmpl(Clean *a, Tmpl *b) {
   if (!b->call) clean_specialized_list(a, b->list);
-  else clean_type_list(a, b->call);
+  else clean_tmplarg_list(a, b->call);
 }
 
 ANN static void clean_range(Clean *a, Range *b) {
@@ -35,7 +35,7 @@ ANN static void clean_range(Clean *a, Range *b) {
 
 ANN static void clean_type_decl(Clean *a, Type_Decl *b) {
   if (b->array) clean_array_sub(a, b->array);
-  if (b->types) clean_type_list(a, b->types);
+  if (b->types) clean_tmplarg_list(a, b->types);
   if (b->fptr) clean_fptr_def(a, b->fptr);
   if (b->next) clean_type_decl(a, b->next);
 }
@@ -162,14 +162,14 @@ ANN static void clean_stmt_for(Clean *a, Stmt_For b) {
 }
 
 ANN static void clean_idx(Clean *a, struct EachIdx_ *b) {
-  if (b->v) value_remref(b->v, a->gwion);
+  if (b->var.value) value_remref(b->var.value, a->gwion);
 }
 
 ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
-  if (b->v) mp_free(a->gwion->mp, Value, b->v);
+  if (b->var.value) mp_free(a->gwion->mp, Value, b->var.value);
   if (b->idx) clean_idx(a, b->idx);
   --a->scope;
 }

@@ -293,8 +293,8 @@ ANN static void cast_end(const Emitter emit, const Type base, const m_uint depth
     const Instr loop = (Instr)vector_at(&emit->code->instr, pc);
     loop->m_val = emit_code_size(emit);
     const Instr end = emit_add_instr(emit, ArrayInit);
-    const Type t = array_type(emit->env, base, i + 1);
-    end->m_val = (m_uint)array_type(emit->env, base, i + 1);
+    const Type t = array_type(emit->env, base, i + 1, base->info->cdef->base.tag.loc);
+    end->m_val = (m_uint)array_type(emit->env, base, i + 1, base->info->cdef->base.tag.loc);
     end->m_val2 = t->actual_size ?: t->size;
   }
 }
@@ -382,7 +382,7 @@ static OP_CHECK(opck_array) {
   while ((e = e->next));
   const Type t = get_array_type(array->type);
   if (t->array_depth >= array->depth)
-    return array_type(env, array_base(t), t->array_depth - array->depth);
+    return array_type(env, array_base(t), t->array_depth - array->depth, array->exp->pos);
   const Exp         curr = take_exp(array->exp, t->array_depth);
 
   struct Array_Sub_ next = {curr->next, array_base(t),
@@ -887,12 +887,12 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
   DECL_OO(const Type, t, = array_base_simple(base));
   if(!tflag(base, tflag_ref)) {
     const m_uint depth = base->array_depth - 1;
-    return depth ? array_type(env, t, depth) : t;
+    return depth ? array_type(env, t, depth, exp->pos) : t;
   }
   const Type  inner = (Type)vector_front(&base->info->tuple->contains);
   const Type  refbase = array_base_simple(inner);
   const m_uint depth = inner->array_depth - 1;
-  return depth ? array_type(env, refbase, depth) : refbase;
+  return depth ? array_type(env, refbase, depth, exp->pos) : refbase;
 }
 
 // rewrite me

@@ -305,9 +305,9 @@ ANN static inline m_bool stmt_each_defined(const restrict Env env,
   if (nspc_lookup_value1(env->curr, stmt->tag.sym))
     ERR_B(stmt_self(stmt)->pos, _("foreach value '%s' is already defined"),
           s_name(stmt->tag.sym))
-  if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->tag.sym))
-    ERR_B(stmt->idx->tag.loc, _("foreach index '%s' is already defined"),
-          s_name(stmt->idx->tag.sym))
+  if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->var.tag.sym))
+    ERR_B(stmt->idx->var.tag.loc, _("foreach index '%s' is already defined"),
+          s_name(stmt->idx->var.tag.sym))
   return GW_OK;
 }
 
@@ -350,7 +350,7 @@ describe_ret_nspc(for, Stmt_For,, !(scan1_stmt(env, stmt->c1) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 describe_ret_nspc(each, Stmt_Each,, !(stmt_each_defined(env, stmt) < 0 || scan1_exp(env, stmt->exp) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
-describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->tag)) < 0 ||
+describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? GW_OK : shadow_var(env, stmt->idx->var.tag)) < 0 ||
     scan1_exp(env, stmt->cond) < 0 ||
     scan1_stmt(env, stmt->body) < 0) ? 1 : -1)
 
@@ -837,7 +837,7 @@ ANN static m_bool scan1_class_def_body(const Env env, const Class_Def cdef) {
 
 ANN static m_bool scan1_class_tmpl(const Env env, const Class_Def c) {
   Specialized_List sl = c->base.tmpl->list;
-  Type_List tl = c->base.tmpl->call;
+  TmplArg_List tl = c->base.tmpl->call;
   env_push_type(env, c->base.type);
   m_bool ret = GW_OK;
 // check len

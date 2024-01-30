@@ -168,7 +168,7 @@ ANN static inline Type op_parent(const Env env, const Type t) {
   const Type base = array_base_simple(t);
   return !base->info->parent
          ? t->info->parent
-         : array_type(env, base->info->parent, depth);
+         : array_type(env, base->info->parent, depth, t->info->cdef->base.tag.loc);
 }
 
 ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
@@ -228,7 +228,7 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
   return true;
 }
 
-ANN static void op_tmpl_set(const Gwion gwion, Type_List tl,
+ANN static void op_tmpl_set(const Gwion gwion, TmplArg_List tl,
       const Type t, const loc_t pos, const uint32_t idx) {
   TmplArg arg = {.type = tmplarg_td, .d = { .td = type2td(gwion, t, pos)}};
   mp_vector_set(tl, TmplArg, idx, arg);

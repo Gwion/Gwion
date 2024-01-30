@@ -25,7 +25,7 @@ ANN static Func_Def traverse_tmpl(const Emitter emit, Func_Def fdef, Func_Def fb
     v->d.func_ref->def->d.dl_func_ptr = NULL; // why
   const Func_Def def = cpy_func_def(env->gwion->mp, v->d.func_ref->def);
   if (vflag(v, vflag_builtin)) v->d.func_ref->def->d.dl_func_ptr = xfun;
-  def->base->tmpl->call = cpy_type_list(env->gwion->mp, fbase->base->tmpl->call);
+  def->base->tmpl->call = cpy_tmplarg_list(env->gwion->mp, fbase->base->tmpl->call);
   CHECK_BO(traverse_dot_tmpl(emit, def, v));
   if (vflag(v, vflag_builtin)) builtin_func(emit->gwion, def->base->func, xfun);
   return def;

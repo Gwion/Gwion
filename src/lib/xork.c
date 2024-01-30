@@ -42,7 +42,7 @@ static OP_CHECK(opck_spork) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
         DECL_OO(const Type, t, = upvalue_type(env, cap));
-        cap->temp = new_value(env, t, s_name(cap->tag.sym), cap->tag.loc);
+        cap->temp = new_value(env, t, s_name(cap->var.tag.sym), cap->var.tag.loc);
         cap->temp->from->offset = offset;
         offset += cap->temp->type->size;
       }
@@ -55,7 +55,7 @@ static OP_CHECK(opck_spork) {
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->tag.sym, cap->temp);
+        valid_value(env, cap->var.tag.sym, cap->temp);
       }
     }
     const Func f = env->func;

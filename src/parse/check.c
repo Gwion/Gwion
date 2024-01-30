@@ -217,7 +217,7 @@ ANN static inline Type prim_array_match(const Env env, Exp e) {
   do
     if (check_collection(env, type, e, loc) < 0) err = true;
   while ((e = e->next));
-  if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1);
+  if (!err) return array_type(env, array_base_simple(type), type->array_depth + 1, loc);
   env_set_error(env, true);
   return NULL;
 }
@@ -541,22 +541,22 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
 
 // get the type of the function
 // without the mangling
-ANN static inline Type type_list_base_func(const Type type) {
+ANN static inline Type tmplarg_list_base_func(const Type type) {
   const Nspc owner = type->info->value->from->owner;
   const Symbol xid = type->info->func->def->base->tag.sym;
   return nspc_lookup_type0(owner, xid);
 }
 
-ANN static inline Type type_list_base(const Gwion gwion, const Type type) {
-  return !(is_func(gwion, type)) ? type : type_list_base_func(type);
+ANN static inline Type tmplarg_list_base(const Gwion gwion, const Type type) {
+  return !(is_func(gwion, type)) ? type : tmplarg_list_base_func(type);
 }
 
 ANN static Type_Decl*  mk_td(const Env env, Type_Decl *td,
-                                  const Type type, const loc_t pos) {
-  const Type base = type_list_base(env->gwion, type);
+                                  const Type type, const loc_t loc) {
+  const Type base = tmplarg_list_base(env->gwion, type);
   const Type t    = !td->array ?
-          base : array_type(env, base, td->array->depth);
-  return type2td(env->gwion, t, pos);
+          base : array_type(env, base, td->array->depth, loc);
+  return type2td(env->gwion, t, loc);
 }
 
 ANN static Type tmplarg_match(const Env env, const Symbol xid, const Symbol tgt, const Type t) {
@@ -761,12 +761,12 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v,
   return func->def->base->ret_type;
 }
 
-ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
+ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
                                          const Tmpl *tm, const Func_Def fdef) {
   Specialized_List sl = tm->list;
   const bool spread = is_spread_tmpl(fdef->base->tmpl);
   const uint32_t len = sl->len - spread;
-  Type_List    tl = new_mp_vector(env->gwion->mp, TmplArg, len);
+  TmplArg_List    tl = new_mp_vector(env->gwion->mp, TmplArg, len);
   m_uint       args_number = 0;
 // infer template types from args
 // should not work with const generic
@@ -821,7 +821,7 @@ ANN static Type_List check_template_args(const Env env, Exp_Call *exp,
       template_arg = template_arg->next;
     }
   }
-  if (args_number < len) //TODO: free type_list
+  if (args_number < len) //TODO: free tmplarg_list
     ERR_O(exp->func->pos, _("not able to infer types for template call."))
 
   if(spread) {
@@ -851,7 +851,7 @@ ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
       value->d.func_ref ? value->d.func_ref->def : t->info->func->def;
   Tmpl *tm = fdef->base->tmpl;
   if (tm->call) return check_predefined(env, exp, value, tm, fdef);
-  DECL_OO(const Type_List, tl, = check_template_args(env, exp, tm, fdef));
+  DECL_OO(const TmplArg_List, tl, = check_template_args(env, exp, tm, fdef));
   Tmpl tmpl               = {.call = tl};
   ((Exp_Call *)exp)->tmpl = &tmpl;
   DECL_OO(const Func, func, = get_template_func(env, exp, value));
@@ -892,11 +892,11 @@ ANN static Exp check_lambda_captures(const Env env, const Func_Def fdef) {
       return NULL;
     }
     Arg arg = { .var = MK_VAR(
-        type2td(env->gwion, t, cap->tag.loc),
-        (Var_Decl){ .tag = MK_TAG(cap->tag.sym, cap->tag.loc) }
+        type2td(env->gwion, t, cap->var.tag.loc),
+        (Var_Decl){ .tag = MK_TAG(cap->var.tag.sym, cap->var.tag.loc) }
     )};
     mp_vector_add(env->gwion->mp, &fdef->base->args, Arg, arg);
-    const Exp exp = new_prim_id(env->gwion->mp, cap->tag.sym, cap->tag.loc);
+    const Exp exp = new_prim_id(env->gwion->mp, cap->var.tag.sym, cap->var.tag.loc);
     if(args) tmp = tmp->next = exp;
     else args = tmp = exp;
   }
@@ -1156,7 +1156,7 @@ ANN2(1) static inline bool is_partial(const Env env, Exp exp) {
   return false;
 }
 
-ANN static bool tl_match(const Env env, const Type_List tl0, const Type_List tl1) {
+ANN static bool tl_match(const Env env, const TmplArg_List tl0, const TmplArg_List tl1) {
   if (tl0->len != tl1->len) return false;
   for(uint32_t i = 0; i < tl0->len; i++) {
     TmplArg targ0 = *mp_vector_at(tl0, TmplArg, i);
@@ -1402,9 +1402,9 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
-  idx->v = new_value(env, base, s_name(idx->tag.sym), idx->tag.loc);
-  valid_value(env, idx->tag.sym, idx->v);
-  SET_FLAG(idx->v, const);
+  idx->var.value = new_value(env, base, s_name(idx->var.tag.sym), idx->var.tag.loc);
+  valid_value(env, idx->var.tag.sym, idx->var.value);
+  SET_FLAG(idx->var.value, const);
 }
 
 /** sets for the key expression value
@@ -1414,7 +1414,7 @@ ANN static m_bool check_each_idx(const Env env, const Exp exp, struct EachIdx_ *
     .lhs = exp->type,
     .op  = insert_symbol("@each_idx"),
     .data = (m_uint)exp,
-    .pos = idx->tag.loc
+    .pos = idx->var.tag.loc
   };
   DECL_OB(const Type, t, = op_check(env, &opi));
   check_idx(env, t, idx);
@@ -1438,8 +1438,8 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   if (stmt->idx)
     CHECK_BB(check_each_idx(env, stmt->exp, stmt->idx));
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
-  stmt->v = new_value(env, ret, s_name(stmt->tag.sym), stmt->tag.loc);
-  valid_value(env, stmt->tag.sym, stmt->v);
+  stmt->var.value = new_value(env, ret, s_name(stmt->tag.sym), stmt->tag.loc);
+  valid_value(env, stmt->tag.sym, stmt->var.value);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -1984,7 +1984,7 @@ ANN m_bool _check_func_def(const Env env, const Func_Def f) {
     uint32_t offset = fdef->stack_depth;
     for(uint32_t i = 0; i < fdef->captures->len; i++) {
       Capture *cap = mp_vector_at(fdef->captures, Capture, i);
-      valid_value(env, cap->tag.sym, cap->temp);
+      valid_value(env, cap->var.tag.sym, cap->temp);
       cap->temp->from->offset = offset;
       offset += cap->temp->type->size;
     }

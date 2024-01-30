@@ -90,14 +90,15 @@ ANN /*static */ Symbol array_sym(const Env env, const Type src,
   return insert_symbol(name);
 }
 
-ANN Type array_type(const Env env, const Type src, const m_uint depth) {
+ANN Type array_type(const Env env, const Type src, const m_uint depth, const loc_t loc) {
   if(!depth) return src;
   const Symbol sym  = array_sym(env, src, depth);
   const Type   type = nspc_lookup_type1(src->info->value->from->owner, sym);
   if (type) return type;
   const size_t tdepth     = depth + src->array_depth;
-  const Type   base       = tdepth > 1 ? array_type(env, src, tdepth - 1) : src;
-  struct TemplateScan ts  = {.t = base, /*.td=td*/ };
+  const Type   base       = tdepth > 1 ? array_type(env, src, tdepth - 1, loc) : src;
+  const Type_Decl td      = { .tag = MK_TAG(insert_symbol(src->name), loc) };
+  struct TemplateScan ts  = {.t = base, .td=&td };
   struct Op_Import    opi = {.op   = insert_symbol("class"),
                           .lhs  = env->gwion->type[et_array],
                           .data = (uintptr_t)&ts};

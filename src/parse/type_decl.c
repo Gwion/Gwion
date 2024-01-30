@@ -12,7 +12,7 @@
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   const Array_Sub array = td->array;
   td->array = NULL;
-  Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArg_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
   mp_vector_set(tl, TmplArg, 0, arg);
   Type_Decl         tmp = { .tag = MK_TAG(insert_symbol("Option"), td->tag.loc), .types = tl };
@@ -31,7 +31,7 @@ ANN static Type option(const Env env, Type_Decl *td) {
 }
 
 ANN static Type _ref(const Env env, Type_Decl *td) {
-  Type_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArg_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
   mp_vector_set(tl, TmplArg, 0, arg);
   Type_Decl tmp = {.tag = MK_TAG(insert_symbol("Ref"), td->tag.loc), .types = tl};
@@ -113,7 +113,7 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
   DECL_OO(const Type, t,    = !td->ref ? type : ref(env, td));
   DECL_OO(const Type, ret,  = !td->option ? t : option(env, td));
   const Array_Sub array = last->array;
-  return !array ? ret : array_type(env, ret, array->depth);
+  return !array ? ret : array_type(env, ret, array->depth, td->tag.loc);
 }
 
 ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {

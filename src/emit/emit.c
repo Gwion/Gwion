@@ -372,13 +372,13 @@ static m_bool extend_indices(const Emitter emit, Exp e, const m_uint depth) {
   return GW_OK;
 }
 
-ANEW ANN static ArrayInfo *new_arrayinfo(const Emitter emit, const Type t) {
+ANEW ANN static ArrayInfo *new_arrayinfo(const Emitter emit, const Type t, const loc_t loc) {
   const Type base = array_base(t);
   ArrayInfo *info = mp_calloc(emit->gwion->mp, ArrayInfo);
   vector_init(&info->type);
   info->depth = get_depth(t);
   for (long i = 1; i < info->depth; ++i)
-    vector_add(&info->type, (vtype)array_type(emit->env, base, i));
+    vector_add(&info->type, (vtype)array_type(emit->env, base, i, loc));
   vector_add(&info->type, (vtype)t);
   info->base = base;
   return info;
@@ -398,7 +398,7 @@ ANN2(1, 2)
 static ArrayInfo *emit_array_extend_inner(const Emitter emit, const Type t,
                                           const Exp e, const uint is_ref) {
   CHECK_BO(extend_indices(emit, e, get_depth(t)));
-  ArrayInfo * info  = new_arrayinfo(emit, t);
+  ArrayInfo * info  = new_arrayinfo(emit, t, t->info->cdef->base.tag.loc);
   const Instr alloc = emit_add_instr(emit, ArrayAlloc);
   alloc->m_val      = (m_uint)info;
   if (!is_ref) CHECK_BO(arrayinfo_ctor(emit, info));
@@ -1762,10 +1762,10 @@ ANN m_bool emit_exp_spork(const Emitter emit, const Exp_Unary *unary) {
     Capture_List caps = sporker.captures;
     for (uint32_t i = 0; i < caps->len; i++) {
       Capture *cap = mp_vector_at(caps, Capture, i);
-      const Value v = cap->orig;
+      const Value v = cap->var.value;
       struct Exp_ exp = {
         .d = { .prim = {
-          .d = { .var = cap->tag.sym },
+          .d = { .var = cap->var.tag.sym },
           .value = v,
           .prim_type = ae_prim_id
         }},
@@ -2233,18 +2233,18 @@ ANN static m_bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
      ? */emit_local(emit, emit->gwion->type[et_int])
      /*: emit_local(emit, stmt->idx->v->type)*/;
 
-  const m_uint val_offset = emit_localn(emit, stmt->v->type); // localn ?
+  const m_uint val_offset = emit_localn(emit, stmt->var.value->type); // localn ?
   emit_regtomem(emit, arr_offset, 0);
   emit_memsetimm(emit, key_offset, -1);
-  stmt->v->from->offset = val_offset;
+  stmt->var.value->from->offset = val_offset;
 //value_addref(stmt->v);
-_nspc_add_value(emit->env->curr, stmt->tag.sym, stmt->v);
-  emit_debug(emit, stmt->v);
+_nspc_add_value(emit->env->curr, stmt->tag.sym, stmt->var.value);
+  emit_debug(emit, stmt->var.value);
   if (stmt->idx) {
-    stmt->idx->v->from->offset = key_offset;
-_nspc_add_value(emit->env->curr, stmt->idx->tag.sym, stmt->idx->v);
+    stmt->idx->var.value->from->offset = key_offset;
+_nspc_add_value(emit->env->curr, stmt->idx->var.tag.sym, stmt->idx->var.value);
 //value_addref(stmt->idx->v);
-    emit_debug(emit, stmt->idx->v);
+    emit_debug(emit, stmt->idx->var.value);
   }
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,
@@ -2317,7 +2317,7 @@ ANN static m_bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
   if (stmt->idx) {
     emit_memsetimm(emit, emit_local(emit, emit->gwion->type[et_int]), 0);
     emit_memsetimm(emit, offset, -1);
-    stmt->idx->v->from->offset = offset;
+    stmt->idx->var.value->from->offset = offset;
   }
   CHECK_BB(emit_exp_pop_next(emit, stmt->cond));
   emit_regmove(emit, -SZ_INT);

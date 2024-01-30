@@ -77,13 +77,13 @@ static OP_CHECK(opck_fptr_call) {
 }
 
 ANN Type upvalue_type(const Env env, Capture *cap) {
-  const Value v = nspc_lookup_value1(env->curr, cap->tag.sym);
-  if(!v) ERR_O(cap->tag.loc, _("non existing value")); // did_you_mean
+  const Value v = nspc_lookup_value1(env->curr, cap->var.tag.sym);
+  if(!v) ERR_O(cap->var.tag.loc, _("non existing value")); // did_you_mean
   if(cap->is_ref && not_upvalue(env, v))
-    ERR_O(cap->tag.loc, _("can't take ref of a scoped value"));
-  cap->orig = v;
+    ERR_O(cap->var.tag.loc, _("can't take ref of a scoped value"));
+  cap->var.value = v;
   const Type base_type = !tflag(v->type, tflag_ref) ? v->type : (Type)vector_front(&v->type->info->tuple->contains);
-  return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->tag.loc);
+  return !cap->is_ref ? base_type :  ref_type(env->gwion, base_type, cap->var.tag.loc);
 }
 
 ANN void free_captures(const VM_Shred shred, m_bit *const caps) {
@@ -129,9 +129,9 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
       Exp e = new_prim_id(emit->gwion->mp, fdef->base->tag.sym, fdef->base->tag.loc); // free me
       for(uint32_t i = 0; i < captures->len; i++) {
         Capture *const cap = mp_vector_at(captures, Capture, i);
-        e->d.prim.d.var = cap->tag.sym;
-        e->d.prim.value = cap->orig;
-        e->type = cap->orig->type;
+        e->d.prim.d.var = cap->var.tag.sym;
+        e->d.prim.value = cap->var.value;
+        e->type = cap->var.value->type;
         exp_setvar(e, cap->is_ref);
         CHECK_BB(emit_exp(emit, e));
         if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
@@ -162,7 +162,7 @@ struct FptrInfo {
 ANN static void _fptr_tmpl_push(const Env env, const Func f) {
   const Tmpl *tmpl = f->def->base->tmpl;
   if (!tmpl) return;
-  Type_List tl = tmpl->call;
+  TmplArg_List tl = tmpl->call;
   if (!tl) return;
   Specialized_List sl = tmpl->list;
   for(uint32_t i = 0; i < sl->len; i++) {
@@ -287,11 +287,11 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     // here move to arguments
     for(uint32_t i = 0; i < l->def->captures->len; i++) {
       Capture *cap = mp_vector_at(l->def->captures, Capture, i);
-      const Value v = nspc_lookup_value1(env->curr, cap->tag.sym);
-      if(!v) ERR_B(cap->tag.loc, _("unknown value in capture"));
+      const Value v = nspc_lookup_value1(env->curr, cap->var.tag.sym);
+      if(!v) ERR_B(cap->var.tag.loc, _("unknown value in capture"));
       DECL_OB(const Type, t, = upvalue_type(env, cap));
-      cap->temp = new_value(env, t, s_name(cap->tag.sym), cap->tag.loc);
-      cap->orig = v;
+      cap->temp = new_value(env, t, s_name(cap->var.tag.sym), cap->var.tag.loc);
+      cap->var.value = v;
     }
   }
 
@@ -660,7 +660,7 @@ static FREEARG(freearg_dottmpl) {
 #include "traverse.h"
 #include "gwi.h"
 
-ANN static bool is_base(const Env env, const Type_List tl) {
+ANN static bool is_base(const Env env, const TmplArg_List tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
     // can call with const happen?
     TmplArg arg = *mp_vector_at(tl, TmplArg, i);
@@ -682,7 +682,7 @@ static OP_CHECK(opck_closure_scan) {
   Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, base->td), info.name, args, ae_flag_none, base->tag.loc);
   fbase->tmpl = cpy_tmpl(env->gwion->mp, base->tmpl);
   if(!is_base(env, ts->td->types))
-    fbase->tmpl->call = cpy_type_list(env->gwion->mp, ts->td->types);
+    fbase->tmpl->call = cpy_tmplarg_list(env->gwion->mp, ts->td->types);
   const Fptr_Def fdef = new_fptr_def(env->gwion->mp, cpy_func_base(env->gwion->mp, fbase));
   fdef->base->tag.sym = info.name;
   struct EnvSet es    = {.env   = env,

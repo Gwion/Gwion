@@ -41,7 +41,7 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
   f->code->native_func = (m_uint)func_ptr;
   f->code->ret_type = f->def->base->ret_type;
   if(f->def->base->tmpl) {
-    const Type_List tl = f->def->base->tmpl->call;
+    const TmplArg_List tl = f->def->base->tmpl->call;
     if(!tl) return;
     const Specialized *spec = mp_vector_at(f->def->base->tmpl->list, Specialized, f->def->base->tmpl->list->len - 1);
     if(!strcmp(s_name(spec->tag.sym), "...")) {

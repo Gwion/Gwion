@@ -12,5 +12,5 @@ struct tmpl_info {
 };
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
-ANN bool tmpl_global(const Env env, Type_List tl);
+ANN bool tmpl_global(const Env env, TmplArg_List tl);
 #endif

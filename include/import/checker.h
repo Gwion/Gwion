@@ -49,7 +49,7 @@ ANN Type_Decl *str2td(const Gwion, const m_str, const loc_t);
 ANN Type       str2type(const Gwion, const m_str, const loc_t);
 
 // those functions return a mp_alloced string
-ANEW ANN m_str tl2str(const Gwion, const Type_List, const loc_t);
+ANEW ANN m_str tl2str(const Gwion, const TmplArg_List, const loc_t);
 ANEW ANN m_str type2str(const Gwion, const Type, const loc_t);
 
 ANN static inline Type_Decl *type2td(const Gwion gwion, const Type t,

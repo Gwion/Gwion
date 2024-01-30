@@ -15,7 +15,7 @@ ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
 }
 
 ANN static inline int actual(const Tmpl *tmpl) {
-  return tmpl->call && tmpl->call != (Type_List)1 && tmpl->list;
+  return tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list;
 }
 
 ANN static inline m_bool tmpl_push(const Env env, const Tmpl *tmpl) {

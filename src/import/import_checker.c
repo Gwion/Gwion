@@ -125,7 +125,7 @@ ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc);
-ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
+ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, TmplArg_List *tl) {
   // we probably need smth better
   if(isalpha(*tdc->str)) {
     TmplArg targ = {
@@ -143,23 +143,23 @@ ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, Type_List *tl) {
   return true;
 }
 
-ANN static Type_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
+ANN static TmplArg_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   if (*tdc->str != ':') return NULL; // GW_PASS
   ++tdc->str;
   if (*tdc->str != '[') {
     GWION_ERR(tdc->pos, "invalid character");
-    return (Type_List)GW_ERROR;
+    return (TmplArg_List)GW_ERROR;
   }
   ++tdc->str;
-  Type_List tl = new_mp_vector(gwion->mp, TmplArg, 0);
+  TmplArg_List tl = new_mp_vector(gwion->mp, TmplArg, 0);
   if (!str2tl(gwion, tdc, &tl)) {
-    free_type_list(gwion->mp, tl);
-    return (Type_List)GW_ERROR;
+    free_tmplarg_list(gwion->mp, tl);
+    return (TmplArg_List)GW_ERROR;
   }
   if (tdc->str[0] != ']') {
-    free_type_list(gwion->mp, tl);
+    free_tmplarg_list(gwion->mp, tl);
     GWION_ERR(tdc->pos, "unfinished template");
-    return (Type_List)GW_ERROR;
+    return (TmplArg_List)GW_ERROR;
   }
   ++tdc->str;
   return tl;
@@ -193,8 +193,8 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   const m_str base = tdc->str;
   tdc->str++;
   Type_Decl *const ret_td = _str2td(gwion, tdc);
-  const Type_List tl = td_tmpl(gwion, tdc);
-  if (tl == (Type_List)GW_ERROR) {
+  const TmplArg_List tl = td_tmpl(gwion, tdc);
+  if (tl == (TmplArg_List)GW_ERROR) {
     free_type_decl(gwion->mp, ret_td);
     return NULL;
   }
@@ -202,19 +202,19 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   tdc->str++;
   Arg_List args = fptr_args(gwion, tdc);
   if (args == (Arg_List)GW_ERROR) {
-    if(tl) free_type_list(gwion->mp, tl);
+    if(tl) free_tmplarg_list(gwion->mp, tl);
     free_type_decl(gwion->mp, ret_td);
     return NULL;
   }
   if(tdc->str[0] != ')' || tdc->str[1] != ')') {
-    if(tl) free_type_list(gwion->mp, tl);
+    if(tl) free_tmplarg_list(gwion->mp, tl);
     if(args) free_arg_list(gwion->mp, args);
     return NULL;
   }
   tdc->str += 2;
   struct AC ac = {.str = tdc->str, .pos = tdc->pos};
   if(ac_run(gwion, &ac) < 0 ) {
-    if(tl) free_type_list(gwion->mp, tl);
+    if(tl) free_tmplarg_list(gwion->mp, tl);
     if(args) free_arg_list(gwion->mp, args);
     return NULL;
   }
@@ -237,17 +237,17 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
     return td;
   }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
-  Type_List tl = td_tmpl(gwion, tdc);
+  TmplArg_List tl = td_tmpl(gwion, tdc);
   struct AC ac = {.str = tdc->str, .pos = tdc->pos};
   CHECK_BO(ac_run(gwion, &ac));
   tdc->str     = ac.str;
-  if (tl == (Type_List)GW_ERROR) return NULL;
+  if (tl == (TmplArg_List)GW_ERROR) return NULL;
   const uint option = get_n(tdc, '?');
   Type_Decl *next   = NULL;
   if (*tdc->str == '.') {
     ++tdc->str;
     if (!(next = _str2td(gwion, tdc))) {
-      if (tl) free_type_list(gwion->mp, tl);
+      if (tl) free_tmplarg_list(gwion->mp, tl);
       if (ac.base) free_exp(gwion->mp, ac.base);
       return NULL;
     }
@@ -279,7 +279,7 @@ ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
 }
 
 struct td_info {
-  Type_List tl;
+  TmplArg_List tl;
   Gwfmt     *fmt;
 };
 
@@ -304,7 +304,7 @@ ANN Exp td2exp(const MemPool mp, const Type_Decl *td) {
 
 ANN static m_bool td_info_run(const Env env, struct td_info *info) {
   const Gwion gwion = env->gwion;
-  Type_List tl = info->tl;
+  TmplArg_List tl = info->tl;
   for(uint32_t i = 0; i < tl->len; i++) {
     if (i) text_add(&info->fmt->ls->text, ",");
     TmplArg *targ = mp_vector_at(tl, TmplArg, i);
@@ -345,7 +345,7 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
   return text.str;
 }
 
-ANEW ANN m_str tl2str(const Gwion gwion, const Type_List tl,
+ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
                       const loc_t pos NUSED) {
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
   text_init(&ls.text, gwion->mp);

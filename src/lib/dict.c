@@ -517,10 +517,10 @@ static INSTR(DictEachIdx) {
 static OP_EMIT(opem_dict_each) {
   Looper *loop = (Looper *)data;
   HMapInfo *const hinfo = (HMapInfo*)loop->exp->type->nspc->class_data;
-  if(loop->idx && !loop->init) loop->idx->v->from->offset = emit_localn(emit, hinfo->key);
+  if(loop->idx && !loop->init) loop->idx->var.value->from->offset = emit_localn(emit, hinfo->key);
   const Instr instr = emit_add_instr(emit, !loop->idx ? DictEach : DictEachIdx);
   instr->m_val2 = loop->offset;
-  if(loop->idx) instr->m_val = loop->idx->v->from->offset;
+  if(loop->idx) instr->m_val = loop->idx->var.value->from->offset;
   if(loop->n)instr->m_val2 += SZ_INT;
   const Instr go = emit_add_instr(emit, BranchNeqInt);
   if(!loop->n) loop->instr = go;
@@ -569,7 +569,7 @@ static OP_CHECK(opck_dict_scan) {
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, env->gwion->type[et_dict]->info->cdef);
   cdef->base.ext        = type2td(env->gwion, env->gwion->type[et_dict], ts->td->tag.loc);
   cdef->base.tag.sym    = info.name;
-  cdef->base.tmpl->call = cpy_type_list(env->gwion->mp, info.td->types);
+  cdef->base.tmpl->call = cpy_tmplarg_list(env->gwion->mp, info.td->types);
 
   const bool is_global = tmpl_global(env, ts->td->types);
   const m_uint scope = is_global ?  env_push_global(env) : env->scope->depth;
