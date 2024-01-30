@@ -20,7 +20,7 @@ static OP_##ACTION(op##action##_deep_##_t##_any) {             \
     .rhs  = bin->rhs->type,                                    \
     .op   = insert_symbol(_data->gwion->st, #_op),             \
     .data = (m_uint)bin,                                       \
-    .pos  = exp_self(bin)->pos                                 \
+    .loc  = exp_self(bin)->pos                                 \
   };                                                           \
   return op_##_name(_data, &opi);                              \
 }
@@ -121,7 +121,7 @@ static OP_CHECK(opck_deep_equal) {
                           .lhs  = bin->lhs->type,
                           .rhs  = bin->rhs->type,
                           .data = (uintptr_t)bin,
-                          .pos  = exp_self(bin)->pos};
+                          .loc  = exp_self(bin)->pos};
   if(op_get(env, &opi)) {
     bin->op = base_op;
     return op_check(env, &opi);

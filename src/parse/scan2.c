@@ -402,7 +402,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
   struct Op_Func   opfunc = {.ck = strcmp(str, "@implicit") ? 0
                                                             : opck_usr_implicit};
   struct Op_Import opi    = {.ret  = f->base->ret_type,
-                          .pos  = f->base->tag.loc,
+                          .loc  = f->base->tag.loc,
                           .data = (uintptr_t)f->base->func,
                           .func = &opfunc};
   func_operator(f, &opi);

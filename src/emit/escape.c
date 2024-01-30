@@ -22,13 +22,13 @@ char *escape_table(MemPool p) {
   return escape;
 }
 
-static int get_escape(const Emitter emit, const char c, const loc_t pos) {
+static int get_escape(const Emitter emit, const char c, const loc_t loc) {
   if (emit->info->escape[(int)c]) return emit->info->escape[(int)c];
-  env_err(emit->env, pos, _("unrecognized escape sequence '\\%c'"), c);
+  env_err(emit->env, loc, _("unrecognized escape sequence '\\%c'"), c);
   return GW_ERROR;
 }
 
-m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
+m_bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
   unsigned char *str_lit = (unsigned char *)base;
   m_str          str     = base;
   while (*str_lit) {
@@ -45,7 +45,7 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
             *str++ = (char)((c - '0') * 64 + (c2 - '0') * 8 + (c3 - '0'));
             str_lit += 2;
           } else {
-            env_err(emit->env, pos,
+            env_err(emit->env, loc,
                     _("malformed octal escape sequence '\\%c%c%c'"), c, c2, c3);
             return GW_ERROR;
           }
@@ -58,12 +58,12 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
           *str++ = (char)((c1 - '0') * 16 + (c3 - '0'));
           ++str_lit;
         } else {
-          env_err(emit->env, pos, _("malformed hex escape sequence '\\%c%c'"),
+          env_err(emit->env, loc, _("malformed hex escape sequence '\\%c%c'"),
                   c1, c3);
           return GW_ERROR;
         }
       } else
-        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, pos)));
+        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, loc)));
     } else
       *str++ = (char)*str_lit;
     ++str_lit;
@@ -72,6 +72,6 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t pos) {
   return GW_OK;
 }
 
-ANN char str2char(const Emitter emit, const m_str c, const loc_t pos) {
-  return c[0] != '\\' ? c[0] : get_escape(emit, c[1], pos);
+ANN char str2char(const Emitter emit, const m_str c, const loc_t loc) {
+  return c[0] != '\\' ? c[0] : get_escape(emit, c[1], loc);
 }

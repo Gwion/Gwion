@@ -561,7 +561,7 @@ static OP_CHECK(opck_op_impl) {
                           .lhs  = arg0->type,
                           .rhs  = arg1->type,
                           .data = (uintptr_t)&self.d.exp_binary,
-                          .pos  = impl->e->pos};
+                          .loc  = impl->e->pos};
   vector_add(&env->scope->effects, 0);
   DECL_ON(const Type, t, = op_check(env, &opi));
   CHECK_BN(isa(t, func->def->base->ret_type)); // error message?
@@ -579,7 +579,7 @@ static OP_CHECK(opck_op_impl) {
     if (exists) { // improve me
       if (eff) {
         free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
-        ERR_N(impl->pos,
+        ERR_N(impl->loc,
               _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
               s_name(impl->e->d.prim.d.var), func->name);
       }
@@ -642,7 +642,7 @@ static OP_CHECK(opck_class_partial) {
   Exp_Call *call = (Exp_Call*)data;
   struct Op_Import opi = {.op   = insert_symbol("@partial"),
                           .lhs  = actual_type(env->gwion, call->func->type),
-                          .pos  = call->func->pos,
+                          .loc  = call->func->pos,
                           .data = (uintptr_t)data};
    return op_check(env, &opi);
 }

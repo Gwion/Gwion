@@ -166,9 +166,9 @@ static ANN bool is_single_variadic(const MP_Vector *v) {
   return !strcmp(s_name(spec->tag.sym), "...");
 }
 
-ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t pos, const bool is_spread) {
+ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
-     ERR_B(pos, "invalid template type number");
+     ERR_B(loc, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
     TmplArg *arg = mp_vector_at(tl, TmplArg, i);
     Specialized *spec = mp_vector_at(sl, Specialized, i);
@@ -195,7 +195,7 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
          }
          next->next = last;
        }
-      ERR_B(pos, "template type argument mismatch. expected %s",
+      ERR_B(loc, "template type argument mismatch. expected %s",
           spec->td ? "constant" : "type");
       }
 
@@ -203,19 +203,19 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
       if(spec->traits) {
         Symbol missing = miss_traits(t, spec);
         if (missing) {
-          ERR_B(pos, "does not implement requested trait '{/}%s{0}'",
+          ERR_B(loc, "does not implement requested trait '{/}%s{0}'",
               s_name(missing));
         }
       }
     } else {
       if(!spec->td) {
-        ERR_B(pos, "template const argument mismatch. expected %s",
+        ERR_B(loc, "template const argument mismatch. expected %s",
             spec->td ? "constant" : "type");
       }
       DECL_OB(const Type, t, = known_type(env, spec->td));
       CHECK_OB(check_exp(env, arg->d.exp));
       if(isa(arg->d.exp->type, t) < 0)
-        ERR_B(pos, "invalid type %s for template argument. expected %s",
+        ERR_B(loc, "invalid type %s for template argument. expected %s",
             arg->d.exp->type->name, t->name);
     }
   }
@@ -250,7 +250,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     struct Op_Import opi = {.op   = insert_symbol("class"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,
-                            .pos  = td->tag.loc};
+                            .loc  = td->tag.loc};
     return op_check(env, &opi);
   } else if (td->types)
     return maybe_func(env, t, td);

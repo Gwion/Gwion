@@ -6,23 +6,23 @@
 #include "parse.h"
 
 #define GET(a, b) ((a) & (b)) == (b)
-ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t pos) {
+ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t loc) {
   if (env->scope->depth) {
     if (GET(flag, ae_flag_global))
-      ERR_B(pos, _("`{G}global{0}` can only be used at %s scope."),
+      ERR_B(loc, _("`{G}global{0}` can only be used at %s scope."),
             GET(flag, ae_flag_global) && !env->class_def ? "file" : "class")
   }
   if ((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
        GET(flag, ae_flag_protect)) &&
       (!env->class_def || env->scope->depth))
-    ERR_B(pos, _("`{G}static/private/protect{0}` can only be used at class scope."))
+    ERR_B(loc, _("`{G}static/private/protect{0}` can only be used at class scope."))
   return GW_OK;
 }
 
-ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t pos) {
-  CHECK_BB(env_access(env, flag, pos));
+ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t loc) {
+  CHECK_BB(env_access(env, flag, loc));
   if(env->class_def && GET(flag, ae_flag_global))
-    ERR_B(pos, _("`{G}global{0}` at class scope only valid for function pointers"));
+    ERR_B(loc, _("`{G}global{0}` at class scope only valid for function pointers"));
   return GW_OK;
 }
 #undef GET
@@ -65,10 +65,10 @@ ANN Type find_type(const Env env, Type_Decl *td) {
   return type;
 }
 
-ANN m_bool already_defined(const Env env, const Symbol s, const loc_t pos) {
+ANN m_bool already_defined(const Env env, const Symbol s, const loc_t loc) {
   const Value v = nspc_lookup_value0(env->curr, s);
   if (!v || is_class(env->gwion, v->type)) return GW_OK;
-  gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, pos, 0);
+  gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, loc, 0);
   declared_here(v);
   env_error_footer(env);
   return GW_ERROR;

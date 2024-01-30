@@ -17,14 +17,14 @@
 
 struct td_checker {
   m_str       str;
-  const loc_t pos;
+  const loc_t loc;
 };
 
 struct AC {
   m_str  str;
   Exp    base;
   Exp    exp;
-  loc_t  pos;
+  loc_t  loc;
   m_uint depth;
 };
 
@@ -50,7 +50,7 @@ ANN static Symbol __str2sym(const Gwion gwion, struct td_checker *tdc) {
     if (!isalnum(c) && c != '_') break;
     *tmp++ = *tdc->str++;
   }
-  if (tmp == buf) GWION_ERR_O(tdc->pos, "empty symbol");
+  if (tmp == buf) GWION_ERR_O(tdc->loc, "empty symbol");
   *tmp = '\0';
   return gwisym(gwion, buf);
 }
@@ -59,23 +59,23 @@ ANN static inline Symbol _str2sym(const Gwion gwion, struct td_checker *tdc,
                                   const m_str path) {
   const Symbol sym = __str2sym(gwion, tdc);
   if (*tdc->str && *tdc->str != ':')
-    GWION_ERR_O(tdc->pos, _("illegal character '%c' in path '%s'."), *tdc->str,
+    GWION_ERR_O(tdc->loc, _("illegal character '%c' in path '%s'."), *tdc->str,
                 path)
   return sym;
 }
 
 /** convert a string to a symbol, with error checking **/
-ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t pos) {
-  struct td_checker tdc = {.str = path, .pos = pos};
+ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t loc) {
+  struct td_checker tdc = {.str = path, .loc = loc};
   return _str2sym(gwion, &tdc, path);
 }
 
-ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t pos) {
-  struct td_checker tdc = {.str = path, .pos = pos};
+ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t loc) {
+  struct td_checker tdc = {.str = path, .loc = loc};
   DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
-  struct AC ac = {.str = tdc.str, .pos = pos};
+  struct AC ac = {.str = tdc.str, .loc = loc};
   CHECK_BB(ac_run(gwion, &ac));
-  vd->tag = MK_TAG(sym, pos);
+  vd->tag = MK_TAG(sym, loc);
   vd->value = NULL;
   return GW_OK;
 }
@@ -85,13 +85,13 @@ ANN static bool _tmpl_list(const Gwion        gwion,
                                        struct td_checker *tdc, Specialized_List *sl) {
   if(unlikely(!strncmp(tdc->str, "...", 3))) {
     tdc->str += 3;
-    Specialized spec = { .tag = MK_TAG(insert_symbol(gwion->st, "..."), tdc->pos) };
+    Specialized spec = { .tag = MK_TAG(insert_symbol(gwion->st, "..."), tdc->loc) };
     mp_vector_add(gwion->mp, sl, Specialized, spec);
     return true;
   }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   // TODO: handle traits?
-  Specialized spec = { .tag = MK_TAG(sym, tdc->pos) };
+  Specialized spec = { .tag = MK_TAG(sym, tdc->loc) };
   mp_vector_add(gwion->mp, sl, Specialized, spec);
   if (*tdc->str == ',') {
     ++tdc->str;
@@ -115,7 +115,7 @@ ANN static Specialized_List __tmpl_list(const Gwion        gwion,
 }
 
 ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
-  struct td_checker tdc = {.str = ck->name, .pos = gwi->loc};
+  struct td_checker tdc = {.str = ck->name, .loc = gwi->loc};
   if (!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str))) return GW_ERROR;
   Specialized_List sl = __tmpl_list(gwi->gwion, &tdc);
   if (sl == SPEC_ERROR) return GW_ERROR;
@@ -132,14 +132,14 @@ ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, TmplArg_List *tl) {
       .type = tmplarg_td,
       .d = { .td = _str2td(gwion, tdc) }
     };
-    if (!targ.d.td) GWION_ERR_B(tdc->pos, "invalid types");
+    if (!targ.d.td) GWION_ERR_B(tdc->loc, "invalid types");
     mp_vector_add(gwion->mp, tl, TmplArg, targ);
     if (*tdc->str == ',') {
       ++tdc->str;
       if (!str2tl(gwion, tdc, tl))
         return false;
     }
-  } else GWION_ERR_B(tdc->pos, "invalid character in template list");
+  } else GWION_ERR_B(tdc->loc, "invalid character in template list");
   return true;
 }
 
@@ -147,7 +147,7 @@ ANN static TmplArg_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   if (*tdc->str != ':') return NULL; // GW_PASS
   ++tdc->str;
   if (*tdc->str != '[') {
-    GWION_ERR(tdc->pos, "invalid character");
+    GWION_ERR(tdc->loc, "invalid character");
     return (TmplArg_List)GW_ERROR;
   }
   ++tdc->str;
@@ -158,7 +158,7 @@ ANN static TmplArg_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   }
   if (tdc->str[0] != ']') {
     free_tmplarg_list(gwion->mp, tl);
-    GWION_ERR(tdc->pos, "unfinished template");
+    GWION_ERR(tdc->loc, "unfinished template");
     return (TmplArg_List)GW_ERROR;
   }
   ++tdc->str;
@@ -212,15 +212,15 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
     return NULL;
   }
   tdc->str += 2;
-  struct AC ac = {.str = tdc->str, .pos = tdc->pos};
+  struct AC ac = {.str = tdc->str, .loc = tdc->loc};
   if(ac_run(gwion, &ac) < 0 ) {
     if(tl) free_tmplarg_list(gwion->mp, tl);
     if(args) free_arg_list(gwion->mp, args);
     return NULL;
   }
-  Func_Base *fbase = new_func_base(gwion->mp, ret_td, insert_symbol(gwion->st, base), args, ae_flag_none, tdc->pos);
+  Func_Base *fbase = new_func_base(gwion->mp, ret_td, insert_symbol(gwion->st, base), args, ae_flag_none, tdc->loc);
   const Fptr_Def fptr = new_fptr_def(gwion->mp, fbase);
-  Type_Decl *td = new_type_decl(gwion->mp, insert_symbol(gwion->st, base), tdc->pos);
+  Type_Decl *td = new_type_decl(gwion->mp, insert_symbol(gwion->st, base), tdc->loc);
   td->fptr = fptr;
   td->types = tl;
   if (ac.depth) td->array = mk_array(gwion->mp, &ac);
@@ -238,7 +238,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
   }
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   TmplArg_List tl = td_tmpl(gwion, tdc);
-  struct AC ac = {.str = tdc->str, .pos = tdc->pos};
+  struct AC ac = {.str = tdc->str, .loc = tdc->loc};
   CHECK_BO(ac_run(gwion, &ac));
   tdc->str     = ac.str;
   if (tl == (TmplArg_List)GW_ERROR) return NULL;
@@ -252,7 +252,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
       return NULL;
     }
   }
-  Type_Decl *td = new_type_decl(gwion->mp, sym, tdc->pos);
+  Type_Decl *td = new_type_decl(gwion->mp, sym, tdc->loc);
   td->next      = next;
   td->types     = tl;
   td->option    = option;
@@ -261,18 +261,18 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
   return td;
 }
 
-ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t pos) {
-  struct td_checker tdc = {.str = str, .pos = pos};
+ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t loc) {
+  struct td_checker tdc = {.str = str, .loc = loc};
   DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
-    GWION_ERR_O(pos, "excedental character '%c' in '%s'", *tdc.str, str);
+    GWION_ERR_O(loc, "excedental character '%c' in '%s'", *tdc.str, str);
   }
   return td;
 }
 
-ANN Type str2type(const Gwion gwion, const m_str str, const loc_t pos) {
-  DECL_OO(Type_Decl *, td, = str2td(gwion, str, pos));
+ANN Type str2type(const Gwion gwion, const m_str str, const loc_t loc) {
+  DECL_OO(Type_Decl *, td, = str2td(gwion, str, loc));
   const Type t = known_type(gwion->env, td);
   free_type_decl(gwion->mp, td);
   return t;
@@ -338,7 +338,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
 }
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t,
-                        const loc_t pos NUSED) {
+                        const loc_t loc NUSED) {
   GwText text;
   text_init(&text, gwion->mp);
   td_fullname(gwion->env, &text, t);
@@ -346,7 +346,7 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
 }
 
 ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
-                      const loc_t pos NUSED) {
+                      const loc_t loc NUSED) {
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
   text_init(&ls.text, gwion->mp);
   Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
@@ -357,18 +357,18 @@ ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
 
 ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {
   if (*ac->str == ']') return GW_OK;
-  GWION_ERR_B(ac->pos, "unfinished array");
+  GWION_ERR_B(ac->loc, "unfinished array");
 }
 
 ANN static inline m_bool ac_num(const Gwion gwion, const struct AC *ac,
                                 const m_int num) {
   if (num >= 0) return GW_OK;
-  GWION_ERR_B(ac->pos, "negative array dimension")
+  GWION_ERR_B(ac->loc, "negative array dimension")
 }
 
 ANN static inline m_bool ac_exp(const Gwion gwion, const struct AC *ac) {
   if (!ac->depth || ac->base) return GW_OK;
-  GWION_ERR_B(ac->pos, "malformed array [][...]")
+  GWION_ERR_B(ac->loc, "malformed array [][...]")
 }
 
 ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
@@ -380,7 +380,7 @@ ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
 
 ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
   if (!ac->exp) return GW_OK;
-  GWION_ERR_B(ac->pos, "malformed array [...][]")
+  GWION_ERR_B(ac->loc, "malformed array [...][]")
 }
 
 ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
@@ -390,7 +390,7 @@ ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
   if (str != ac->str) {
     CHECK_BB(ac_num(gwion, ac, num));
     CHECK_BB(ac_exp(gwion, ac));
-    const Exp exp = new_prim_int(gwion->mp, num, ac->pos);
+    const Exp exp = new_prim_int(gwion->mp, num, ac->loc);
     // set type: otherwise could fail at emit time
     exp->type = gwion->type[et_int];
     ac_add_exp(ac, exp);

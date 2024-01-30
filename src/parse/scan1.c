@@ -38,14 +38,14 @@ ANN static inline m_bool ensure_scan1(const Env env, const Type t) {
   return envset_run(&es, t);
 }
 
-ANN static m_bool check_global(const Env env, const Type t, const loc_t pos) {
+ANN static m_bool check_global(const Env env, const Type t, const loc_t loc) {
   const ValueFrom *from = t->info->value->from;
   if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
     return true;
   if(from_global_nspc(env, from->owner) ||
     (from->owner_class && type_global(env, from->owner_class)))
       return true;
-  gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, pos, 0);
+  gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, loc, 0);
   gwerr_secondary_from("not declared global", from);
   const ValueFrom *ownerFrom = env->class_def->info->value->from;
   gwerr_secondary_from("is global", ownerFrom);
@@ -780,15 +780,15 @@ ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
 }
 
 ANN static m_bool scan1_parent(const Env env, const Class_Def cdef) {
-  const loc_t pos = cdef->base.ext->tag.loc;
+  const loc_t loc = cdef->base.ext->tag.loc;
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_BB(scan1_exp(env, cdef->base.ext->array->exp));
   DECL_OB(const Type, parent, = scan1_get_parent(env, &cdef->base));
   if (isa(parent, env->gwion->type[et_object]) < 0 &&
 //      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
       !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_union)))
-    ERR_B(pos, _("cannot extend primitive type '%s'"), parent->name)
-  if (type_ref(parent)) ERR_B(pos, _("can't use ref type in class extend"))
+    ERR_B(loc, _("cannot extend primitive type '%s'"), parent->name)
+  if (type_ref(parent)) ERR_B(loc, _("can't use ref type in class extend"))
   return GW_OK;
 }
 

@@ -129,7 +129,7 @@ ANN static m_bool _op_exist(const struct OpChecker *ock, const Nspc n) {
   if (idx == -1 || !operator_find2((Vector)&VVAL(ock->map, idx), ock->opi->lhs,
                                    ock->opi->rhs))
     return GW_OK;
-  env_err(ock->env, ock->opi->pos,
+  env_err(ock->env, ock->opi->loc,
           _("operator '%s', for type '%s' and '%s' already imported"),
           s_name(ock->opi->op), type_name(ock->opi->lhs),
           type_name(ock->opi->rhs));
@@ -229,8 +229,8 @@ ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
 }
 
 ANN static void op_tmpl_set(const Gwion gwion, TmplArg_List tl,
-      const Type t, const loc_t pos, const uint32_t idx) {
-  TmplArg arg = {.type = tmplarg_td, .d = { .td = type2td(gwion, t, pos)}};
+      const Type t, const loc_t loc, const uint32_t idx) {
+  TmplArg arg = {.type = tmplarg_td, .d = { .td = type2td(gwion, t, loc)}};
   mp_vector_set(tl, TmplArg, idx, arg);
 }
 
@@ -241,11 +241,11 @@ ANN static Type op_def(const Env env, struct Op_Import *const opi,
   tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
     TmplArg, fdef->base->tmpl->list->len); // we need to check op def for type, maybe
   if (opi->lhs) {
-     op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->lhs, opi->pos, 0);
+     op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->lhs, opi->loc, 0);
      if(opi->rhs)
-       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->pos, 1);
+       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->loc, 1);
   } else
-       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->pos, 0);
+       op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->loc, 0);
   if (traverse_func_def(env, tmpl_fdef) < 0) {
     if (!tmpl_fdef->base->func) func_def_cleaner(env->gwion, tmpl_fdef);
     return NULL;
@@ -304,7 +304,7 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   c[len - 2] = '\0';
   // are there other expressions that would need such a test?
   if(!strcmp(c, "$")) {
-    env_err(env, opi->pos, "can't rewrite cast operations");
+    env_err(env, opi->loc, "can't rewrite cast operations");
     env_set_error(env,  true);
     return NULL;
   }
@@ -314,7 +314,7 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
   const Type ret = check_exp(env, exp_self(base));
   if(ret) return ret;
   env_set_error(env,  false);
-  env_warn(env, opi->pos, _("during rewriting operation"));
+  env_warn(env, opi->loc, _("during rewriting operation"));
   env_set_error(env,  true);
   return NULL;
 }
@@ -337,7 +337,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
           if (ock.effect.ptr) {
             const Vector base = &ock.effect;
             for (m_uint i = 0; i < vector_size(base); i++)
-              env_add_effect(env, (Symbol)vector_at(base, i), opi->pos);
+              env_add_effect(env, (Symbol)vector_at(base, i), opi->loc);
           }
           opi->nspc = nspc;
           return ret;
@@ -352,7 +352,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
     return opi->rhs;
   if (!strcmp(op, "@func_check")) return NULL;
   if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
-    gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->pos, 0);
+    gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->loc, 0);
     env_set_error(env,  true);
   } else if (strcmp(op, "@implicit")) {
     if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) { // is_callable
@@ -360,7 +360,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
       if (len > 2 && !strcmp(op + len - 2, "=>"))
         return chuck_rewrite(env, opi, op, len);
     }
-    env_err(env, opi->pos, _("%s %s %s: no match found for operator"),
+    env_err(env, opi->loc, _("%s %s %s: no match found for operator"),
             type_name(opi->lhs), s_name(opi->op), type_name(opi->rhs));
   }
   return NULL;

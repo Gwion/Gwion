@@ -130,10 +130,10 @@ static MFUN(vm_vector_random) {
   m_vector_get(array, idx, (void *)RETURN);
 }
 
-#define ARRAY_OPCK(a, b, pos)                                    \
+#define ARRAY_OPCK(a, b, loc)                                    \
   const Type l = array_base(a->type);                            \
   const Type r = array_base(b->type);                            \
-  if (isa(r, l) < 0) ERR_N(pos, _("array types do not match."));
+  if (isa(r, l) < 0) ERR_N(loc, _("array types do not match."));
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
@@ -161,15 +161,15 @@ ANN static inline bool shift_match(const Type base, const Type more) {
 }
 
 ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
-                                  const m_str str, const loc_t pos) {
+                                  const m_str str, const loc_t loc) {
   /*  if(a->type == env->gwion->type[et_error] &&
         b->type->array_depth > 1)
       return a->type;*/
-  ARRAY_OPCK(a, b, pos)
+  ARRAY_OPCK(a, b, loc)
   const m_int diff = get_depth(a->type) - get_depth(b->type);
   if (diff >= 0 && diff <= 1)
     return a->type;
-  ERR_N(pos, "array depths do not match for '%s'.", str);
+  ERR_N(loc, "array depths do not match for '%s'.", str);
 }
 
 static OP_CHECK(opck_array_sl) {

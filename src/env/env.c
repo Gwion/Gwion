@@ -69,14 +69,14 @@ ANN static void free_env_scope(struct Env_Scope_ *a, Gwion gwion) {
   mp_free(gwion->mp, Env_Scope, a);
 }
 
-ANN void env_add_effect(const Env a, const Symbol effect, const loc_t pos) {
+ANN void env_add_effect(const Env a, const Symbol effect, const loc_t loc) {
   const Vector   v = &a->scope->effects;
   MP_Vector *w = (MP_Vector*)vector_back(v);
   if (!w) {
     w = new_mp_vector(a->gwion->mp, struct ScopeEffect, 0);
     VPTR(v, VLEN(v) - 1) = (vtype)w;
   }
-  struct ScopeEffect eff = {effect, pos};
+  struct ScopeEffect eff = {effect, loc};
   mp_vector_add(a->gwion->mp, (MP_Vector**)&(VPTR(v, VLEN(v) - 1)) , struct ScopeEffect, eff);
 }
 

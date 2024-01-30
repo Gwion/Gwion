@@ -53,9 +53,9 @@ ANEW ANN m_str tl2str(const Gwion, const TmplArg_List, const loc_t);
 ANEW ANN m_str type2str(const Gwion, const Type, const loc_t);
 
 ANN static inline Type_Decl *type2td(const Gwion gwion, const Type t,
-                                     const loc_t pos) {
-  const m_str str = type2str(gwion, t, pos);
-  Type_Decl * td  = str2td(gwion, str, pos);
+                                     const loc_t loc) {
+  const m_str str = type2str(gwion, t, loc);
+  Type_Decl * td  = str2td(gwion, str, loc);
   free_mstr(gwion->mp, str);
   return td;
 }

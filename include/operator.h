@@ -62,13 +62,13 @@ struct Op_Import {
   // could be put in a union with `ret`
   Nspc   nspc;
   Symbol op;
-  loc_t  pos;
+  loc_t  loc;
 };
 
 struct Implicit {
   Exp   e;
   Type  t;
-  loc_t pos;
+  loc_t loc;
 };
 
 struct TemplateScan {

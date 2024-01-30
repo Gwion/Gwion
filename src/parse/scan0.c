@@ -328,11 +328,11 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   return t;
 }
 
-ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t pos) {
+ANN static m_bool find_traits(const Env env, ID_List traits, const loc_t loc) {
   for(uint32_t i = 0; i < traits->len; i++) {
     Symbol xid = *mp_vector_at(traits, Symbol, i);
     if (!nspc_lookup_trait1(env->curr, xid)) {
-      gwerr_basic(_("can't find trait"), NULL, NULL, env->name, pos, 0);
+      gwerr_basic(_("can't find trait"), NULL, NULL, env->name, loc, 0);
       did_you_mean_trait(env->curr, s_name(xid));
       env_set_error(env, true);
       return GW_ERROR;

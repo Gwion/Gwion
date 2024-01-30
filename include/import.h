@@ -85,18 +85,18 @@ OP_EMIT(opem_new);
 
 ANN
 static inline M_Object new_object_str(const Gwion gwion, const m_str str) {
-  struct loc_t_ loc = {};
+  loc_t loc = {};
   DECL_OO(const Type, t, = str2type(gwion, str, loc));
   return new_object(gwion->mp, t);
 }
 
-static inline Type dict_type(const Gwion gwion, const Type key, const Type val, const loc_t pos) {
+static inline Type dict_type(const Gwion gwion, const Type key, const Type val, const loc_t loc) {
    char c[1024];
-   const m_str keyname = type2str(gwion, key, pos);
-   const m_str valname = type2str(gwion, key, pos);
+   const m_str keyname = type2str(gwion, key, loc);
+   const m_str valname = type2str(gwion, key, loc);
    sprintf(c, "Dict:[%s,%s]", key->name, val->name);
    free_mstr(gwion->mp, keyname);
    free_mstr(gwion->mp, valname);
-   return str2type(gwion, c, pos);
+   return str2type(gwion, c, loc);
 }
 #endif

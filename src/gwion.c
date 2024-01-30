@@ -192,7 +192,7 @@ ANN void env_error_footer(const Env env) {
     gwerr_secondary("in class", env->name, env->class_def->info->cdef->base.tag.loc);
 }
 
-ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt,
+ANN static void env_xxx(const Env env, const loc_t loc, const m_str fmt,
                         va_list arg) {
 #ifndef __FUZZING__
   va_list tmpa;
@@ -201,12 +201,12 @@ ANN static void env_xxx(const Env env, const loc_t pos, const m_str fmt,
   va_end(tmpa);
   char c[size + 1];
   vsprintf(c, fmt, arg);
-  gwerr_basic(c, NULL, NULL, env->name, pos, 0);
+  gwerr_basic(c, NULL, NULL, env->name, loc, 0);
   env_error_footer(env);
 #endif
 }
 
-ANN static void _env_warn(const Env env, const loc_t pos, const m_str fmt,
+ANN static void _env_warn(const Env env, const loc_t loc, const m_str fmt,
                         va_list arg) {
 #ifndef __FUZZING__
   va_list tmpa;
@@ -215,26 +215,26 @@ ANN static void _env_warn(const Env env, const loc_t pos, const m_str fmt,
   va_end(tmpa);
   char c[size + 1];
   vsprintf(c, fmt, arg);
-  gwerr_warn(c, NULL, NULL, env->name, pos);
+  gwerr_warn(c, NULL, NULL, env->name, loc);
   env_error_footer(env);
 #endif
 }
 
-ANN void env_warn(const Env env, const loc_t pos, const m_str fmt, ...) {
+ANN void env_warn(const Env env, const loc_t loc, const m_str fmt, ...) {
 #ifndef __FUZZING__
   va_list arg;
   va_start(arg, fmt);
-  _env_warn(env, pos, fmt, arg);
+  _env_warn(env, loc, fmt, arg);
   va_end(arg);
 #endif
 }
 
-ANN void env_err(const Env env, const loc_t pos, const m_str fmt, ...) {
+ANN void env_err(const Env env, const loc_t loc, const m_str fmt, ...) {
   if (env->context && env->context->error) return;
 #ifndef __FUZZING__
   va_list arg;
   va_start(arg, fmt);
-  env_xxx(env, pos, fmt, arg);
+  env_xxx(env, loc, fmt, arg);
   va_end(arg);
 #endif
   env_set_error(env, true);

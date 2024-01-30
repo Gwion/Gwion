@@ -171,7 +171,7 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
-                                const loc_t pos);
+                                const loc_t loc);
 
 ANN static inline Value get_value(const Env env, const Exp_Dot *member,
                                   const Type t) {

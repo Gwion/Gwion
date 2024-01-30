@@ -23,12 +23,12 @@ ANN m_bool check_class_def(const Env env, const Class_Def class_def);
 
 ANN static Type check_internal(const Env env, const Symbol sym, const Exp e,
                                const Type t) {
-  struct Implicit  imp = {.e = e, .t = t, .pos = e->pos};
+  struct Implicit  imp = {.e = e, .t = t, .loc = e->pos};
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
                           .rhs  = t,
                           .data = (uintptr_t)&imp,
-                          .pos  = e->pos};
+                          .loc  = e->pos};
   return op_check(env, &opi);
 }
 
@@ -155,9 +155,9 @@ ANN m_bool ensure_traverse(const Env env, const Type t) {
 }
 
 ANN static inline m_bool inferable(const Env env, const Type t,
-                                   const loc_t pos) {
+                                   const loc_t loc) {
   if (!tflag(t, tflag_infer)) return GW_OK;
-  ERR_B(pos, _("can't infer type."))
+  ERR_B(loc, _("can't infer type."))
 }
 
 ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
@@ -251,7 +251,7 @@ ANN static Type check_prim_range(const Env env, Range **data) {
   const Symbol     sym = insert_symbol("[:]");
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
-                          .pos  = e->pos,
+                          .loc  = e->pos,
                           .data = (uintptr_t)prim_exp(data)};
   return op_check(env, &opi);
 }
@@ -275,10 +275,10 @@ ANN static Type check_prim_dict(const Env env, Exp *data) {
 }
 
 ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
-                                const loc_t pos) {
+                                const loc_t loc) {
   if (!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
     if(!is_class(env->gwion, v->type))
-      ERR_B(pos, _("'%s' from owner namespace '%s' used in '%s'."), v->name,
+      ERR_B(loc, _("'%s' from owner namespace '%s' used in '%s'."), v->name,
             v->from->owner ? v->from->owner->name : "?", t->name)
   }
   return GW_OK;
@@ -356,7 +356,7 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
   struct Op_Import opi = {.op   = insert_symbol("."),
                           .lhs  = member->base->type,
                           .data = (uintptr_t)member,
-                          .pos  = exp_self(member)->pos};
+                          .loc  = exp_self(member)->pos};
   env_weight(env, 1);
   return op_check(env, &opi);
 }
@@ -512,7 +512,7 @@ ANN Type check_array_access(const Env env, const Array_Sub array) {
   struct Op_Import opi = {.op   = sym,
                           .lhs  = array->exp->type,
                           .rhs  = array->type,
-                          .pos  = array->exp->pos,
+                          .loc  = array->exp->pos,
                           .data = (uintptr_t)array};
   return op_check(env, &opi);
 }
@@ -534,7 +534,7 @@ static ANN Type check_exp_slice(const Env env, const Exp_Slice *range) {
   struct Op_Import opi = {.op   = sym,
                           .lhs  = e->type,
                           .rhs  = range->base->type,
-                          .pos  = e->pos,
+                          .loc  = e->pos,
                           .data = (uintptr_t)exp_self(range)};
   return op_check(env, &opi);
 }
@@ -698,11 +698,11 @@ ANN static void print_current_args(Exp e) {
 
 ANN2(1)
 static void function_alternative(const Env env, const Type t, const Exp args,
-                                 const loc_t pos) {
+                                 const loc_t loc) {
   if (env->context && env->context->error) // needed for ufcs
     return;
   gwerr_basic("Argument type mismatch", "call site",
-              "valid alternatives:", env->name, pos, 0);
+              "valid alternatives:", env->name, loc, 0);
   const bool is_closure = isa(t, env->gwion->type[et_closure]) < 0;
   Func up = is_closure
           ?  t->info->func : closure_def(t)->base->func;
@@ -956,7 +956,7 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   const Exp        e   = exp_self(exp);
   struct Op_Import opi = {.op   = insert_symbol("@func_check"),
                           .rhs  = t,
-                          .pos  = e->pos,
+                          .loc  = e->pos,
                           .data = (uintptr_t)e};
   if(op_get(env, &opi))
     CHECK_OB(op_check(env, &opi));
@@ -964,11 +964,11 @@ ANN m_bool func_check(const Env env, Exp_Call *const exp) {
   return e->type != env->gwion->type[et_error] ? GW_OK : GW_ERROR;
 }
 
-ANN void call_add_effect(const Env env, const Func func, const loc_t pos) {
+ANN void call_add_effect(const Env env, const Func func, const loc_t loc) {
   if (func != env->func && func->def->base->effects.ptr) {
     const Vector v = &func->def->base->effects;
     for (m_uint i = 0; i < vector_size(v); i++)
-      env_add_effect(env, (Symbol)vector_at(v, i), pos);
+      env_add_effect(env, (Symbol)vector_at(v, i), loc);
   }
 }
 
@@ -984,7 +984,7 @@ ANN Type call_type(const Env env, Exp_Call *const exp) {
   struct Op_Import opi = {.op   = insert_symbol("call_type"),
                           .rhs  = actual_type(env->gwion, exp->func->type),
                           .data = (uintptr_t)exp,
-                          .pos  = exp_self(exp)->pos};
+                          .loc  = exp_self(exp)->pos};
   return op_check(env, &opi);
 }
 
@@ -1100,7 +1100,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
                           .lhs  = bin->lhs->type,
                           .rhs  = bin->rhs->type,
                           .data = (uintptr_t)bin,
-                          .pos  = exp_self(bin)->pos};
+                          .loc  = exp_self(bin)->pos};
   exp_setuse(bin->lhs, 1);
   exp_setuse(bin->rhs, 1);
   const Type ret = op_check(env, &opi);
@@ -1116,7 +1116,7 @@ ANN static Type check_exp_cast(const Env env, const Exp_Cast *cast) {
                           .lhs  = t,
                           .rhs  = exp_self(cast)->type,
                           .data = (uintptr_t)cast,
-                          .pos  = exp_self(cast)->pos};
+                          .loc  = exp_self(cast)->pos};
   return op_check(env, &opi);
 }
 
@@ -1124,7 +1124,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix *post) {
   struct Op_Import opi = {.op   = post->op,
                           .lhs  = check_exp(env, post->exp),
                           .data = (uintptr_t)post,
-                          .pos  = exp_self(post)->pos};
+                          .loc  = exp_self(post)->pos};
   CHECK_OO(opi.lhs);
   exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
@@ -1134,10 +1134,10 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix *post) {
 }
 
 ANN static m_bool predefined_call(const Env env, const Type t,
-                                  const loc_t pos) {
+                                  const loc_t loc) {
   const m_str str =
-      tl2str(env->gwion, t->info->func->def->base->tmpl->call, pos);
-  env_err(env, pos, _("Type '%s' has '%s' as pre-defined types."), t->name,
+      tl2str(env->gwion, t->info->func->def->base->tmpl->call, loc);
+  env_err(env, loc, _("Type '%s' has '%s' as pre-defined types."), t->name,
           str);
   free_mstr(env->gwion->mp, str);
   if (tflag(t, tflag_typedef)) {
@@ -1194,7 +1194,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     CHECK_OO(check_exp(env, exp->func));
     struct Op_Import opi = {.op   = insert_symbol("@partial"),
                             .lhs  = exp->func->type,
-                            .pos  = exp->func->pos,
+                            .loc  = exp->func->pos,
                             .data = (uintptr_t)exp};
     return op_check(env, &opi);
   }
@@ -1224,7 +1224,7 @@ ANN static Type check_exp_unary(const Env env, const Exp_Unary *unary) {
   struct Op_Import opi = {.op   = unary->op,
                           .rhs  = rhs,
                           .data = (uintptr_t)unary,
-                          .pos  = exp_self(unary)->pos};
+                          .loc  = exp_self(unary)->pos};
   DECL_OO(const Type, ret, = op_check(env, &opi));
   return ret;
 }
@@ -1234,7 +1234,7 @@ ANN static Type _flow(const Env env, const Exp e, const m_bool b) {
   struct Op_Import opi = {
       .op   = insert_symbol(b ? "@conditional" : "@unconditional"),
       .rhs  = type,
-      .pos  = e->pos,
+      .loc  = e->pos,
       .data = (uintptr_t)e};
   return op_check(env, &opi);
 }
@@ -1414,7 +1414,7 @@ ANN static m_bool check_each_idx(const Env env, const Exp exp, struct EachIdx_ *
     .lhs = exp->type,
     .op  = insert_symbol("@each_idx"),
     .data = (m_uint)exp,
-    .pos = idx->var.tag.loc
+    .loc = idx->var.tag.loc
   };
   DECL_OB(const Type, t, = op_check(env, &opi));
   check_idx(env, t, idx);
@@ -1428,7 +1428,7 @@ ANN static Type check_each_val(const Env env, const Exp exp) {
     .lhs  = exp->type,
     .op   = insert_symbol("@each_val"),
     .data = (m_uint)exp,
-    .pos = exp->pos
+    .loc = exp->pos
   };
   return op_check(env, &opi);
 }
@@ -1560,7 +1560,7 @@ ANN Symbol case_basic_op(const Env env, const Type base, const Exp e) {
                           .lhs  = base,
                           .rhs  = e->type,
                           .data = (uintptr_t)NULL,
-                          .pos  = e->pos};
+                          .loc  = e->pos};
   return op_get(env, &opi)
          ? insert_symbol("==")
          : insert_symbol("?=");
@@ -1676,7 +1676,7 @@ ANN static inline m_bool check_stmt_try(const restrict Env env, const Stmt_Try s
     for (m_uint i = 0; i < v->len; i++) {
       struct ScopeEffect *eff = mp_vector_at(v, struct ScopeEffect, i);
       bool found   = find_handler(stmt->handler, eff->sym);
-      if (!found) env_add_effect(env, eff->sym, eff->pos);
+      if (!found) env_add_effect(env, eff->sym, eff->loc);
     }
     free_mp_vector(env->gwion->mp, struct ScopeEffect, v);
   }
@@ -2286,7 +2286,7 @@ ANN static inline void check_unhandled(const Env env) {
     struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
     if(s_name(eff->sym)[0] == '!')
       continue;
-    gwerr_secondary("Unhandled effect", env->name, eff->pos);
+    gwerr_secondary("Unhandled effect", env->name, eff->loc);
     env_set_error(env,  false);
   }
   free_mp_vector(env->gwion->mp, struct ScopeEffect, w);
