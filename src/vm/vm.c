@@ -408,7 +408,7 @@ _Pragma(STRINGIFY(COMPILER diagnostic ignored UNINITIALIZED)
 #define IVAL  (*(m_int *)(byte + SZ_INT))
 #define FVAL  (*(m_float *)(byte + SZ_INT))
 #define VAL2  (*(m_uint *)(byte + SZ_INT + SZ_INT))
-#define IVAL2  (*(m_int *)(byte + SZ_INT + SZ_INT))
+#define IVAL2 (*(m_int *)(byte + SZ_INT + SZ_INT))
 #define SVAL  (*(uint16_t *)(byte + SZ_INT + SZ_INT))
 #define SVAL2 (*(uint16_t *)(byte + SZ_INT + SZ_INT + sizeof(uint16_t)))
 
@@ -454,7 +454,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&fimul, &&fidiv, &&fiand, &&fior, &&fieq, &&fine, &&figt, &&fige, &&filt,
       &&file, &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv, &&itof,
       &&ftoi, &&timeadv, &&recurs, &&setcode, &&regmove,
-      &&regtomem, &&regtomemother, &&staticmemcpy,
+      &&regtomem, &&regtomemother, &&staticmemcpy, &&staticmemset,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
       &&sporkini, &&forkini, &&sporkfunc, &&sporkexp, &&sporkcode,
@@ -942,6 +942,10 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
     staticmemcpy:
       memcpy((void*)VAL, reg, VAL2);
       DISPATCH()
+    staticmemset:
+      memset(reg, VAL2, VAL);
+      reg += VAL;
+      DISPATCH()
     overflow:
       if (overflow_(mem + VAL2, shred)) {
         handle(shred, "StackOverflow");
@@ -1144,9 +1148,9 @@ DISPATCH();
       reg += SZ_INT;
       DISPATCH()
     dotmembermem2:
-      *(m_float *)(reg + SZ_INT) =
+      *(m_float *)reg =
           *(m_float *)((*(M_Object *)(mem + VAL2))->data + VAL);
-      reg += SZ_INT - SZ_FLOAT;
+      reg += SZ_FLOAT;
       DISPATCH()
 //    dotmembermem3:
     dotmembermem4:
@@ -1338,7 +1342,7 @@ static void *_dispatch[] = {
       &&_fimul, &&_fidiv, &&_fiand, &&_fior, &&_fieq, &&_fine, &&_figt, &&_fige, &&_filt,
       &&_file, &&_firassign, &&_firadd, &&_firsub, &&_firmul, &&_firdiv, &&_itof,
       &&_ftoi, &&_timeadv, &&_recurs, &&_setcode, &&_regmove,
-      &&_regtomem, &&_regtomemother, &&_staticmemcpy,
+      &&_regtomem, &&_regtomemother, &&_staticmemcpy, &&_staticmemset,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
       &&_sporkini, &&_forkini, &&_sporkfunc, &&_sporkexp, &&_sporkcode, &&_forkend,
@@ -1540,6 +1544,7 @@ return;
     PREPARE(regtomem);
     PREPARE(regtomemother);
     PREPARE(staticmemcpy);
+    PREPARE(staticmemset);
     PREPARE(overflow);
     PREPARE(funcusrend);
     PREPARE(funcusrend2);

@@ -150,6 +150,7 @@ enum {
   eReg2Mem,
   eReg2Mem4,
   e_staticmemcpy_,
+  e_staticmemset_,
   eOverflow,
   eFuncUsrEnd,
   eFuncUsrEnd2,
@@ -370,6 +371,7 @@ enum {
 #define  Reg2Mem               (f_instr)eReg2Mem
 #define  Reg2Mem4              (f_instr)eReg2Mem4
 #define  _staticmemcpy_        (f_instr)e_staticmemcpy_
+#define  _staticmemset_        (f_instr)e_staticmemset_
 #define  Overflow              (f_instr)eOverflow
 #define  FuncUsrEnd            (f_instr)eFuncUsrEnd
 #define  FuncUsrEnd2           (f_instr)eFuncUsrEnd2
@@ -1117,6 +1119,10 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case e_staticmemcpy_:
         gw_out("{Y}┃{0}{-}% 4lu{0}: _staticmemcpy_", j);
+        gw_out("\n");
+        break;
+      case e_staticmemset_:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: _staticmemset_", j);
         gw_out("\n");
         break;
       case eOverflow:

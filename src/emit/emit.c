@@ -111,9 +111,9 @@ ANN static inline void frame_push(Frame *frame) {
   vector_add(&frame->defer, (vtype)NULL);
 }
 
-static const f_instr allocmember[] = {RegPushImm, RegPushImm2, RegPushImm3,
+static const f_instr allocmember[4] = {RegPushImm, RegPushImm2, _staticmemset_,
                                       DotMemberMem4};
-static const f_instr allocword[]   = {AllocWord, AllocWord2, AllocWord3,
+static const f_instr allocword[4]   = {AllocWord, AllocWord2, AllocWord3,
                                     RegPushMem4};
 
 ANN static m_bool      emit_class_def(const Emitter, const Class_Def);
@@ -1023,9 +1023,13 @@ ANN static m_bool emit_exp_decl_non_static(const Emitter   emit,
     if (GET_FLAG(v, late)) // ref or emit_var ?
       emit_memsetimm(emit, v->from->offset, 0);
   }
-  if(!(safe_tflag(emit->env->class_def, tflag_struct) && !emit->env->scope->depth))
-    emit_kind(emit, v->from->offset, v->type->size, !struct_ctor(v) ? emit_addr : true,
+  if(!(safe_tflag(emit->env->class_def, tflag_struct) && !emit->env->scope->depth)) {
+    const Instr instr =  emit_kind(emit, v->from->offset, v->type->size, !struct_ctor(v) ? emit_addr : true,
                       exec);
+    // we want to push a zero
+    if(vflag(v, vflag_member) && !emit_addr)
+      instr->m_val = 0;
+  }
   else emit_struct_decl(emit, v, !struct_ctor(v) ? emit_addr : 1);
   if (is_obj && !is_ref && !exp_self(decl)->ref) {
     if (!emit_var)

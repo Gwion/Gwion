@@ -147,6 +147,7 @@ RegMove~i
 Reg2Mem~u~i
 Reg2Mem4~u~u
 _staticmemcpy_
+_staticmemset_
 Overflow
 FuncUsrEnd
 FuncUsrEnd2
