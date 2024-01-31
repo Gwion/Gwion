@@ -1307,10 +1307,7 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     // casting while defining it*
     Exp* ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), when->loc);
     ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->tag.loc);
-    Stmt ret = {
-      .stmt_type = ae_stmt_return, .d = { .stmt_exp = { .val = ret_id }},
-      .loc = when->loc
-    };
+    Stmt ret = MK_STMT_RETURN(when->loc, ret_id);
     mp_vector_set(fdef->d.code, Stmt, 1, ret);
     ret_id->type = tdef->type;
   }

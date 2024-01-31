@@ -169,8 +169,7 @@ ANN static Stmt_List partial_code(const Env env, Arg_List args, Exp* efun, Exp* 
   Exp* arg = partial_call(env, args, earg);
   Exp* exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_return, efun->loc,
-    .stmt_exp = { .val = exp }));
+  mp_vector_set(code, Stmt, 0, MK_STMT_RETURN(efun->loc, exp));
   return code;
 }
 

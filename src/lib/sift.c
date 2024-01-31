@@ -42,14 +42,13 @@ static OP_CHECK(opck_ctrl) {
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
   CHECK_BN(traverse_exp(env, func));
-  Stmt one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
+  Stmt one = MK_STMT_EXP(func->loc, func);
 
   Exp* samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->loc);
   Exp* _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->loc);
   Exp* time = new_exp_binary(mp, samp, chuck, _now, func->loc);
   CHECK_BN(traverse_exp(env, time));
-  Stmt two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
-
+  Stmt two = MK_STMT_EXP(func->loc, time);
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);
   Stmt_List slist = new_mp_vector(mp, Stmt, 2);

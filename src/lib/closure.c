@@ -609,8 +609,7 @@ static OP_CHECK(opck_op_impl) {
   Exp*  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_return, impl->e->loc,
-    .stmt_exp = { .val = bin }));
+  mp_vector_set(code, Stmt, 0, MK_STMT_RETURN(impl->e->loc, bin));
   const Func_Def  def  = new_func_def(env->gwion->mp, base, code);
   def->base->tag.sym   = impl->e->d.prim.d.var;
 // use envset
