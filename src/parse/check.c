@@ -1289,16 +1289,8 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     tdef->when = NULL;
     when->next       = helper;
     Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 2);
-    mp_vector_set(code, Stmt, 0,
-      ((Stmt) {
-      .stmt_type = ae_stmt_exp, .d = { .stmt_exp = { .val = when }},
-      .loc = when->loc
-    }));
-    mp_vector_set(code, Stmt, 1,
-      ((Stmt) {
-      .stmt_type = ae_stmt_exp,
-      .loc = when->loc
-    }));
+    mp_vector_set(code, Stmt, 0, MK_STMT_EXP(when->loc, when));
+    mp_vector_set(code, Stmt, 1, MK_STMT_EXP(when->loc, NULL));
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     tdef->when_def           = fdef;
     CHECK_BB(traverse_func_def(env, fdef));

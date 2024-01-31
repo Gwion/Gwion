@@ -61,16 +61,12 @@ static OP_CHECK(opck_ctrl) {
   check_exp(env, cond);
 
   const Stmt_List code = new_mp_vector(mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, ((Stmt) {
-      .stmt_type = ae_stmt_while,
-      .d = {
+  mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_while, func->loc,
         .stmt_flow = {
           .cond = cond,
           .body = stmt
         }
-      },
-      .loc = func->loc
-    }));
+    ));
   exp->exp_type = ae_exp_unary;
   exp->d.exp_unary.unary_type = unary_code;
   exp->d.exp_unary.code = code;

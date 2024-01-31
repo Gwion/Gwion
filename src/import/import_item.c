@@ -24,11 +24,7 @@ ANN static m_int gwi_item_tmpl(const Gwi gwi) {
       .d = { .stmt_exp = { .val = gwi->ck->exp } },
       .loc = gwi->loc
     }));
-  Section section = (Section) {
-    .section_type = ae_section_stmt,
-    .d = { .stmt_list = slist }
-  };
-//  Section *       section = new_section_stmt_list(mp, slist);
+  Section section = MK_SECTION(stmt, stmt_list, slist);
 //  const Ast       body    = new_ast(mp, section, NULL);
 //  gwi_body(gwi, body);
   gwi_body(gwi, &section);

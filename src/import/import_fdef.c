@@ -59,10 +59,7 @@ ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
-  Section section = (Section) {
-    .section_type = ae_section_func,
-    .d = { .func_def = fdef }
-  };
+  Section section = MK_SECTION(func, func_def, fdef);
   gwi_body(gwi, &section);
   return GW_OK;
 }
@@ -120,10 +117,7 @@ ANN static Fptr_Def import_fptr(const Gwi gwi) {
 }
 
 ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
-  Section section = (Section) {
-    .section_type = ae_section_fptr,
-    .d = { .fptr_def = fdef }
-  };
+  Section section = MK_SECTION(fptr, fptr_def, fdef);
   gwi_body(gwi, &section);
   return GW_OK;
 }

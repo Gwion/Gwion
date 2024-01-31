@@ -168,14 +168,9 @@ ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, 
   const Exp arg = partial_call(env, args, earg);
   const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, ((Stmt) {
-    .stmt_type = ae_stmt_return,
-    .d = { .stmt_exp = { .val = exp }}
-  }));
-//  stmt->stmt_type = ae_stmt_return;
-//  stmt->d.stmt_exp.val = exp;
+  mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_return, efun->loc,
+    .stmt_exp = { .val = exp }));
   return code;
-//  return new_stmt_code(env->gwion->mp, slist, efun->loc);
 }
 
 ANN static uint32_t count_args_exp(Exp args) {
