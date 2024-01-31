@@ -15,16 +15,17 @@
 #include "gack.h"
 #include "tmp_resolve.h"
 
-ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
+ANN static Exp* uncurry(const Env env, const Exp_Binary *bin) {
   const Stmt* stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, Stmt, 0);
-  const Exp ecall = stmt->d.stmt_exp.val;
+  Exp* ecall = stmt->d.stmt_exp.val;
   const Exp_Call *call = &ecall->d.exp_call;
-  Exp args = call->args;
-  Exp lhs = bin->lhs;
-  Exp base = NULL, tmp = NULL;
+  Exp* args = call->args;
+  Exp* lhs = bin->lhs;
+  Exp* base = NULL;
+  Exp *tmp = NULL;
   while(args) {
     if(args->exp_type != ae_exp_primary || args->d.prim.prim_type != ae_prim_id || *s_name(args->d.prim.d.var) != '@') {
-      const Exp next = args->next;
+      Exp* next = args->next;
       args->next = NULL;
       if(tmp) tmp = (tmp->next = cpy_exp(env->gwion->mp, args));
       else base = (tmp = cpy_exp(env->gwion->mp, args));
@@ -34,7 +35,7 @@ ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
         free_exp(env->gwion->mp, base);
         return NULL;
       }
-      const Exp next = lhs->next;
+      Exp* next = lhs->next;
       lhs->next = NULL;
       if(tmp) tmp = (tmp->next = cpy_exp(env->gwion->mp, lhs));
       else base = (tmp = cpy_exp(env->gwion->mp, lhs));
@@ -50,7 +51,7 @@ ANN static Exp uncurry(const Env env, const Exp_Binary *bin) {
   return NULL;
 }
 
-ANN static Type mk_call(const Env env, const Exp e, const Exp func, const Exp args) {
+ANN static Type mk_call(const Env env, Exp* e, Exp* func, Exp* args) {
   Exp_Call call = {.func = func, .args = args };
   e->exp_type   = ae_exp_call;
   e->d.exp_call = call;
@@ -62,7 +63,7 @@ static OP_CHECK(opck_func_call) {
   if(!strncmp(bin->rhs->type->name, "partial:", 8)) {
     const Stmt* stmt = mp_vector_at(bin->rhs->type->info->func->def->d.code, Stmt, 0);
     const Exp_Call *call = &stmt->d.stmt_exp.val->d.exp_call;
-    DECL_ON(const Exp, args, = uncurry(env, bin));
+    DECL_ON(Exp*, args, = uncurry(env, bin));
     return mk_call(env, exp_self(bin), call->func, args);
   }
   return mk_call(env, exp_self(bin), bin->rhs, bin->lhs);
@@ -126,7 +127,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
     const Capture_List captures = fdef->captures;
     if(captures) {
       uint32_t offset = 0;
-      Exp e = new_prim_id(emit->gwion->mp, fdef->base->tag.sym, fdef->base->tag.loc); // free me
+      Exp* e = new_prim_id(emit->gwion->mp, fdef->base->tag.sym, fdef->base->tag.loc); // free me
       for(uint32_t i = 0; i < captures->len; i++) {
         Capture *const cap = mp_vector_at(captures, Capture, i);
         e->d.prim.d.var = cap->var.tag.sym;
@@ -156,7 +157,7 @@ static OP_EMIT(opem_fptr_assign) {
 struct FptrInfo {
   Func        lhs;
   const Func  rhs;
-  const Exp   exp;
+  Exp*   exp;
 };
 
 ANN static void _fptr_tmpl_push(const Env env, const Func f) {
@@ -474,7 +475,7 @@ static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
     env_set_error(env, true);
   }
 }
-static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {
+static m_bool op_call_narg(const Env env, Exp* arg, const loc_t loc) {
   m_uint narg = 0;
   while (arg) {
     narg++;
@@ -487,8 +488,8 @@ static m_bool op_call_narg(const Env env, Exp arg, const loc_t loc) {
 
 ANN Type check_op_call(const Env env, Exp_Call *const exp) {
   CHECK_BO(op_call_narg(env, exp->args, exp->func->loc));
-  const Exp base   = exp_self(exp);
-  const Exp op_exp = exp->func;
+  Exp* base   = exp_self(exp);
+  Exp* op_exp = exp->func;
   base->exp_type   = ae_exp_binary;
   Exp_Binary *bin  = &base->d.exp_binary;
   bin->lhs         = exp->args;
@@ -543,17 +544,17 @@ static OP_CHECK(opck_op_impl) {
   const Symbol rhs_sym = insert_symbol("@rhs");
   const Arg *arg0 = (Arg*)(func->def->base->args->ptr);
   const Arg *arg1 = (Arg*)(func->def->base->args->ptr + sizeof(Arg));
-  struct Exp_  _lhs    = {
+  Exp  _lhs    = {
       .d        = {.prim = {.d = {.var = lhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg0->type,
       .loc      = arg0->var.td->tag.loc};
-  struct Exp_ _rhs = {
+  Exp _rhs = {
       .d        = {.prim = {.d = {.var = rhs_sym}, .prim_type = ae_prim_id}},
       .exp_type = ae_exp_primary,
       .type     = arg1->type,
       .loc      = arg1->var.td->tag.loc};
-  struct Exp_ self = {.loc = impl->e->loc};
+  Exp self = {.loc = impl->e->loc};
   self.d.exp_binary.lhs = &_lhs;
   self.d.exp_binary.rhs = &_rhs;
   self.d.exp_binary.op  = impl->e->d.prim.d.var;
@@ -601,11 +602,11 @@ static OP_CHECK(opck_op_impl) {
     }
     free_mp_vector(env->gwion->mp, struct ScopeEffect, eff);
   }
-  const Exp lhs =
+  Exp* lhs =
       new_prim_id(env->gwion->mp, larg0->var.vd.tag.sym, impl->e->loc);
-  const Exp rhs =
+  Exp* rhs =
       new_prim_id(env->gwion->mp, larg1->var.vd.tag.sym, impl->e->loc);
-  const Exp  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
+  Exp*  bin = new_exp_binary(env->gwion->mp, lhs, impl->e->d.prim.d.var,
                                  rhs, impl->e->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
   mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_return, impl->e->loc,

@@ -66,7 +66,7 @@ struct Op_Import {
 };
 
 struct Implicit {
-  Exp   e;
+  Exp*   e;
   Type  t;
   loc_t loc;
 };
@@ -91,7 +91,7 @@ ANN static inline void operator_resume(struct Op_Import *opi) {
   *(uintptr_t *)opi->ret = opi->data;
 }
 
-ANN static inline void set_decl_ref(const Exp e) {
+ANN static inline void set_decl_ref(Exp* e) {
   if (e->exp_type == ae_exp_decl)
     SET_FLAG(e->d.exp_decl.var.vd.value, late);
 }

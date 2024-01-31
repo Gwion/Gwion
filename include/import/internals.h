@@ -38,7 +38,7 @@
 
 ANN void gwi_body(const Gwi, const Section*);
 
-ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name);
+ANN Exp* make_exp(const Gwi gwi, const m_str type, const m_str name);
 
 ANN void gwi_reset(const Gwi gwi);
 ANN VM *   gwi_vm(const Gwi);

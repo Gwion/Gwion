@@ -15,7 +15,7 @@
 #include "gwi.h"
 
 // move me
-ANN Exp make_exp(const Gwi gwi, const m_str type, const m_str name) {
+ANN Exp* make_exp(const Gwi gwi, const m_str type, const m_str name) {
   DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, type));
   struct Var_Decl_ vd;
   if(gwi_str2var(gwi, &vd, name) < 0) {

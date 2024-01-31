@@ -10,7 +10,7 @@ ANN m_bool traverse_ast(const Env env, Ast *const ast) {
   return check_ast(env, ast);
 }
 
-ANN m_bool traverse_exp(const Env env, const Exp exp) {
+ANN m_bool traverse_exp(const Env env, Exp* exp) {
   CHECK_BB(scan1_exp(env, exp));
   CHECK_BB(scan2_exp(env, exp));
   return check_exp(env, exp) ? 1 : -1;

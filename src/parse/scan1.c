@@ -96,7 +96,7 @@ static inline m_bool scan1_defined(const Env env, const Var_Decl *var) {
 }
 
 ANN m_bool abstract_array(const Env env, const Array_Sub array) {
-  Exp e = array->exp;
+  Exp* e = array->exp;
   while(e) {
     if(!exp_is_zero(e))
       ERR_B(e->loc, _("arrays of abstract type should use `0` size"));
@@ -225,7 +225,7 @@ ANN static m_bool scan1_exp_post(const Env env, const Exp_Postfix *post) {
 ANN static m_bool scan1_exp_call(const Env env, const Exp_Call *exp_call) {
   if (exp_call->tmpl) return GW_OK;
   CHECK_BB(scan1_exp(env, exp_call->func));
-  const Exp args = exp_call->args;
+  Exp* args = exp_call->args;
   return args ? scan1_exp(env, args) : GW_OK;
 }
 

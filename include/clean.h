@@ -28,7 +28,7 @@ ANN static void clean_exp_slice(Clean *a, Exp_Slice *b);
 ANN static void clean_exp_if(Clean *a, Exp_If *b);
 ANN static void clean_exp_dot(Clean *a, Exp_Dot *b);
 ANN static void clean_exp_lambda(Clean *a, Exp_Lambda *b);
-ANN static void clean_exp(Clean *a, Exp b);
+ANN static void clean_exp(Clean *a, Exp* b);
 ANN static void clean_stmt_exp(Clean *a, Stmt_Exp b);
 ANN static void clean_stmt_for(Clean *a, Stmt_For b);
 ANN static void clean_stmt_each(Clean *a, Stmt_Each b);

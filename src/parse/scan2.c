@@ -139,7 +139,7 @@ ANN static inline m_bool scan2_exp_call(const Env       env,
                                         const Exp_Call *exp_call) {
   if (exp_call->tmpl) return GW_OK;
   CHECK_BB(scan2_exp(env, exp_call->func));
-  const Exp args = exp_call->args;
+  Exp* args = exp_call->args;
   return args ? scan2_exp(env, args) : GW_OK;
 }
 

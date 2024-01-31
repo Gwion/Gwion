@@ -13,9 +13,9 @@
 #include "parse.h"
 #include "partial.h"
 
-ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, const Exp e) {
+ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, Exp* e) {
   Arg_List args = new_mp_vector(env->gwion->mp, Arg, 0);
-  Exp next = e;
+  Exp* next = e;
   uint32_t i = 0;
   while(next) {
     if(is_hole(env, next) || is_typed_hole(env, next)) {
@@ -38,35 +38,36 @@ ANN static inline Symbol partial_name(const Env env, const pos_t pos) {
   return insert_symbol(c);
 }
 
-ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base *base, Exp earg, const loc_t loc) {
+ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base *base, Exp* earg, const loc_t loc) {
   Arg_List args = earg ? partial_arg_list(env, base->args, earg) : NULL;
   Func_Base *fb = new_func_base(env->gwion->mp, base->td ? cpy_type_decl(env->gwion->mp, base->td) : NULL, partial_name(env, loc.first), args, ae_flag_none, loc);
   return fb;
 }
 
-ANN static Exp partial_exp(const Env env, Arg_List args, Exp e, const uint i) {
+ANN static Exp* partial_exp(const Env env, Arg_List args, Exp* e, const uint i) {
   if(is_hole(env, e) || is_typed_hole(env, e)) {
     char c[256];
     sprintf(c, "@%u", i);
-    const Exp exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->loc);
+    Exp* exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->loc);
     exp->type = known_type(env, mp_vector_at(args, Arg, i)->var.td);
     exp->d.prim.value = new_value(env, exp->type, c, e->loc);
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
   }
-  const Exp next = e->next;
+  Exp* next = e->next;
   e->next = NULL;
-  const Exp exp = cpy_exp(env->gwion->mp, e);
+  Exp* exp = cpy_exp(env->gwion->mp, e);
   exp->type = e->type;
   e->next = next;
   return exp;
 }
 
-ANN2(1) static Exp partial_call(const Env env, Arg_List args, Exp e) {
-  Exp base = NULL, arg;
+ANN2(1) static Exp* partial_call(const Env env, Arg_List args, Exp* e) {
+  Exp* base = NULL;
+  Exp* arg;
   uint32_t i = 0;
   while(e) {
-    const Exp exp = partial_exp(env, args, e, i++);
+    Exp* exp = partial_exp(env, args, e, i++);
     if(base) arg = arg->next = exp;
     else arg = base = exp;
     e = e->next;
@@ -75,10 +76,10 @@ ANN2(1) static Exp partial_call(const Env env, Arg_List args, Exp e) {
 }
 
 
-ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit,
+ANN Func find_match(const Env env, Func func, Exp* exp, const bool implicit,
                                         const bool specific) {
   do {
-    Exp e = exp;
+    Exp* e = exp;
     uint32_t i = 0;
     Arg_List args = func->def->base->args;
     uint32_t len = mp_vector_len(args);
@@ -87,7 +88,7 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
       const Arg *arg = mp_vector_at(args, Arg, i++);
       if(!is_hole(env, e)) {
         if(!is_typed_hole(env, e)) {
-          const Exp next = e->next;
+          Exp* next = e->next;
           e->next = NULL;
           const Type ret = check_exp(env, e);
           e->next = next;
@@ -103,7 +104,7 @@ ANN Func find_match(const Env env, Func func, const Exp exp, const bool implicit
   return NULL;
 }
 
-ANN Func find_match_actual(const Env env, const Func up, const Exp args) {
+ANN Func find_match_actual(const Env env, const Func up, Exp* args) {
   return find_match(env, up, args, false, true)  ?:
          find_match(env, up, args, true,  true)  ?:
          find_match(env, up, args, false, true)  ?:
@@ -111,7 +112,7 @@ ANN Func find_match_actual(const Env env, const Func up, const Exp args) {
          NULL;
 }
 
-ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc);
+ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc_t loc);
 
 ANN static void print_arg(Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
@@ -132,7 +133,7 @@ ANN void print_signature(const Func f) {
   gw_err("\n");
 }
 
-ANN void ambiguity(const Env env, Func f, const Exp args, const loc_t loc) {
+ANN void ambiguity(const Env env, Func f, Exp* args, const loc_t loc) {
   print_signature(f);
   while(f->next) {
     const Func next = partial_match(env, f->next, args, loc);
@@ -141,7 +142,7 @@ ANN void ambiguity(const Env env, Func f, const Exp args, const loc_t loc) {
   }
 }
 
-ANN static Func partial_match(const Env env, const Func up, const Exp args, const loc_t loc) {
+ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc_t loc) {
   const Func f = find_match_actual(env, up, args);
   if(f) {
     const Type t = f->value_ref->from->owner_class;
@@ -164,16 +165,16 @@ ANN static Func partial_match(const Env env, const Func up, const Exp args, cons
   return NULL;
 }
 
-ANN static Stmt_List partial_code(const Env env, Arg_List args, const Exp efun, const Exp earg) {
-  const Exp arg = partial_call(env, args, earg);
-  const Exp exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
+ANN static Stmt_List partial_code(const Env env, Arg_List args, Exp* efun, Exp* earg) {
+  Exp* arg = partial_call(env, args, earg);
+  Exp* exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
   Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
   mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_return, efun->loc,
     .stmt_exp = { .val = exp }));
   return code;
 }
 
-ANN static uint32_t count_args_exp(Exp args) {
+ANN static uint32_t count_args_exp(Exp* args) {
   uint32_t i = 0;
   do i++;
   while ((args = args->next));
@@ -189,11 +190,11 @@ ANN static uint32_t count_args_func(Func f, const uint32_t i) {
   return max;
 }
 
-ANN static Exp expand(const Env env, const Func func, const Exp e, const loc_t loc) {
+ANN static Exp* expand(const Env env, const Func func, Exp* e, const loc_t loc) {
   const uint32_t i = count_args_exp(e);
   const uint32_t max = count_args_func(func, i);
   if(max > i) {
-    Exp args = e;
+    Exp* args = e;
     if(args) {
       while(args->next) args = args->next;
       args->next = new_prim_id(env->gwion->mp, insert_symbol("_"), loc);
@@ -208,7 +209,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   if(!base) ERR_O(call->func->loc, _("can't do partial application on a literal lambda"));
   const Func f = partial_match(env, base, call->args, call->func->loc);
   if(!f) {
-    const Exp e = expand(env, call->func->type->info->func, call->args, call->func->loc);
+    Exp* e = expand(env, call->func->type->info->func, call->args, call->func->loc);
     if(e) {
       call->args = e;
       return partial_type(env, call);
@@ -218,7 +219,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   nspc_push_value(env->gwion->mp, env->curr);
   Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->loc);
   const Stmt_List code = partial_code(env, f->def->base->args, call->func, call->args);
-  const Exp exp = exp_self(call);
+  Exp* exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;
   const m_bool ret = traverse_func_def(env, exp->d.exp_lambda.def);

@@ -9,7 +9,7 @@ typedef struct ImportCK { // name_checker ?
   union {
     ID_List          tmpl;
     Specialized_List sl;
-    Exp              exp;
+    Exp*              exp;
   };
   union {
     Symbol xid; // union name

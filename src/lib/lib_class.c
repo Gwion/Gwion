@@ -26,7 +26,7 @@ mk_class_instr(le, r, l) mk_class_instr(lt, r, l, &&l != r)
 static OP_CHECK(opck_class_call) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   Exp_Call    call = {.func = bin->rhs, .args = bin->lhs};
-  Exp         e    = exp_self(bin);
+  Exp*         e    = exp_self(bin);
   e->exp_type      = ae_exp_call;
   memcpy(&e->d.exp_call, &call, sizeof(Exp_Call));
   return check_exp_call1(env, &e->d.exp_call) ?: env->gwion->type[et_error];

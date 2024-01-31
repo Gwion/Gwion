@@ -106,7 +106,7 @@ static OP_EMIT(opem_bit_exp) {
 
 static OP_CHECK(opck_bit_access) {
   Array_Sub array = data;
-  const Exp e = array->exp;
+  Exp* e = array->exp;
   if(e->next) ERR_N(e->next->loc, "too many expressions for bit access");
   if(is_prim_int(e)) {
     m_int idx = e->d.prim.d.gwint.num;

@@ -160,7 +160,7 @@ ANN static inline bool shift_match(const Type base, const Type more) {
   return get_depth(base) == get_depth(more);
 }
 
-ANN static Type check_array_shift(const Env env, const Exp a, const Exp b,
+ANN static Type check_array_shift(const Env env, Exp* a, Exp* b,
                                   const m_str str, const loc_t loc) {
   /*  if(a->type == env->gwion->type[et_error] &&
         b->type->array_depth > 1)
@@ -268,7 +268,7 @@ static OP_CHECK(opck_array_cast) {
     }
     parent = parent->info->parent;
   }
-  struct Exp_ e = { .type = l, .loc = cast->exp->loc };
+  Exp e = { .type = l, .loc = cast->exp->loc };
   CHECK_BN(check_implicit(env, &e, r));
   return t;
 }
@@ -324,7 +324,7 @@ static OP_EMIT(opem_array_cast) {
 }
 
 static OP_CHECK(opck_array_slice) {
-  const Exp e = (Exp)data;
+  Exp* e = (Exp*)data;
   exp_setmeta(exp_self(e), 1);
   return e->d.exp_slice.base->type;
 }
@@ -377,13 +377,13 @@ ANN static inline Type get_array_type(const Type type) {
 static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
   const Type      t_int = env->gwion->type[et_int];
-  Exp             e     = array->exp;
+  Exp*             e     = array->exp;
   do CHECK_BN(check_implicit(env, e, t_int));
   while ((e = e->next));
   const Type t = get_array_type(array->type);
   if (t->array_depth >= array->depth)
     return array_type(env, array_base(t), t->array_depth - array->depth, array->exp->loc);
-  const Exp         curr = take_exp(array->exp, t->array_depth);
+  Exp*         curr = take_exp(array->exp, t->array_depth);
 
   struct Array_Sub_ next = {curr->next, array_base(t),
                             array->depth - t->array_depth};
@@ -423,10 +423,10 @@ ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
   return vars[1];
 }
 
-ANN static inline Exp emit_n_exp(const Emitter                 emit,
+ANN static inline Exp* emit_n_exp(const Emitter                 emit,
                                  struct ArrayAccessInfo *const info) {
-  const Exp e               = take_exp(info->array.exp, info->array.depth);
-  const Exp next            = e->next;
+  Exp* e               = take_exp(info->array.exp, info->array.depth);
+  Exp* next            = e->next;
   e->next                   = NULL;
   struct Array_Sub_ partial = {info->array.exp, info->array.type,
                                info->array.depth};
@@ -458,7 +458,7 @@ static OP_EMIT(opem_array_access) {
   struct Array_Sub_ next    = {info->array.exp, array_base(t),
                             info->array.depth - t->array_depth};
   info->array               = partial;
-  const Exp exp             = emit_n_exp(emit, info);
+  Exp* exp             = emit_n_exp(emit, info);
   next.exp                  = exp;
   info->array               = next;
   return exp ? emit_array_access(emit, info) : GW_ERROR;
@@ -881,7 +881,7 @@ static OP_EMIT(opem_array_each_init) {
 }
 
 
-ANN static inline Type foreach_type(const Env env, const Exp exp) {
+ANN static inline Type foreach_type(const Env env, Exp* exp) {
   const Type et = exp->type;
   DECL_OO(Type, base, = typedef_base(et));
   DECL_OO(const Type, t, = array_base_simple(base));
@@ -897,7 +897,7 @@ ANN static inline Type foreach_type(const Env env, const Exp exp) {
 
 // rewrite me
 static OP_CHECK(opck_array_each_val) {
-  const Exp exp = (const Exp) data;
+  Exp* exp = (Exp*) data;
   DECL_ON(const Type, base, = foreach_type(env, exp));
   CHECK_BN(ensure_traverse(env, base));
   return ref_type(env->gwion, base, exp->loc);
@@ -1185,12 +1185,12 @@ INSTR(ArrayAlloc) {
   }
 }
 
-ANN static bool last_is_zero(Exp e) {
+ANN static bool last_is_zero(Exp* e) {
   while(e->next) e = e->next;
   return exp_is_zero(e);
 }
 
-ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, const Exp args) {
+ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
   if (!last_is_zero(td->array->exp)) {
     if (!args)
       ERR_B(td->tag.loc, "declaration of abstract type arrays needs lambda");

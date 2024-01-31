@@ -133,7 +133,7 @@ ANN static void clean_exp_td(Clean *a, Type_Decl **b) {
 }
 
 DECL_EXP_FUNC(clean, void, Clean *)
-ANN static void clean_exp(Clean *a, Exp b) {
+ANN static void clean_exp(Clean *a, Exp* b) {
   clean_exp_func[b->exp_type](a, &b->d);
   if (b->next) clean_exp(a, b->next);
 }

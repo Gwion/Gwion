@@ -22,8 +22,8 @@ struct td_checker {
 
 struct AC {
   m_str  str;
-  Exp    base;
-  Exp    exp;
+  Exp*    base;
+  Exp*    exp;
   loc_t  loc;
   m_uint depth;
 };
@@ -292,8 +292,8 @@ ANN static void td_fullname(const Env env, GwText *text, const Type t) {
   text_add(text, t->name);
 }
 
-ANN Exp td2exp(const MemPool mp, const Type_Decl *td) {
-  Exp base = new_prim_id(mp, td->tag.sym, td->tag.loc);
+ANN Exp* td2exp(const MemPool mp, const Type_Decl *td) {
+  Exp* base = new_prim_id(mp, td->tag.sym, td->tag.loc);
   Type_Decl *next = td->next;
   while(next) {
     base = new_exp_dot(mp, base, next->tag.sym, td->tag.loc);
@@ -316,7 +316,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
       if(t)
         td_fullname(env, &info->fmt->ls->text, t);
       else {
-        const Exp exp = td2exp(gwion->mp, targ->d.td);
+        Exp* exp = td2exp(gwion->mp, targ->d.td);
         if(traverse_exp(env, exp) > 0) {
           if(is_class(gwion, exp->type)) {
             td_fullname(env, &info->fmt->ls->text, exp->type);
@@ -325,7 +325,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
         } else GWION_ERR_B(targ->d.td->tag.loc, "invalid template argument");
       }
     } else {
-      Exp exp = targ->d.exp;
+      Exp* exp = targ->d.exp;
       if(check_exp(env, targ->d.exp)) {
         if(!is_class(gwion, exp->type))
           gwfmt_exp(info->fmt, exp);
@@ -371,7 +371,7 @@ ANN static inline m_bool ac_exp(const Gwion gwion, const struct AC *ac) {
   GWION_ERR_B(ac->loc, "malformed array [][...]")
 }
 
-ANN static void ac_add_exp(struct AC *ac, const Exp exp) {
+ANN static void ac_add_exp(struct AC *ac, Exp* exp) {
   if (ac->exp)
     ac->exp = (ac->exp->next = exp);
   else
@@ -390,7 +390,7 @@ ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
   if (str != ac->str) {
     CHECK_BB(ac_num(gwion, ac, num));
     CHECK_BB(ac_exp(gwion, ac));
-    const Exp exp = new_prim_int(gwion->mp, num, ac->loc);
+    Exp* exp = new_prim_int(gwion->mp, num, ac->loc);
     // set type: otherwise could fail at emit time
     exp->type = gwion->type[et_int];
     ac_add_exp(ac, exp);

@@ -42,13 +42,13 @@ static OP_CHECK(opck_object_at) {
 
 static OP_CHECK(opck_object_instance) {
   Exp_Binary *bin = (Exp_Binary*)data;
-  Exp rhs = bin->rhs;
+  Exp* rhs = bin->rhs;
   if (rhs->exp_type != ae_exp_decl)
     return NULL;
   if (rhs->d.exp_decl.var.td->array)
     return NULL;
-  Exp lhs = bin->lhs;
-  Exp e = exp_self(bin);
+  Exp* lhs = bin->lhs;
+  Exp* e = exp_self(bin);
   Exp_Decl *const decl = &e->d.exp_decl;
   e->exp_type = ae_exp_decl;
   decl->var.td = cpy_type_decl(env->gwion->mp, rhs->d.exp_decl.var.td);
@@ -124,7 +124,7 @@ ANN static void emit_dottmpl(const Emitter emit, const Func f) {
 }
 
 ANN static void emit_member_func(const Emitter emit, const Exp_Dot *member) {
-  const Exp self = exp_self(member);
+  Exp* self = exp_self(member);
   const Func f = self->type->info->func;
 
   if(is_new(f->def)) {
@@ -185,7 +185,7 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
   return NULL;
 }
 
-ANN static m_bool member_access(const Env env, const Exp exp, const Value value) {
+ANN static m_bool member_access(const Env env, Exp* exp, const Value value) {
   if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
@@ -201,7 +201,7 @@ ANN static m_bool member_access(const Env env, const Exp exp, const Value value)
 
 OP_CHECK(opck_object_dot) {
   Exp_Dot *const member      = (Exp_Dot *)data;
-  Exp self = exp_self(member);
+  Exp* self = exp_self(member);
   const m_str    str         = s_name(member->xid);
   const m_bool   base_static = is_class(env->gwion, member->base->type);
   const Type     the_base =

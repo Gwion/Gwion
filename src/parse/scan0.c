@@ -213,7 +213,7 @@ static INSTR(StructAssign) {
 static OP_EMIT(opem_struct_assign) {
   const Exp_Binary *bin = data;
   const Type t = bin->lhs->type;
-  const Exp e = exp_self(bin);
+  Exp* e = exp_self(bin);
 
   if(tflag(t, tflag_release)) {
     const f_instr exec = !tflag(t, tflag_union)
@@ -314,7 +314,7 @@ ANN static inline Type scan0_final(const Env env, Type_Decl *td) {
 ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   if (cflag(cdef, cflag_struct)) return env->gwion->type[et_compound];
   if (!cdef->base.ext) return env->gwion->type[et_object];
-  Exp e = cdef->base.ext->array ? cdef->base.ext->array->exp : NULL;
+  Exp* e = cdef->base.ext->array ? cdef->base.ext->array->exp : NULL;
   while(e) {
     if(!is_prim_int(e))
       ERR_O(e->loc, "non null array type extension must be literal");

@@ -71,7 +71,7 @@ ANN2(1)
 Instr emit_add_instr(const Emitter, const f_instr)
     __attribute__((returns_nonnull));
 ANN Code * emit_class_code(const Emitter, const m_str);
-ANN m_bool emit_array_extend(const Emitter, const Type, const Exp);
+ANN m_bool emit_array_extend(const Emitter, const Type, Exp*);
 ANN void   emit_class_finish(const Emitter, const Nspc);
 ANN2(1, 2)
 m_bool     emit_instantiate_object(const Emitter, const Type, const Array_Sub,
@@ -80,9 +80,9 @@ ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
 ANN m_uint emit_localn(const Emitter emit, const Type t);
 ANN void* emit_localx(const Emitter emit, const Type t);
-ANN m_uint emit_local_exp(const Emitter emit, const Exp);
+ANN m_uint emit_local_exp(const Emitter emit, Exp*);
 ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
-ANN m_bool emit_exp(const Emitter, const Exp);
+ANN m_bool emit_exp(const Emitter, Exp*);
 
 ANN void emit_object_addref(const Emitter emit, const m_int size,
                              const bool emit_var);

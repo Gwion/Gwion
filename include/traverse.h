@@ -7,16 +7,16 @@ ANN m_bool traverse_union_def(const Env, const Union_Def);
 ANN m_bool traverse_enum_def(const Env, const Enum_Def);
 ANN m_bool traverse_fptr_def(const Env, const Fptr_Def);
 ANN m_bool traverse_type_def(const Env env, const Type_Def);
-ANN m_bool traverse_exp(const Env, const Exp);
+ANN m_bool traverse_exp(const Env, Exp*);
 
 ANN m_bool scan0_ast(const Env, Ast*);
 ANN m_bool scan1_ast(const Env, Ast*);
 ANN m_bool scan2_ast(const Env, Ast*);
 ANN m_bool check_ast(const Env, Ast*);
 
-ANN m_bool scan1_exp(const Env, const Exp);
-ANN m_bool scan2_exp(const Env, const Exp);
-ANN Type   check_exp(const Env, const Exp);
+ANN m_bool scan1_exp(const Env, Exp*);
+ANN m_bool scan2_exp(const Env, Exp*);
+ANN Type   check_exp(const Env, Exp*);
 
 ANN m_bool scan0_func_def(const Env, const Func_Def);
 ANN m_bool scan1_func_def(const Env, const Func_Def);

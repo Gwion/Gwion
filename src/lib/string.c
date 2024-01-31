@@ -26,7 +26,7 @@
 describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
     describe_string_logical(neq, (strcmp(STRING(lhs), STRING(rhs))))
 
-        static inline uint is_const_str(const Exp exp) {
+        static inline uint is_const_str(Exp* exp) {
   return exp->exp_type == ae_exp_primary &&
          exp->d.prim.prim_type == ae_prim_str;
 }
@@ -39,7 +39,7 @@ describe_string_logical(eq, (!strcmp(STRING(lhs), STRING(rhs))))
     const int ret = __exp__;                                                   \
     free_exp(env->gwion->mp, bin->lhs);                                        \
     free_exp(env->gwion->mp, bin->rhs);                                        \
-    const Exp e         = exp_self(bin);                                       \
+    Exp* e         = exp_self(bin);                                       \
     e->exp_type         = ae_exp_primary;                                      \
     e->d.prim.prim_type = ae_prim_num;                                         \
     e->d.prim.d.gwint.num     = ret;                                           \
@@ -425,7 +425,7 @@ ANN Type check_array_access(const Env env, const Array_Sub array);
 
 static OP_CHECK(opck_string_access) {
   const Array_Sub array = (Array_Sub)data;
-  const Exp exp = array->exp;
+  Exp* exp = array->exp;
   if(!exp->next)
     return env->gwion->type[et_char];
   struct Array_Sub_ next = { exp->next, env->gwion->type[et_char], array->depth - 1 };
@@ -465,8 +465,8 @@ static INSTR(string_at_set) {
 
 static OP_EMIT(opem_string_access) {
   struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)data;
-  const Exp exp = info->array.exp;
-  const Exp next = exp->next;
+  Exp* exp = info->array.exp;
+  Exp* next = exp->next;
   CHECK_BB(emit_exp(emit, exp));
   exp->next = next;
   emit_add_instr(emit, !info->is_var ? string_at : string_at_set);

@@ -285,10 +285,10 @@ static INSTR(hmap_remove) {
 }
 
 static OP_CHECK(opck_dict_remove_toop) {
-  const Exp       e    = (Exp)data;
+  Exp*       e    = (Exp*)data;
   const Exp_Call *call = &e->d.exp_call;
-  const Exp       func  = call->func;
-  const Exp       args  = call->args;
+  Exp*       func  = call->func;
+  Exp*       args  = call->args;
   e->exp_type         = ae_exp_binary;
   CHECK_OO(check_exp(env, e->d.exp_binary.rhs = cpy_exp(env->gwion->mp, func->d.exp_dot.base)));
   CHECK_OO(check_exp(env, e->d.exp_binary.lhs = args));
@@ -302,7 +302,7 @@ static OP_CHECK(opck_dict_remove_toop) {
 }
 
 ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
-                          const struct Op_Import *opi, const Exp call, const Exp exp) {
+                          const struct Op_Import *opi, Exp* call, Exp* exp) {
   emit_pushimm(emit, -1); // room for tombstone
   CHECK_BB(emit_exp(emit, call));
   const m_uint pc = emit_code_size(emit);
@@ -326,9 +326,9 @@ static OP_EMIT(_opem_dict_access) {
   const HMapInfo *hinfo = (HMapInfo*)array->type->nspc->class_data;
   const Type key = *(Type*)array->type->nspc->class_data;
 
-  struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
+  Exp func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
 
-  struct Exp_ call = {
+  Exp call = {
    .exp_type = ae_exp_call,
    .d = {
      .exp_call = {
@@ -337,9 +337,9 @@ static OP_EMIT(_opem_dict_access) {
      }
    }
 };
-struct Exp_ lhs = { .exp_type = ae_exp_primary, .type = key, .d = { .prim = { .prim_type = ae_prim_id } }};
-struct Exp_ rhs = { .exp_type = ae_exp_primary, .type = key, .d = { .prim = { .prim_type = ae_prim_id } }};
-struct Exp_ bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
+Exp lhs = { .exp_type = ae_exp_primary, .type = key, .d = { .prim = { .prim_type = ae_prim_id } }};
+Exp rhs = { .exp_type = ae_exp_primary, .type = key, .d = { .prim = { .prim_type = ae_prim_id } }};
+Exp bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
 struct Op_Import opi = {
   .lhs = key,
   .rhs = key,
@@ -400,9 +400,9 @@ if(info->is_var) {
 static OP_EMIT(opem_dict_remove) {
   Exp_Binary *bin = (Exp_Binary*)data;
   const Env env = emit->env;
-  struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
+  Exp func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
 
-  struct Exp_ call = {
+  Exp call = {
     .exp_type = ae_exp_call,
     .d = {
       .exp_call = {
@@ -414,9 +414,9 @@ static OP_EMIT(opem_dict_remove) {
   const Type t = bin->rhs->type;
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
 
-  struct Exp_ lhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
-  struct Exp_ rhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
-  struct Exp_ _bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
+  Exp lhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+  Exp rhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+  Exp _bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
   struct Op_Import opi = {
     .lhs = hinfo->key,
     .rhs = hinfo->key,
@@ -445,7 +445,7 @@ ANN static m_bool emit_next_access(const Emitter emit, struct ArrayAccessInfo *c
 static OP_EMIT(opem_dict_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo *const)data;
   const Array_Sub array = &info->array;
-  const Exp enext = array->exp->next;
+  Exp* enext = array->exp->next;
   array->exp->next = NULL;
   const m_bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
@@ -457,9 +457,9 @@ static OP_CHECK(opck_dict_access) {
   const Array_Sub array = (Array_Sub)data;
   HMapInfo *const hinfo = (HMapInfo*)array->type->nspc->class_data;
 
-  struct Exp_ func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
+  Exp func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
 
-  struct Exp_ call = {
+  Exp call = {
    .exp_type = ae_exp_call,
    .d = {
      .exp_call = {
@@ -468,9 +468,9 @@ static OP_CHECK(opck_dict_access) {
      }
    }
 };
-struct Exp_ lhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
-struct Exp_ rhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
-struct Exp_ bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
+Exp lhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+Exp rhs = { .exp_type = ae_exp_primary, .type = hinfo->key, .d = { .prim = { .prim_type = ae_prim_id } }};
+Exp bin = { .exp_type = ae_exp_binary, .d = { .exp_binary = { .lhs = &lhs, .rhs = &rhs, .op = insert_symbol("?=") } }};
 struct Op_Import opi = {
   .lhs = hinfo->key,
   .rhs = hinfo->key,
@@ -542,13 +542,13 @@ static OP_EMIT(opem_dict_each_init) {
 }
 
 static OP_CHECK(opck_dict_each_key) {
-  const Exp exp = (const Exp)data;
+  Exp* exp = (Exp*)data;
   HMapInfo *const hinfo = (HMapInfo*)exp->type->nspc->class_data;
   return hinfo->key;
 }
 
 static OP_CHECK(opck_dict_each_val) {
-  const Exp exp = (const Exp)data;
+  Exp* exp = (Exp*)data;
   HMapInfo *const hinfo = (HMapInfo*)exp->type->nspc->class_data;
   return hinfo->val;
 }

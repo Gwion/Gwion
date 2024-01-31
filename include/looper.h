@@ -6,7 +6,7 @@ typedef struct Looper Looper;
 typedef Instr (*f_looper)(const Emitter, const Looper *);
 
 struct Looper {
-  const Exp           exp;
+  Exp*           exp;
   Stmt *const          stmt;
   /*const */ m_uint   offset;
   const m_uint        n;

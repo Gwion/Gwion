@@ -62,7 +62,7 @@ static void compound_get_member(const Env env, const Type t, const Vector v) {
   type_get_member(env->gwion, t, v);
 }
 
-ANN static inline void check_deep_equal_exp(const Env env, const Exp e, const Vector v) {
+ANN static inline void check_deep_equal_exp(const Env env, Exp* e, const Vector v) {
   vector_init(v);
   compound_get_member(env, e->type, v);
   if(tflag(e->type, tflag_struct))
@@ -103,7 +103,7 @@ static bool deep_check(const Env env, const Exp_Binary *bin,
     for(m_uint i = 0; i < lsz; i++) {
       const Value lval = (Value)vector_at(l, i),
                   rval = (Value)vector_at(r, i);
-      struct Exp_ lexp = MK_DOT(env, bin->lhs, lval),
+      Exp lexp = MK_DOT(env, bin->lhs, lval),
                   rexp = MK_DOT(env, bin->rhs, rval),
                   temp = MK_BIN(lexp, rexp, bin);
       if(!check_exp(env, &temp))
@@ -144,9 +144,9 @@ static OP_CHECK(opck_deep_equal) {
 }
 
 struct DeepEmit {
-  Exp exp;
+  Exp* exp;
   Value val;
-  Exp tmp;
+  Exp* tmp;
   struct Vector_ vec;
 };
 
@@ -207,9 +207,9 @@ ANN static bool deep_emit(const Emitter emit, struct DeepEmits *ds) {
   for(m_uint i = 0; i < vector_size(&ds->lhs->vec); i++) {
     const Value lhs = (Value)vector_at(&ds->lhs->vec, i),
                 rhs = (Value)vector_at(&ds->rhs->vec, i);
-    struct Exp_ lexp = MK_DOT(emit, ds->lhs->tmp, lhs);
-    struct Exp_ rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
-    struct Exp_ temp = MK_BIN(lexp, rexp, ds->bin);
+    Exp lexp = MK_DOT(emit, ds->lhs->tmp, lhs);
+    Exp rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
+    Exp temp = MK_BIN(lexp, rexp, ds->bin);
     temp.type=emit->gwion->type[et_bool];
     if(emit_exp(emit, &temp) < 0) return false;
     vector_add(&ds->acc, (m_uint)emit_add_instr(emit, BranchEqInt));

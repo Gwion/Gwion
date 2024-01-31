@@ -24,7 +24,7 @@ ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc) {
   return str2type(gwion, c, loc);
 }
 
-static m_bool ref_access(const Env env, const Exp e) {
+static m_bool ref_access(const Env env, Exp* e) {
   const m_str access = exp_access(e);
   if (!access) return GW_OK;
   env_err(env, e->loc, _("operand is %s"), access);
@@ -84,7 +84,7 @@ static OP_EMIT(opem_ref_contract_similar) {
   const struct Implicit *imp = (struct Implicit *)data;
   const Env env = emit->env;
   const Type base = (Type)vector_front(&imp->t->info->tuple->contains);
-  struct Exp_ cast = {.type=base, .d={.exp_cast={.exp=imp->e}}};
+  Exp cast = {.type=base, .d={.exp_cast={.exp=imp->e}}};
   struct Op_Import opi    = {.op   = insert_symbol("$"),
                           .lhs  = imp->e->type,
                           .rhs  = base,

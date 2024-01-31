@@ -192,14 +192,14 @@ static INSTR(IntRange) {
 }
 
 static OP_CHECK(opck_int_range) {
-  const Exp    exp   = (Exp)data;
+  Exp*    exp   = (Exp*)data;
   const Range *range = exp->d.prim.d.range;
-  const Exp    e     = range->start ?: range->end;
+  Exp*    e     = range->start ?: range->end;
   return array_type(env, e->type, 1, e->loc);
 }
 
 static OP_EMIT(opem_int_range) {
-  const Exp   exp   = (Exp)data;
+  Exp*   exp   = (Exp*)data;
   const Instr instr = emit_add_instr(emit, IntRange);
   instr->m_val      = (m_uint)exp->type;
   return GW_OK;
@@ -298,7 +298,7 @@ static OP_CHECK(opck_cast_f2i) {
     const m_float f = cast->exp->d.prim.d.fnum;
     free_type_decl(env->gwion->mp, cast->td);
     free_exp(env->gwion->mp, cast->exp);
-    Exp e = exp_self(cast);
+    Exp* e = exp_self(cast);
     e->exp_type = ae_exp_primary;
     e->d.prim.prim_type = ae_prim_num;
     e->d.prim.d.gwint.num = f;
@@ -306,7 +306,7 @@ static OP_CHECK(opck_cast_f2i) {
   return env->gwion->type[et_int];
 }
 /*
-ANN static void tofloat(Exp e, const m_int i) {
+ANN static void tofloat(Exp* e, const m_int i) {
   e->exp_type = ae_exp_primary;
   e->d.prim.prim_type = ae_prim_float;
   e->d.prim.d.fnum = i;
@@ -318,7 +318,7 @@ static OP_CHECK(opck_cast_i2f) {
     const m_int i = cast->exp->d.prim.d.gwint.num;
     free_type_decl(env->gwion->mp, cast->td);
     free_exp(env->gwion->mp, cast->exp);
-    Exp e = exp_self(cast);
+    Exp* e = exp_self(cast);
     e->exp_type = ae_exp_primary;
     e->d.prim.prim_type = ae_prim_float;
     e->d.prim.d.fnum = i;
@@ -490,7 +490,7 @@ static GWION_IMPORT(dur) {
   return gwi_oper_end(gwi, "<=", float_le);
 }
 
-static inline int is_now(const Env env, const Exp exp) {
+static inline int is_now(const Env env, Exp* exp) {
   return exp->exp_type == ae_exp_primary &&
          exp->d.prim.prim_type == ae_prim_id &&
          exp->d.prim.d.var == insert_symbol("now");

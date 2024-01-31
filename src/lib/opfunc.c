@@ -36,7 +36,7 @@ OP_CHECK(opck_usr_implicit) {
       }
       if(f) {
         // TODO: add call exp
-        struct Exp_ call = { .exp_type=ae_exp_call,
+        Exp call = { .exp_type=ae_exp_call,
   .d={.exp_call={.args=imp->e}}, .pos=imp->e->loc, .type=f->value_ref->type };
         struct Op_Import opi = { .op=insert_symbol("@func_check"),
           .rhs=f->value_ref->type, .pos=imp->e->loc, .data=(uintptr_t)&call };
@@ -136,11 +136,11 @@ OP_CHECK(opck_new) {
     CHECK_BN(check_subscripts(env, array, 1));
   }
   if(unary->ctor.exp) {
-    const Exp self   = exp_self(unary);
-    const Exp args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
-    const Exp base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->loc);
+    Exp* self   = exp_self(unary);
+    Exp* args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
+    Exp* base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->loc);
     base->type = t;
-    const Exp func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->loc);
+    Exp* func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->loc);
     self->d.exp_call.func = func;
     self->d.exp_call.args = args;
     self->d.exp_call.tmpl = NULL;

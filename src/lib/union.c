@@ -67,9 +67,9 @@ ANN void union_release(const VM_Shred shred, const Type t, const m_bit *data) {
 }
 
 static OP_CHECK(opck_union_is) {
-  const Exp       e    = (Exp)data;
+  Exp*       e    = (Exp*)data;
   const Exp_Call *call = &e->d.exp_call;
-  const Exp       exp  = call->args;
+  Exp*       exp  = call->args;
   if(!exp)
     ERR_N(e->loc, "Union.is() takes one argument of form id");
   if (exp->exp_type != ae_exp_primary || exp->d.prim.prim_type != ae_prim_id)
@@ -83,8 +83,8 @@ static OP_CHECK(opck_union_is) {
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Value v = (Value)VVAL(map, i);
     if (!strcmp(s_name(exp->d.prim.d.var), v->name)) {
-      const Exp exp_func  = call->func;
-      const Exp exp_args  = call->args;
+      Exp* exp_func  = call->func;
+      Exp* exp_args  = call->args;
       e->exp_type         = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
       e->d.exp_binary.lhs->d.exp_dot.xid =
@@ -114,13 +114,13 @@ static MFUN(union_new) {
 #undef insert_symbol
 static OP_CHECK(opck_union_new) {
   Exp_Call *call = (Exp_Call *)data;
-  const Exp name = call->args;
+  Exp* name = call->args;
   if (!name)
     ERR_N(call->func->loc, "Union constructor takes one or two arguments, "
                            "'id' and 'value'");
   if (name->exp_type != ae_exp_primary || name->d.prim.prim_type != ae_prim_id)
     ERR_N(call->func->loc, "Union constructor first argument me be an identifier");
-  const Exp  val  = name->next;
+  Exp*  val  = name->next;
   const Type base = call->func->d.exp_dot.base->type;
   const Map  map  = &base->nspc->info->value->map;
 
@@ -131,7 +131,7 @@ static OP_CHECK(opck_union_new) {
       name->d.prim.d.gwint.num = i;
       name->type               = env->gwion->type[et_int];
       if(!val && v->type == env->gwion->type[et_none]) {
-        const Exp e = new_prim_int(env->gwion->mp, SZ_INT, name->loc);
+        Exp* e = new_prim_int(env->gwion->mp, SZ_INT, name->loc);
         e->next = name;
         e->type = env->gwion->type[et_int];
         name->next = new_prim_int(env->gwion->mp, 0, name->loc);
@@ -145,7 +145,7 @@ static OP_CHECK(opck_union_new) {
           ERR_N(val->loc, "Invalid type '%s' for '%s', should be '%s'", t->name,
                 v->name, v->type->name);
         }
-        const Exp e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->loc);
+        Exp* e = new_prim_int(env->gwion->mp, t->size + SZ_INT, val->loc);
         e->next = name;
         e->type = env->gwion->type[et_int];
         call->args = e;

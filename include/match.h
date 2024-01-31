@@ -5,10 +5,10 @@ struct Match_ {
   struct Vector_ vec;
 };
 
-ANN static inline void match_map(struct Match_ *const match, Exp e) {
+ANN static inline void match_map(struct Match_ *const match, Exp* e) {
   const Vector cond = &match->cond;
   vector_init(cond);
-  Exp next;
+  Exp* next;
   do {
     next    = e->next;
     e->next = NULL;
@@ -20,7 +20,8 @@ ANN static inline void match_unmap(struct Match_ *const match) {
   const Vector cond = &match->cond;
   const vtype  sz   = vector_size(cond);
   for (m_uint i = 0; i < sz - 1; ++i) {
-    const Exp e = (Exp)vector_at(cond, i), next = (Exp)vector_at(cond, i + 1);
+    Exp* e = (Exp*)vector_at(cond, i);
+    Exp* next = (Exp*)vector_at(cond, i + 1);
     e->next = next;
   }
   vector_release(cond);

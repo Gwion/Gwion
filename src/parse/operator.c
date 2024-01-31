@@ -14,7 +14,7 @@
 #include "traverse.h"
 #include "clean.h"
 
-typedef Type (*f_type)(const Env env, const Exp exp);
+typedef Type (*f_type)(const Env env, Exp* exp);
 
 typedef struct M_Operator_ {
   Type           lhs, rhs, ret;
@@ -297,8 +297,8 @@ ANN void* op_get(const Env env, struct Op_Import *opi) {
 
 ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const m_str op, const size_t len) {
   Exp_Binary *base = (Exp_Binary*)opi->data;
-  const Exp lhs = cpy_exp(env->gwion->mp, base->lhs); // no need to copy
-  const Exp call = new_exp_call(env->gwion->mp, cpy_exp(env->gwion->mp, base->rhs), NULL, lhs->loc);
+  Exp* lhs = cpy_exp(env->gwion->mp, base->lhs); // no need to copy
+  Exp* call = new_exp_call(env->gwion->mp, cpy_exp(env->gwion->mp, base->rhs), NULL, lhs->loc);
   char c[len - 1];
   strncpy(c, op, len - 2);
   c[len - 2] = '\0';
@@ -308,7 +308,7 @@ ANN static Type chuck_rewrite(const Env env, const struct Op_Import *opi, const 
     env_set_error(env,  true);
     return NULL;
   }
-  const Exp bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->loc);
+  Exp* bin = new_exp_binary(env->gwion->mp, lhs, insert_symbol(env->gwion->st, c), call, exp_self(base)->loc);
   base->lhs = bin;
   base->op = insert_symbol(env->gwion->st, "=>");
   const Type ret = check_exp(env, exp_self(base));

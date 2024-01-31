@@ -62,7 +62,7 @@ ANN m_bool template_push(const Env env, const Type t) {
 }
 
 #include <ctype.h>
-ANN Exp td2exp(const MemPool mp, const Type_Decl *td);
+ANN Exp* td2exp(const MemPool mp, const Type_Decl *td);
 ANN void check_call(const Env env, const Tmpl *tmpl) {
   for(uint32_t i = 0; i < tmpl->call->len; i++) {
     Specialized *spec = i < tmpl->list->len
@@ -75,7 +75,7 @@ if(targ->type == tmplarg_td) {
 if(unlikely(spec->td)) {
 if(targ->type == tmplarg_td) {
 targ->type = tmplarg_exp;
-const Exp exp = td2exp(env->gwion->mp, targ->d.td);
+Exp* exp = td2exp(env->gwion->mp, targ->d.td);
 targ->d.exp = exp;
 
 }
@@ -187,7 +187,7 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
          const Type t = known_type(env, base);
          if(t) {
            arg->type = tmplarg_exp;
-           Exp e = new_exp_td(env->gwion->mp, base, base->tag.loc);
+           Exp* e = new_exp_td(env->gwion->mp, base, base->tag.loc);
            arg->d.exp = new_exp_dot(env->gwion->mp, e, last->tag.sym, base->tag.loc);
            free_type_decl(env->gwion->mp, last);
            i--;

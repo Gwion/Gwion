@@ -12,14 +12,14 @@
 
 static OP_CHECK(opck_sift) {
   Exp_Binary *bin = (Exp_Binary*)data;
-  const Exp lhs = bin->lhs;
+  Exp* lhs = bin->lhs;
   Stmt* stmt = mp_vector_at(lhs->d.exp_unary.code, Stmt, 0);
   Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, Stmt, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
-  Exp next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
+  Exp* next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
   CHECK_BN(traverse_exp(env, next)); // how do we free it?
   fst->d.stmt_exp.val = next;
-  const Exp exp = exp_self(bin);
+  Exp* exp = exp_self(bin);
   exp->exp_type = lhs->exp_type;
   exp->d.exp_unary.code = lhs->d.exp_unary.code;
   exp->type = lhs->type;
@@ -34,19 +34,19 @@ static OP_CHECK(opck_ctrl) {
   if(bin->lhs->exp_type == ae_exp_decl)
     ERR_N(bin->lhs->loc, _("can't use declaration to start sift `|>` operator"));
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
-  Exp exp = exp_self(data);
+  Exp* exp = exp_self(data);
 
-  Exp func = cpy_exp(mp, exp);
-  const Exp dot = new_exp_dot(mp, func->d.exp_binary.lhs, insert_symbol(env->gwion->st, "last"), func->loc);
-  const Exp call = new_exp_call(mp, dot, NULL, func->loc);
+  Exp* func = cpy_exp(mp, exp);
+  Exp* dot = new_exp_dot(mp, func->d.exp_binary.lhs, insert_symbol(env->gwion->st, "last"), func->loc);
+  Exp* call = new_exp_call(mp, dot, NULL, func->loc);
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
   CHECK_BN(traverse_exp(env, func));
   Stmt one = { .d = { .stmt_exp = { .val = func }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
 
-  Exp samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->loc);
-  Exp _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->loc);
-  Exp time = new_exp_binary(mp, samp, chuck, _now, func->loc);
+  Exp* samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->loc);
+  Exp* _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->loc);
+  Exp* time = new_exp_binary(mp, samp, chuck, _now, func->loc);
   CHECK_BN(traverse_exp(env, time));
   Stmt two = { .d = { .stmt_exp = { .val = time }}, .stmt_type = ae_stmt_exp, .loc = func->loc };
 
@@ -57,7 +57,7 @@ static OP_CHECK(opck_ctrl) {
   mp_vector_set(slist, Stmt, 1, two);
   Stmt* stmt = new_stmt_code(mp, slist, func->loc);
 
-  const Exp cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->loc);
+  Exp* cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->loc);
   check_exp(env, cond);
 
   const Stmt_List code = new_mp_vector(mp, Stmt, 1);
