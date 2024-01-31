@@ -166,15 +166,16 @@ static ANN bool is_single_variadic(const MP_Vector *v) {
   return !strcmp(s_name(spec->tag.sym), "...");
 }
 
+
 ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
      ERR_B(loc, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
-    TmplArg *arg = mp_vector_at(tl, TmplArg, i);
+    TmplArg *targ = mp_vector_at(tl, TmplArg, i);
     Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if(arg->type == tmplarg_td) {
+    if(targ->type == tmplarg_td) {
       if(spec->td) {
-       Type_Decl *base = arg->d.td;
+       Type_Decl *base = targ->d.td;
        Type_Decl *next = base;
        Type_Decl *last = next->next;
        while(next && last) {
@@ -186,9 +187,9 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
          next->next = NULL;
          const Type t = known_type(env, base);
          if(t) {
-           arg->type = tmplarg_exp;
+           targ->type = tmplarg_exp;
            Exp* e = new_exp_td(env->gwion->mp, base, base->tag.loc);
-           arg->d.exp = new_exp_dot(env->gwion->mp, e, last->tag.sym, base->tag.loc);
+           targ->d.exp = new_exp_dot(env->gwion->mp, e, last->tag.sym, base->tag.loc);
            free_type_decl(env->gwion->mp, last);
            i--;
            continue;
@@ -199,7 +200,7 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
           spec->td ? "constant" : "type");
       }
 
-      DECL_OB(const Type, t, = known_type(env, arg->d.td));
+      DECL_OB(const Type, t, = known_type(env, targ->d.td));
       if(spec->traits) {
         Symbol missing = miss_traits(t, spec);
         if (missing) {
@@ -246,7 +247,8 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
     Specialized_List    sl = tmpl
         ? tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(tmpl);
-    if(!single_variadic) CHECK_BO(check_tmpl(env, tl, sl, td->tag.loc, is_spread));
+    if(!single_variadic)
+      CHECK_BO(check_tmpl(env, tl, sl, td->tag.loc, is_spread));
     struct Op_Import opi = {.op   = insert_symbol("class"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,

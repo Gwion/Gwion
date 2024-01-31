@@ -18,8 +18,8 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     fseek(f, 0, SEEK_SET);
     const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
-    // skip or error on const?
-    // or do smth else?
+    // post spread const expression won't reach here
+    assert(targ.type == tmplarg_td);
     DECL_OB(const Type, t, = known_type(env, targ.d.td));
     struct AstGetter_ arg =  {env->name, f, env->gwion->st, .ppa = env->gwion->ppa};
     const m_str type = type2str(env->gwion, t, targ.d.td->tag.loc);
@@ -75,8 +75,8 @@ ANN Ast spread_class(const Env env, const Ast body) {
             {
               ++offset;
               break;
-           }
-           mp_vector_add(env->gwion->mp, &new_body, Section, section);
+            }
+            mp_vector_add(env->gwion->mp, &new_body, Section, section);
           }
         } else {
           if(!acc)
@@ -112,7 +112,6 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
           const Stmt stmt = *mp_vector_at(list, Stmt, j);
           mp_vector_add(env->gwion->mp, &new_body, Stmt, stmt);
         }
-        break;
       }
     } else {
       mp_vector_add(env->gwion->mp, &new_body, Stmt, stmt);

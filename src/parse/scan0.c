@@ -322,7 +322,7 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   }
   if (tmpl_base(cdef->base.tmpl)) return get_parent_base(env, cdef->base.ext);
   const bool tmpl = !!cdef->base.tmpl;
-  if (tmpl) template_push_types(env, cdef->base.tmpl);
+  if (tmpl) CHECK_BO(template_push_types(env, cdef->base.tmpl));
   const Type t = scan0_final(env, cdef->base.ext);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
   return t;
