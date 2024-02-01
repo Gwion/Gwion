@@ -26,4 +26,6 @@ ANN static inline Tmpl* get_tmpl(const Type t) {
     nspc_pop_type(env->gwion->mp, env->curr);                                  \
     return (a);                                                                \
   }
+
+ANN static void fdef_const_generic_value(const Env env, const Type owner, const Type t, const Tag tag);
 #endif
