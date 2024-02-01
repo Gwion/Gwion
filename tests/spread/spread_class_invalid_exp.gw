@@ -1,0 +1,12 @@
+#! [contains]  invalid const expression in variadic template
+class C:[...] {
+  ... T : arg {
+    var T arg;
+  }...
+
+  ... T : arg {
+    <<< "${T} ${arg}" >>>;
+  }...
+}
+
+var C:[float, int, 2] ci;

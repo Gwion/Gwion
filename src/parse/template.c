@@ -213,11 +213,7 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
         ERR_B(loc, "template const argument mismatch. expected %s",
             spec->td ? "constant" : "type");
       }
-      DECL_OB(const Type, t, = known_type(env, spec->td));
-      CHECK_OB(check_exp(env, arg->d.exp));
-      if(isa(arg->d.exp->type, t) < 0)
-        ERR_B(loc, "invalid type %s for template argument. expected %s",
-            arg->d.exp->type->name, t->name);
+      CHECK_BB(const_generic_typecheck(env, spec, targ));
     }
   }
   return GW_OK;

@@ -21,13 +21,10 @@ ANN2(1) void comptime_end(const Emitter emit, const size_t size, void *data) {
   }
   const VM *vm = emit->gwion->vm;
   const VM_Code code = finalyze(emit, EOC); // } new code
-  const VM_Shred shred = vm->cleaner_shred;
-  shred->code = code;
-  shred->info->me->ref++;
-  shredule(vm->shreduler, shred, 0);
+  const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
+  vm_add_shred(vm, shred);
   const bool loop = vm->shreduler->loop;
   vm_run(vm);
-  shred->code = NULL;
   vm->bbq->is_running = true;
   vm->shreduler->loop = loop;
 }

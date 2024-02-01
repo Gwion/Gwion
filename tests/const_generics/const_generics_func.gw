@@ -1,0 +1,6 @@
+#![contains] 2.6
+fun void foo:[const float N]() {
+   <<< N >>>;
+}
+foo:[2.6]();
+foo:[2.7]();

@@ -1,0 +1,5 @@
+#![contains] invalid type for const generic argument
+class Foo:[const float N] {
+   <<< N >>>;
+}
+new Foo:[2];

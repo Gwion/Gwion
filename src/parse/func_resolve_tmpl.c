@@ -107,9 +107,17 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
   if(is_spread_tmpl(value->d.func_ref->def->base->tmpl)) {
     Arg_List args = fdef->base->args ?: new_mp_vector(env->gwion->mp, Arg, 0);
     for(uint32_t idx = 0; idx < ra->types->len; idx++) {
+//    for(uint32_t idx = value->d.func_ref->def->base->tmpl->call->len - 1; idx < ra->types->len; idx++) {
       char c[256];
       sprintf(c, "arg%u", idx);
       TmplArg targ = *mp_vector_at(ra->types, TmplArg, idx);
+      if(targ.type != tmplarg_td) {
+        gwerr_basic("invalid const expression in variadic template", NULL, "can't use expression in spread", env->name, targ.d.exp->loc, 0);
+        Specialized *spec = mp_vector_at(value->d.func_ref->def->base->tmpl->list, Specialized, value->d.func_ref->def->base->tmpl->list->len - 1);
+        gwerr_secondary("spread starts here", env->name, spec->tag.loc);
+        env_set_error(env, true);
+        return NULL;
+      }
       Arg arg = { .var = MK_VAR(cpy_type_decl(env->gwion->mp, targ.d.td), (Var_Decl){ .tag = MK_TAG(insert_symbol(c), fdef->base->tag.loc)})};
       mp_vector_add(env->gwion->mp, &args, Arg, arg);
     }

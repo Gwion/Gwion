@@ -1871,7 +1871,7 @@ ANN static void fdef_const_generic_value(const Env env, const Type owner, const 
   v->from->owner_class = owner;
 }
 
-ANN static m_bool fdef_const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
+ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
   CHECK_OB(check_exp(env, targ->d.exp));
   // check implicits?
   const Type target = known_type(env, spec->td);
@@ -1899,7 +1899,7 @@ ANN static m_bool check_fdef_const_generic(const Env env, const Func_Def fdef) {
     // spec could be null cause of spread ops
     const Specialized *spec = mp_vector_at(fdef->base->tmpl->list, Specialized, i);
     if(!spec) break;
-    CHECK_BB(fdef_const_generic_typecheck(env, spec, targ));
+    CHECK_BB(const_generic_typecheck(env, spec, targ));
     fdef_const_generic_value(env, t, targ->d.exp->type, spec->tag);
   }
   return GW_OK;

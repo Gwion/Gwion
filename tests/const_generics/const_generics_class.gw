@@ -1,0 +1,5 @@
+#![contains] 43.2
+class Foo:[const float N] {
+   <<< N >>>;
+}
+new Foo:[43.2];

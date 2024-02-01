@@ -1389,7 +1389,7 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eDotStatic2:
         gw_out("{Y}┃{0}{-}% 4lu{0}: DotStatic2  ", j);
-        gw_out(" {-R}%-14p{0}", instr->m_val);
+        gw_out(" {-R}%-14f", instr->f);
         gw_out("\n");
         break;
       case eDotStatic3:

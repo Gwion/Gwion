@@ -1,0 +1,5 @@
+#![contains] invalid type for const generic argument
+fun void foo:[const float N]() {
+   <<< N >>>;
+}
+foo:[2]();

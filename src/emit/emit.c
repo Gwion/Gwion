@@ -2830,39 +2830,22 @@ ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
   const uint   global = GET_FLAG(f->base, global);
   const m_uint scope =
       !global ? emit->env->scope->depth : env_push_global(emit->env);
-  if(fdef->base->tmpl) { // check is call?
+  if(fdef->base->tmpl) {
     if(tmplarg_ntypes(fdef->base->tmpl->call) != fdef->base->tmpl->call->len) {
       emit_push_code(emit, "function const generic");
-uint32_t size = 0;
-// create new code here
+      uint32_t size = 0;
       for(uint32_t i = 0; i < fdef->base->tmpl->call->len; i++) {
         TmplArg *targ = mp_vector_at(fdef->base->tmpl->call, TmplArg, i);
         if(targ->type == tmplarg_td)continue;
         // spec could be null cause of spread ops
         Specialized *spec = mp_vector_at(fdef->base->tmpl->list, Specialized, i);
         if(!spec) break;
-CHECK_BB(emit_exp(emit, targ->d.exp));
-//oemit_regmove(emit, -targ->d.exp->type->size);
-//emit_regmove(emit, -SZ_INT);
-//pop_exp(emit, targ->d.exp);
-size += targ->d.exp->type->size;
+        CHECK_BB(emit_exp(emit, targ->d.exp));
+        size += targ->d.exp->type->size;
       }
-// set variables values
-// and remove code
-//emit_regmove(emit, -size);
-fdef->base->func->value_ref->type->nspc->class_data_size = size;
-fdef->base->func->value_ref->type->nspc->class_data = _mp_malloc(emit->gwion->mp, size);
-comptime_end(emit, size, fdef->base->func->value_ref->type->nspc->class_data);
-//const Instr instr = emit_add_instr(emit, ConstGenericEOC);
-//instr->m_val = size;
-//instr->m_val2 = (m_uint)fdef->base->func->value_ref->type->nspc->class_data;
-//const VM_Code code = finalyze(emit, EOC);
-//const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
-//vm_add_shred(emit->gwion->vm, shred);
-//const bool loop = emit->gwion->vm->shreduler->loop;
-//vm_run(emit->gwion->vm);
-//emit->gwion->vm->bbq->is_running = true;
-//emit->gwion->vm->shreduler->loop = loop;
+      fdef->base->func->value_ref->type->nspc->class_data_size = size;
+      fdef->base->func->value_ref->type->nspc->class_data = _mp_malloc(emit->gwion->mp, size);
+      comptime_end(emit, size, fdef->base->func->value_ref->type->nspc->class_data);
     }
   }
   emit_func_def_init(emit, func);

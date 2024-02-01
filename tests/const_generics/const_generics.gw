@@ -1,0 +1,4 @@
+fun void foo:[const float N]() {
+   <<< N >>>;
+}
+foo:[2.6]();

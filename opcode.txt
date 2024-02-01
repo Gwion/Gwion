@@ -199,7 +199,7 @@ UnionMember2~u~u
 UnionMember3~u~u
 UnionMember4~u~u
 DotStatic~p
-DotStatic2~p
+DotStatic2~f
 DotStatic3~p~u
 DotFunc~u~u
 GackType

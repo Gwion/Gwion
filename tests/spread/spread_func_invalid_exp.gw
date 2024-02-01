@@ -1,0 +1,11 @@
+#![contains]  invalid const expression in variadic template
+fun void t:[...](int i) {
+  ... T : arg {
+     <<< "${T} ${arg}" >>>;
+  }...
+}
+t(1);
+t(1, .2);
+t:[float, const int, 2](2.2, 1, 3);
+t:[int, float](2, 232.4);
+

@@ -1,0 +1,15 @@
+spread_class borked
+
+
+class C {
+  <<<var float f>>>;
+  <<<var int i>>>;
+#!<<< f >>>;
+#!<<< i >>>;
+}
+
+
+new C;
+var C c;
+
+
