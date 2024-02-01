@@ -18,7 +18,6 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     fseek(f, 0, SEEK_SET);
     const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
-    assert(targ.type == tmplarg_td);
     if(targ.type != tmplarg_td) {
       gwerr_basic("invalid const expression in variadic template", NULL, "can't use expression in spread", env->name, targ.d.exp->loc, 0);
       Specialized *spec = mp_vector_at(tmpl->list, Specialized, tmpl->list->len - 1);
