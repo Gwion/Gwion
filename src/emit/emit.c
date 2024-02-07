@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -622,7 +623,7 @@ ANN static m_bool emit_prim_range(const Emitter emit, Range **data) {
 }
 
 static inline m_uint int2pow2(const m_uint x) {
-	return x == 1 ? 2 : 1<<(64-__builtin_clzl(x));
+	return x == 1 ? 2 : 1<<((CHAR_BIT * sizeof(m_uint))-__builtin_clzl(x));
 }
 
 ANN static m_bool emit_prim_dict(const Emitter emit, Exp* *data) {
