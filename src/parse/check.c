@@ -1871,21 +1871,6 @@ ANN static void fdef_const_generic_value(const Env env, const Type owner, const 
   v->from->owner_class = owner;
 }
 
-ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
-  CHECK_OB(check_exp(env, targ->d.exp));
-  // check implicits?
-  const Type target = known_type(env, spec->td);
-  if(isa(targ->d.exp->type, target) < 0) {
-    char msg[256];
-    tcol_snprintf(msg, 255, "expected {G+}%s{0}", target->name);
-    gwerr_basic("invalid type for const generic argument", msg, NULL, env->name, spec->tag.loc, 0);
-    tcol_snprintf(msg, 255, "got {G+}%s{0}", targ->d.exp->type->name);
-    gwerr_secondary(msg, env->name, targ->d.exp->loc);
-    return GW_ERROR;
-  }
-  return GW_OK;
-}
-
 ANN static m_bool check_fdef_const_generic(const Env env, const Func_Def fdef) {
   const Tmpl *tmpl = fdef->base->tmpl;
   if(tmplarg_ntypes(tmpl->call) == tmpl->call->len) return GW_OK;

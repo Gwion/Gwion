@@ -101,6 +101,21 @@ else      if(spec->tag.sym == targ->d.td->tag.sym) {
   }
 }
 
+ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
+  CHECK_OB(check_exp(env, targ->d.exp));
+  // check implicits?
+  const Type target = known_type(env, spec->td);
+  if(isa(targ->d.exp->type, target) < 0) {
+    char msg[256];
+    tcol_snprintf(msg, 255, "expected {G+}%s{0}", target->name);
+    gwerr_basic("invalid type for const generic argument", msg, NULL, env->name, spec->tag.loc, 0);
+    tcol_snprintf(msg, 255, "got {G+}%s{0}", targ->d.exp->type->name);
+    gwerr_secondary(msg, env->name, targ->d.exp->loc);
+    return GW_ERROR;
+  }
+  return GW_OK;
+}
+
 ANN m_bool template_push_types(const Env env, const Tmpl *tmpl) {
   nspc_push_type(env->gwion->mp, env->curr);
   if (tmpl->call) check_call(env, tmpl);
