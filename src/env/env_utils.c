@@ -86,7 +86,7 @@ ANN static Type class_type(const Env env, const Type base) {
 ANN Value mk_class(const Env env, const Type base, const loc_t loc) {
   const Type   t   = class_type(env, base);
   const Symbol sym = insert_symbol(base->name);
-  const Value  v   = new_value(env, t, s_name(sym), loc);
+  const Value  v   = new_value(env, t, MK_TAG(sym, loc));
   valuefrom(env, v->from);
   SET_FLAG(v, const);
   set_vflag(v, vflag_valid);
@@ -102,7 +102,7 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   const Value  v   = nspc_lookup_value0(env->global_nspc, sym);
   if (v) return v;
   const Value value =
-      new_value(env, env->gwion->type[et_string], s_name(sym), loc);
+      new_value(env, env->gwion->type[et_string], MK_TAG(sym, loc));
   _nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }

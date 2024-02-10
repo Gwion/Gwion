@@ -50,7 +50,7 @@ ANN static Exp* partial_exp(const Env env, Arg_List args, Exp* e, const uint i) 
     sprintf(c, "@%u", i);
     Exp* exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->loc);
     exp->type = known_type(env, mp_vector_at(args, Arg, i)->var.td);
-    exp->d.prim.value = new_value(env, exp->type, c, e->loc);
+    exp->d.prim.value = new_value(env, exp->type, MK_TAG(insert_symbol(c), e->loc));
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
   }

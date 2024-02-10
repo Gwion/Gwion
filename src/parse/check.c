@@ -1305,8 +1305,9 @@ ANN m_bool check_type_def(const Env env, const Type_Def tdef) {
     }
     // we handle the return after, so that we don't get *cant' use implicit
     // casting while defining it*
-    Exp* ret_id = new_prim_id(env->gwion->mp, insert_symbol("self"), when->loc);
-    ret_id->d.prim.value = new_value(env, tdef->type, "self", tdef->tag.loc);
+    const Symbol sym = insert_symbol("self");
+    Exp* ret_id = new_prim_id(env->gwion->mp, sym, when->loc);
+    ret_id->d.prim.value = new_value(env, tdef->type, MK_TAG(sym, tdef->tag.loc));
     Stmt ret = MK_STMT_RETURN(when->loc, ret_id);
     mp_vector_set(fdef->d.code, Stmt, 1, ret);
     ret_id->type = tdef->type;
@@ -1389,7 +1390,7 @@ ANN static inline m_bool for_empty(const Env env, const Stmt_For stmt) {
 }
 
 ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
-  idx->var.value = new_value(env, base, s_name(idx->var.tag.sym), idx->var.tag.loc);
+  idx->var.value = new_value(env, base, idx->var.tag);
   valid_value(env, idx->var.tag.sym, idx->var.value);
   SET_FLAG(idx->var.value, const);
 }
@@ -1425,7 +1426,7 @@ ANN static m_bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   if (stmt->idx)
     CHECK_BB(check_each_idx(env, stmt->exp, stmt->idx));
   DECL_OB(const Type, ret, = check_each_val(env, stmt->exp));
-  stmt->var.value = new_value(env, ret, s_name(stmt->tag.sym), stmt->tag.loc);
+  stmt->var.value = new_value(env, ret, stmt->tag);
   valid_value(env, stmt->tag.sym, stmt->var.value);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
@@ -1535,7 +1536,7 @@ ANN static m_bool check_stmt_exp(const Env env, const Stmt_Exp stmt) {
 ANN static Value match_value(const Env env, const Type base,
                              const Exp_Primary *prim) {
   const Symbol sym = prim->d.var;
-  const Value  v   = new_value(env, base, s_name(sym), prim_pos(prim));
+  const Value  v   = new_value(env, base, MK_TAG(sym, prim_pos(prim)));
   // valuefrom?
   valid_value(env, sym, v);
   return v;
@@ -1863,7 +1864,7 @@ ANN static m_bool check_fdef_effects(const Env env, const Func_Def fdef) {
 }
 
 ANN static void fdef_const_generic_value(const Env env, const Type owner, const Type t, const Tag tag) {
-  const Value v = new_value(env, t, s_name(tag.sym), tag.loc);
+  const Value v = new_value(env, t, tag);
   SET_FLAG(v, static|ae_flag_const);
   valid_value(env, tag.sym, v);
   nspc_add_value_front(owner->nspc, tag.sym, v);
@@ -2205,7 +2206,7 @@ ANN static m_bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc n
       if(likely(targ.type == tmplarg_td)) continue;
       CHECK_OB(check_exp(env, targ.d.exp));
       const Specialized spec = *mp_vector_at(tmpl->list, Specialized, i);
-      const Value v = new_value(env, targ.d.exp->type, s_name(spec.tag.sym), targ.d.exp->loc);
+      const Value v = new_value(env, targ.d.exp->type, MK_TAG(spec.tag.sym, targ.d.exp->loc));
       valuefrom(env, v->from);
       set_vflag(v, vflag_valid);
       nspc_add_value(nspc, spec.tag.sym, v);

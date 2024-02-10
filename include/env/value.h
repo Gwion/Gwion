@@ -44,7 +44,7 @@ struct Value_ {
 REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 
-ANEW ANN Value new_value(const Env, const Type type, const m_str name, const loc_t loc);
+ANEW ANN Value new_value(const Env, const Type type, const Tag tag);
 ANN void       valuefrom(const Env, ValueFrom *);
 
 ANN static inline void defined_here(const Value v) {

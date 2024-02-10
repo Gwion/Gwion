@@ -15,14 +15,14 @@ ANN void free_value(Value a, Gwion gwion) {
   mp_free(gwion->mp, Value, a);
 }
 
-ANN Value new_value(const Env env, const Type type, const m_str name, const loc_t loc) {
+ANN Value new_value(const Env env, const Type type, const Tag tag) {
   const Value a     = mp_calloc(env->gwion->mp, Value);
   a->from           = mp_calloc(env->gwion->mp, ValueFrom);
   a->type           = type;
-  a->name           = name;
+  a->name           = s_name(tag.sym);
   a->ref            = 1;
   a->from->filename = env->name;
-  a->from->loc      = loc;
+  a->from->loc      = tag.loc;
   return a;
 }
 

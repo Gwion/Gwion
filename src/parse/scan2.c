@@ -334,7 +334,8 @@ ANN static void func_no_overload(const Env env, const Func f, const Value v) {
 ANN2(1, 2)
 static Value func_value(const Env env, const Func f, const Value overload) {
   const Type  t = func_type(env, f);
-  const Value v = t->info->value = new_value(env, t, t->name, f->def->base->tag.loc);
+  const Symbol sym = insert_symbol(t->name);
+  const Value v = t->info->value = new_value(env, t, MK_TAG(sym, f->def->base->tag.loc));
   valuefrom(env, v->from);
   CHECK_OO(scan2_func_assign(env, f->def, f, v));
   if (!overload)

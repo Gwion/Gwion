@@ -120,7 +120,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
     if (!decl->args && GET_FLAG(base, abstract)) CHECK_BB(abstract_array(env, decl->var.td->array));
   }
   const Value v = vd->value =
-      vd->value ?: new_value(env, t, s_name(vd->tag.sym), vd->tag.loc);
+      vd->value ?: new_value(env, t, vd->tag);
   if (GET_FLAG(t, abstract) && !decl->args && !GET_FLAG(decl->var.td, late)) SET_FLAG(v, late);
   v->type = t;
   if (decl_ref) SET_FLAG(v, late);
@@ -399,7 +399,7 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
   m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
     EnumValue ev = *mp_vector_at(list, EnumValue, i);
-    const Value v = new_value(env, t, s_name(ev.tag.sym), ev.tag.loc);
+    const Value v = new_value(env, t, ev.tag);
     v->d.num = (ev.set ? ev.gwint.num : last);
     last = v->d.num + 1;
     valuefrom(env, v->from);
@@ -415,8 +415,8 @@ ANN m_bool scan1_enum_def(const Env env, const Enum_Def edef) {
 
 ANN static Value arg_value(const Env env, Arg *const arg) {
   const Var_Decl *vd = &arg->var.vd;
-  const Value    v   = new_value(env, arg->type,
-                            vd->tag.sym ? s_name(vd->tag.sym) : (m_str) __func__, arg->var.vd.tag.loc);
+  const Symbol sym = vd->tag.sym ?: insert_symbol((m_str)__func__);
+  const Value    v   = new_value(env, arg->type, MK_TAG(sym, arg->var.vd.tag.loc));
   if (arg->var.td)
     v->flag = arg->var.td->flag;
   return v;
@@ -529,8 +529,9 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
   nspc_allocdata(env->gwion->mp, udef->type->nspc);
   Variable_List  l  = udef->l;
   m_uint      sz = 0;
-  const Value v = new_value(env, env->gwion->type[et_int], "@index", udef->tag.loc);
-  nspc_add_value_front(env->curr, insert_symbol("@index"), v);
+  const Symbol sym = insert_symbol("@index");
+  const Value v = new_value(env, env->gwion->type[et_int], MK_TAG(sym, udef->tag.loc));
+  nspc_add_value_front(env->curr, sym, v);
   valuefrom(env, v->from);
   for(uint32_t i = 0; i < l->len; i++) {
     Variable *um = mp_vector_at(l, Variable, i);
@@ -539,7 +540,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
       ERR_B(um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym))
     if(tflag(t, tflag_ref))
       ERR_B(um->vd.tag.loc, _("can't declare ref type in union"));
-    const Value v = new_value(env, t, s_name(um->vd.tag.sym), um->vd.tag.loc);
+    const Value v = new_value(env, t, um->vd.tag);
     tuple_contains(env, v);
     valuefrom(env, v->from);
     nspc_add_value_front(env->curr, um->vd.tag.sym, v);

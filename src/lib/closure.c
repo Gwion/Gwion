@@ -291,7 +291,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
       const Value v = nspc_lookup_value1(env->curr, cap->var.tag.sym);
       if(!v) ERR_B(cap->var.tag.loc, _("unknown value in capture"));
       DECL_OB(const Type, t, = upvalue_type(env, cap));
-      cap->temp = new_value(env, t, s_name(cap->var.tag.sym), cap->var.tag.loc);
+      cap->temp = new_value(env, t, cap->var.tag);
       cap->var.value = v;
     }
   }
