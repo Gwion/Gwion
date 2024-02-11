@@ -1,7 +1,7 @@
 #ifndef __TEMPLATE
 #define __TEMPLATE
-ANN m_bool template_push_types(const Env, const Tmpl *);
-ANN m_bool template_push(const Env env, const Type t);
+ANN bool template_push_types(const Env, const Tmpl *);
+ANN bool template_push(const Env env, const Type t);
 ANN Tmpl *mk_tmpl(const Env, const Tmpl *, const TmplArg_List);
 /*
 //! returns the Tmpl of a class or enum def
@@ -27,5 +27,5 @@ ANN static inline Tmpl* get_tmpl(const Type t) {
     return (a);                                                                \
   }
 
-ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ);
+ANN bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ);
 #endif

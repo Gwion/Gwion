@@ -6,7 +6,7 @@ ANN static inline bool is_spread_tmpl(const Tmpl *tmpl) {
   return !strcmp(s_name(spec->tag.sym), "...");
 }
 
-ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl);
+ANN bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl);
 ANN Stmt_List spread_func(const Env env, const Stmt_List body);
 
 #endif

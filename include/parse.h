@@ -8,7 +8,7 @@
 #define ERR_B(a, b, ...)                                                       \
   {                                                                            \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return GW_ERROR;                                                           \
+    return false;                                                              \
   }
 
 #undef ERR_O
@@ -21,7 +21,7 @@
 #define RET_NSPC(exp)                                                          \
   ++env->scope->depth;                                                         \
   nspc_push_value(env->gwion->mp, env->curr);                                  \
-  const m_bool ret = exp;                                                      \
+  const bool ret = exp;                                                        \
   nspc_pop_value(env->gwion->mp, env->curr);                                   \
   --env->scope->depth;                                                         \
   return ret;
@@ -42,50 +42,61 @@
 
 #define HANDLE_EXP_FUNC(prefix, type, Arg)                                     \
   DECL_EXP_FUNC(prefix, type, Arg)                                             \
-  ANN type prefix##_exp(const Arg arg, Exp* exp) {                              \
-    do CHECK_BB(prefix##_exp_func[exp->exp_type](arg, &exp->d));               \
-    while ((exp = exp->next));                                                 \
-    return GW_OK;                                                              \
+  ANN type prefix##_exp(const Arg arg, Exp* exp) {                             \
+    bool ok = true;                                                            \
+    do {                                                                       \
+      if(exp->poison) continue;                                                \
+      if(!prefix##_exp_func[exp->exp_type](arg, &exp->d)) {                    \
+        prefix##_poison(arg, exp);                                             \
+        ok = false;                                                            \
+      }                                                                        \
+    } while ((exp = exp->next));                                               \
+    return ok;                                                                 \
   }
-ANN m_bool scan1_exp(const Env, Exp*);
-ANN m_bool scan2_exp(const Env, Exp*);
+
+ANN static inline void scanx_poison(const Env env, Exp *e) {
+  env->scope->poison = true;
+  e->poison = true;
+}
 
 #define describe_stmt_func(prefix, name, type, prolog, exp)                    \
-  ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) {     \
+  ANN static bool prefix##_stmt_##name(const Env env, const type stmt) {       \
     RET_NSPC(exp)                                                              \
   }
 
-ANN m_bool check_stmt(const Env env, Stmt* stmt);
-ANN m_bool check_stmt_list(const Env env, const Stmt_List);
+ANN bool check_stmt(const Env env, Stmt* stmt); // neeeded???
+ANN bool check_stmt_list(const Env env, const Stmt_List);
 
-typedef m_bool (*_exp_func)(const void *, const void *);
-ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,
+typedef bool (*_exp_func)(const void *, const void *);
+ANN bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,
                       void *data);
-static inline ANN m_bool env_body(const Env env, const Class_Def cdef,
+static inline ANN bool env_body(const Env env, const Class_Def cdef,
                                   const _exp_func f) {
   return scanx_body(env, cdef, f, env);
 }
 #define env_body(a, b, c) env_body(a, b, (_exp_func)c)
 
-ANN m_bool scanx_cdef(const Env, void *, const Type, const _exp_func f_cdef,
+ANN bool scanx_cdef(const Env, void *, const Type, const _exp_func f_cdef,
                       const _exp_func f_union);
 
 #define xxx_cdef(prefix)                                                       \
-  static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
+  static inline bool prefix##_cdef(const Env env, const Type t) {              \
     return scanx_cdef(env, env, t, (_exp_func)prefix##_class_def,              \
                       (_exp_func)prefix##_union_def);                          \
   }
 
-xxx_cdef(scan0) xxx_cdef(scan1) xxx_cdef(scan2) xxx_cdef(check)
-    xxx_cdef(traverse)
+xxx_cdef(scan0);
+xxx_cdef(scan1);
+xxx_cdef(scan2);
+xxx_cdef(check);
+xxx_cdef(traverse);
 
-        ANN m_bool
-    scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
+ANN bool scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
 
-ANN m_bool check_subscripts(const Env, const Array_Sub, const m_bool is_decl);
-ANN m_bool check_implicit(const Env env, Exp* e, const Type t);
-ANN m_bool ensure_traverse(const Env env, const Type t);
-ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef);
+ANN bool check_subscripts(const Env, const Array_Sub, const bool is_decl);
+ANN bool check_implicit(const Env env, Exp* e, const Type t);
+ANN bool ensure_traverse(const Env env, const Type t);
+ANN bool check_traverse_fdef(const Env env, const Func_Def fdef);
 
 ANN static inline void env_weight(const Env env, const uint16_t weight) {
   if (env->func)
@@ -123,7 +134,7 @@ ANN static inline bool not_upvalue(const Env env, const Value v) {
       nspc_lookup_value1(env->curr, insert_symbol(v->name));
 }
 
-ANN m_bool abstract_array(const Env env, const Array_Sub array);
+ANN bool abstract_array(const Env env, const Array_Sub array);
 
 ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
   if (e->exp_type != ae_exp_dot) return true;
@@ -134,6 +145,29 @@ ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
          is_class(gwion, member->base->type) ||
          member->base->exp_type == ae_exp_cast;
 }
+
+
+ANN bool template_push_types(const Env, const Tmpl *);
+static inline bool scanx_actual_tmpl(const Tmpl *tmpl) {
+  return tmpl && tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list;
+}
+
+ANN static inline bool scanx_tmpl_push(const Env env, const Tmpl *tmpl) {
+  return scanx_actual_tmpl(tmpl) ? template_push_types(env, tmpl): false;
+}
+
+ANN static inline m_int scanx_push(const Env env, const Class_Def c) {
+  const m_int scope = env_push_type(env, c->base.type);
+  if(scope < 0) return -1;
+  return (!c->base.tmpl || scanx_tmpl_push(env, c->base.tmpl)) ? scope : -1;
+}
+
+ANN static inline void scanx_pop(const Env e, const Class_Def c, const m_uint s) {
+  if (scanx_actual_tmpl(c->base.tmpl))
+    nspc_pop_type(e->gwion->mp, e->curr);
+  env_pop(e, s);
+}
+
 
 #define is_new(a) !strcmp(s_name((a)->base->tag.sym), "new")
 #endif

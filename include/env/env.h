@@ -26,6 +26,7 @@ struct Env_Scope_ {
   bool           in_try;
   bool           in_loop;
   bool           shadowing;
+  bool           poison;
 };
 
 typedef struct Env_ {
@@ -46,23 +47,23 @@ ANN2(1, 3) m_uint env_push(const Env, const Type, const Nspc);
 ANN static inline m_uint env_push_global(const Env env) {
   return env_push(env, NULL, env->global_nspc);
 }
-ANN void   env_pop(const Env, const m_uint);
-ANN Type   scan_type(const Env, const Type, Type_Decl *);
-ANN Value  mk_class(const Env env, const Type base, const loc_t);
-ANN m_bool compat_func(const __restrict__ Func_Def,
+ANN void  env_pop(const Env, const m_uint);
+ANN Type  scan_type(const Env, const Type, Type_Decl *);
+ANN Value mk_class(const Env env, const Type base, const loc_t);
+ANN bool  compat_func(const __restrict__ Func_Def,
                        const __restrict__ Func_Def);
-ANN Type   known_type(const Env env, Type_Decl *);
-ANN Type   prim_ref(const Env env, const Type t, const Type_Decl *td);
-ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t);
-ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t);
-ANN void   env_add_type(const Env, const Type, const loc_t);
-ANN Type   find_type(const Env, Type_Decl *);
-ANN m_bool traverse_func_template(const Env, const Func_Def);
-ANN void   env_err(const Env, const loc_t, const m_str fmt, ...);
-ANN void   env_warn(const Env, const loc_t, const m_str fmt, ...);
-ANN void   env_error_footer(const Env env);
-ANN Value  global_string(const Env env, const m_str str, const loc_t);
-ANN void   release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion);
+ANN Type  known_type(const Env env, Type_Decl *);
+ANN Type  prim_ref(const Env env, const Type t, const Type_Decl *td);
+ANN bool  env_access(const Env env, const ae_flag flag, const loc_t);
+ANN bool  env_storage(const Env env, ae_flag flag, const loc_t);
+ANN void  env_add_type(const Env, const Type, const loc_t);
+ANN Type  find_type(const Env, Type_Decl *);
+ANN bool  traverse_func_template(const Env, const Func_Def);
+ANN void  env_err(const Env, const loc_t, const m_str fmt, ...);
+ANN void  env_warn(const Env, const loc_t, const m_str fmt, ...);
+ANN void  env_error_footer(const Env env);
+ANN Value global_string(const Env env, const m_str str, const loc_t);
+ANN void  release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion);
 
 struct ScopeEffect {
   Symbol sym;
@@ -72,5 +73,5 @@ struct ScopeEffect {
 ANN void env_add_effect(const Env a, const Symbol effect, const loc_t);
 ANN void call_add_effect(const Env env, const Func func, const loc_t);
 
-ANN m_bool already_defined(const Env env, const Symbol s, const loc_t);
+ANN bool already_defined(const Env env, const Symbol s, const loc_t);
 #endif
