@@ -79,7 +79,7 @@ ANN m_bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   const m_bool ret = scan2_class_def(env, fptr->cdef);
   const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
-  else CHECK_BB(tmpl_fptr(env, fptr, fdef));
+  else CHECK_b(tmpl_fptr(env, fptr, fdef));
   if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
   return ret;
 }

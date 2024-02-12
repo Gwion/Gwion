@@ -701,14 +701,14 @@ static CTOR(fptr_ctor) {
   *(VM_Code*)o->data = ((Func)vector_at(&o->type_ref->nspc->vtable, 1))->code;
 }
 
-ANN m_bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
+ANN bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
   fptr->cdef->base.type->nspc->offset += SZ_INT * 3;
   env_push_type(env, fptr->cdef->base.type);
-  CHECK_BB(traverse_func_def(env, fdef));
+  CHECK_B(traverse_func_def(env, fdef));
   builtin_func(env->gwion, fdef->base->func, fptr_ctor);
   set_tflag(fdef->base->func->value_ref->type, tflag_ftmpl);
   env_pop(env, 0);
-  return GW_OK;
+  return true;
 }
 
 static DTOR(fptr_dtor) {
