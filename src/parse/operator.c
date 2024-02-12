@@ -124,29 +124,29 @@ op_vector(const struct OpChecker *ock) {
   return create;
 }
 
-ANN static m_bool _op_exist(const struct OpChecker *ock, const Nspc n) {
+ANN static bool _op_exist(const struct OpChecker *ock, const Nspc n) {
   const m_int idx = map_index(&n->operators->map, (vtype)ock->opi->op);
   if (idx == -1 || !operator_find2((Vector)&VVAL(ock->map, idx), ock->opi->lhs,
                                    ock->opi->rhs))
-    return GW_OK;
+    return true;
   env_err(ock->env, ock->opi->loc,
           _("operator '%s', for type '%s' and '%s' already imported"),
           s_name(ock->opi->op), type_name(ock->opi->lhs),
           type_name(ock->opi->rhs));
-  return GW_ERROR;
+  return false;
 }
 
-ANN static m_bool op_exist(const struct OpChecker *ock, const Nspc n) {
-  return n->operators->map.ptr ? _op_exist(ock, n) : GW_OK;
+ANN static bool op_exist(const struct OpChecker *ock, const Nspc n) {
+  return n->operators->map.ptr ? _op_exist(ock, n) : true;
 }
 
-ANN m_bool add_op(const Gwion gwion, const struct Op_Import *opi) {
+ANN bool add_op(const Gwion gwion, const struct Op_Import *opi) {
   Nspc n = gwion->env->curr;
   do {
     if (n->operators) {
       struct OpChecker ock = {
           .env = gwion->env, .map = &n->operators->map, .opi = opi};
-      CHECK_BB(op_exist(&ock, n));
+      CHECK_B(op_exist(&ock, n));
     }
   } while ((n = n->parent));
   if (!gwion->env->curr->operators)
@@ -158,7 +158,7 @@ ANN m_bool add_op(const Gwion gwion, const struct Op_Import *opi) {
   const Vector      v  = op_vector(&ock);
   const M_Operator *mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
-  return GW_OK;
+  return true;
 }
 
 ANN static inline Type op_parent(const Env env, const Type t) {

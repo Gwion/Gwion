@@ -42,9 +42,9 @@ static int import_op(const Gwi gwi, struct OperCK *const op, const f_instr f) {
                                 .data = (uintptr_t)f,
                                 .loc  = gwi->loc,
                                 .op   = op->sym};
-  const m_bool           b   = add_op(gwi->gwion, &opi);
+  const bool           b   = add_op(gwi->gwion, &opi);
   op->effect.ptr             = NULL;
-  return b;
+  return b ? GW_OK : GW_ERROR;
 }
 
 ANN2(1)

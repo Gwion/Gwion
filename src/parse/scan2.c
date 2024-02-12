@@ -407,7 +407,7 @@ ANN static m_bool scan2_func_def_op(const Env env, const Func_Def f) {
                           .data = (uintptr_t)f->base->func,
                           .func = &opfunc};
   func_operator(f, &opi);
-  CHECK_BB(add_op(env->gwion, &opi));
+  CHECK_B(add_op(env->gwion, &opi));
   operator_set_func(&opi);
   return GW_OK;
 }

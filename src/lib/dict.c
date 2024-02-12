@@ -604,7 +604,7 @@ static OP_CHECK(opck_dict_scan) {
       .func = &opfunc,
       .data = (uintptr_t)f,
       .op   = insert_symbol("@func_check")};
-  CHECK_BN(add_op(env->gwion, &opi));
+  CHECK_ON(add_op(env->gwion, &opi));
 
   }
   return ret > 0 ? t : NULL;

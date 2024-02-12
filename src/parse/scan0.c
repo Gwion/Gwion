@@ -176,7 +176,7 @@ ANN static bool typedef_complex(const Env env, const Type_Def tdef,
 ANN bool scan0_type_def(const Env env, const Type_Def tdef) {
   CHECK_B(scan0_defined(env, tdef->tag));
   CHECK_B(env_access(env, tdef->ext->flag, tdef->ext->tag.loc));
-  DECL_OB(const Type, base, = known_type(env, tdef->ext));
+  DECL_B(const Type, base, = known_type(env, tdef->ext));
   bool global = false;
   CHECK_B(scan0_global(env, tdef->ext->flag, tdef->ext->tag.loc, &global));
   if (!tdef->ext->types && (!tdef->ext->array || !tdef->ext->array->exp))
@@ -311,7 +311,7 @@ ANN static inline void cdef_flag(const Class_Def cdef, const Type t) {
 }
 
 ANN static Type get_parent_base(const Env env, Type_Decl *td) {
-  DECL_OO(const Type, t, = known_type(env, td));
+  DECL_O(const Type, t, = known_type(env, td));
   Type owner = env->class_def;
   while (owner) {
     if (t == owner)
@@ -361,7 +361,7 @@ ANN static bool find_traits(const Env env, ID_List traits, const loc_t loc) {
 
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_O(scan0_defined(env, cdef->base.tag));
-  DECL_OO(const Type, parent, = cdef_parent(env, cdef));
+  DECL_O(const Type, parent, = cdef_parent(env, cdef));
   if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->tag.loc : cdef->base.tag.loc, 0);
     declared_here(parent->info->value);
@@ -461,7 +461,7 @@ ANN bool scan0_func_def(const Env env, const Func_Def fdef) {
 }
 
 ANN static bool scan0_extend_def(const Env env, const Extend_Def xdef) {
-  DECL_OB(const Type, t, = known_type(env, xdef->td));
+  DECL_B(const Type, t, = known_type(env, xdef->td));
   bool ok = true;
   if(type_global(env, t)) {
     for(uint32_t i = 0; i < xdef->traits->len; i++) {
