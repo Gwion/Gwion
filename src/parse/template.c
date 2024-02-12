@@ -30,7 +30,7 @@ ANN static bool _push_types(const Env env, const Nspc nspc,
     Specialized *spec = mp_vector_at(sl, Specialized, i);
     nspc_add_type(nspc, spec->tag.sym, t);
   };
-  if(len != sl->len) return GW_OK;
+  if(len != sl->len) return true;
   return tl->len == sl->len;
 }
 
@@ -101,8 +101,8 @@ else      if(spec->tag.sym == targ->d.td->tag.sym) {
   }
 }
 
-ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
-  CHECK_OB(check_exp(env, targ->d.exp));
+ANN bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ) {
+  CHECK_B(check_exp(env, targ->d.exp));
   // check implicits?
   const Type target = known_type(env, spec->td);
   if(isa(targ->d.exp->type, target) < 0) {
@@ -111,9 +111,9 @@ ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const
     gwerr_basic("invalid type for const generic argument", msg, NULL, env->name, spec->tag.loc, 0);
     tcol_snprintf(msg, 255, "got {G+}%s{0}", targ->d.exp->type->name);
     gwerr_secondary(msg, env->name, targ->d.exp->loc);
-    return GW_ERROR;
+    return false;
   }
-  return GW_OK;
+  return true;
 }
 
 ANN bool template_push_types(const Env env, const Tmpl *tmpl) {
@@ -181,8 +181,15 @@ static ANN bool is_single_variadic(const MP_Vector *v) {
   return !strcmp(s_name(spec->tag.sym), "...");
 }
 
+#undef ERR_B
+#define ERR_B(a, b, ...)                                                       \
+  {                                                                            \
+    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
+    return false;                                                              \
+  }
 
-ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
+
+ANN2(1,2) bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
      ERR_B(loc, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
@@ -215,7 +222,7 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
           spec->td ? "constant" : "type");
       }
 
-      DECL_OB(const Type, t, = known_type(env, targ->d.td));
+      DECL_B(const Type, t, = known_type(env, targ->d.td));
       if(spec->traits) {
         Symbol missing = miss_traits(t, spec);
         if (missing) {
@@ -228,10 +235,10 @@ ANN2(1,2) m_bool check_tmpl(const Env env, const TmplArg_List tl, const Speciali
         ERR_B(loc, "template const argument mismatch. expected %s",
             spec->td ? "constant" : "type");
       }
-      CHECK_BB(const_generic_typecheck(env, spec, targ));
+      CHECK_B(const_generic_typecheck(env, spec, targ));
     }
   }
-  return GW_OK;
+  return true;
 }
 
 ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
@@ -259,7 +266,7 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
         ? tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(tmpl);
     if(!single_variadic)
-      CHECK_BO(check_tmpl(env, tl, sl, td->tag.loc, is_spread));
+      CHECK_O(check_tmpl(env, tl, sl, td->tag.loc, is_spread));
     struct Op_Import opi = {.op   = insert_symbol("class"),
                             .lhs  = t,
                             .data = (uintptr_t)&ts,

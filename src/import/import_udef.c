@@ -48,7 +48,7 @@ ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type,
 
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   CHECK_O(scan0_union_def(gwi->gwion->env, udef));
-  CHECK_BO(traverse_union_def(gwi->gwion->env, udef));
+  CHECK_O(traverse_union_def(gwi->gwion->env, udef));
   //  if(!udef->tmpl)
   //    emit_union_offset(udef->l, udef->o);
   //  if(gwi->gwion->env->class_def && !GET_FLAG(udef, static))

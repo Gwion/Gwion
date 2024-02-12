@@ -77,7 +77,7 @@ ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
     fdef->d.dl_func_ptr = ck->addr;
     return GW_OK;
   }
-  if (traverse_func_def(gwi->gwion->env, fdef) < 0)
+  if (!traverse_func_def(gwi->gwion->env, fdef))
     return error_fdef(gwi, fdef);
   builtin_func(gwi->gwion, fdef->base->func, ck->addr);
   return GW_OK;
@@ -136,10 +136,10 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
     ck_end(gwi);
     return (Type)GW_OK;
   }
-  const m_bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
+  const bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
 //  if (fptr->base->func) // is it needed ?
 //    set_vflag(fptr->base->func->value_ref, vflag_builtin);
-  const Type t = ret > 0 ? fptr->cdef->base.type : NULL;
+  const Type t = ret ? fptr->cdef->base.type : NULL;
   free_fptr_def(gwi->gwion->mp, fptr);
   ck_end(gwi);
   return t;

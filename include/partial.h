@@ -9,7 +9,7 @@ ANN static inline bool func_match_inner(const Env env, Exp* e,
                                         const bool specific) {
   if (specific ? e->type == t : isa(e->type, t) > 0) // match
     return true;
-  return !implicit ? false : check_implicit(env, e, t) > 0;
+  return !implicit ? false : check_implicit(env, e, t);
 }
 
 ANN static inline bool is_typed_hole(const Env env, Exp* exp) {

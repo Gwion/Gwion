@@ -141,7 +141,7 @@ static OP_CHECK(opck_union_new) {
         if (val->next)
           ERR_N(call->func->loc, "too many arguments for union constructor");
         DECL_ON(const Type, t, = check_exp(env, val));
-        if (check_implicit(env, val, v->type) < 0) { // add implicit
+        if (!check_implicit(env, val, v->type)) {
           ERR_N(val->loc, "Invalid type '%s' for '%s', should be '%s'", t->name,
                 v->name, v->type->name);
         }
@@ -192,10 +192,10 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_class_end(gwi))
 
   const struct Op_Func   opfunc0 = {.ck = opck_union_is};
-  GWI_BB(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
+  CHECK_b(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
 
   const struct Op_Func   opfunc1 = {.ck = opck_union_new};
-  GWI_BB(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
+  CHECK_b(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))

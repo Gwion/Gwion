@@ -317,7 +317,7 @@ ANN static m_bool td_info_run(const Env env, struct td_info *info) {
         td_fullname(env, &info->fmt->ls->text, t);
       else {
         Exp* exp = td2exp(gwion->mp, targ->d.td);
-        if(traverse_exp(env, exp) > 0) {
+        if(traverse_exp(env, exp)) {
           if(is_class(gwion, exp->type)) {
             td_fullname(env, &info->fmt->ls->text, exp->type);
             free_exp(gwion->mp, exp);

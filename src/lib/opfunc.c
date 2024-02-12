@@ -126,14 +126,14 @@ OP_CHECK(opck_new) {
     if(GET_FLAG(base, abstract))
       CHECK_BN(check_array_instance(env, unary->ctor.td, unary->ctor.exp));
   }
-  CHECK_BN(ensure_traverse(env, t));
+  CHECK_ON(ensure_traverse(env, t));
   if (type_ref(t))
     ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on ref type '%s'\n"), t->name);
   if (tflag(t, tflag_infer))
     ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on '%s'\n"),
           t->name);
   if (array) {
-    CHECK_BN(check_subscripts(env, array, 1));
+    CHECK_ON(check_subscripts(env, array, 1));
   }
   if(unary->ctor.exp) {
     Exp* self   = exp_self(unary);
@@ -145,7 +145,7 @@ OP_CHECK(opck_new) {
     self->d.exp_call.args = args;
     self->d.exp_call.tmpl = NULL;
     self->exp_type = ae_exp_call;
-    CHECK_BN(traverse_exp(env, self));
+    CHECK_ON(traverse_exp(env, self));
     return self->type;
   }
   if (GET_FLAG(t, abstract) &&

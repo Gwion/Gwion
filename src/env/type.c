@@ -11,7 +11,7 @@
 #include "operator.h"
 #include "import.h"
 
-ANN static inline m_bool freeable(const Type a) {
+ANN static inline bool freeable(const Type a) {
   return tflag(a, tflag_tmpl) || GET_FLAG(a, global);
 }
 

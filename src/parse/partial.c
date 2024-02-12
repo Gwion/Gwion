@@ -221,7 +221,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   Exp* exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;
-  const m_bool ret = traverse_func_def(env, exp->d.exp_lambda.def);
+  const bool ret = traverse_func_def(env, exp->d.exp_lambda.def);
   nspc_pop_value(env->gwion->mp, env->curr);
-  return ret > 0 ? exp->d.exp_lambda.def->base->func->value_ref->type : NULL;
+  return ret ? exp->d.exp_lambda.def->base->func->value_ref->type : NULL;
 }

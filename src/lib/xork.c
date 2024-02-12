@@ -67,11 +67,11 @@ static OP_CHECK(opck_spork) {
     struct Func_ func = { .name = "in spork", .def = &fdef, .value_ref = &value};
     env->func = &func;
 // scope depth?
-    const m_bool ret = check_stmt_list(env, unary->code);
+    const bool ret = check_stmt_list(env, unary->code);
     env->func = f;
     free_scope(env->gwion->mp, env->curr->info->value);
     env->curr->info->value = upvalues.values;
-    CHECK_BN(ret);
+    CHECK_ON(ret);
     return env->gwion
         ->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   }

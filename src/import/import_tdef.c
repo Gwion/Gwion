@@ -28,18 +28,18 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   if (gwi->ck->tmpl) tdef->tmpl = gwi_tmpl(gwi);
   gwi->ck->td      = NULL;
   gwi->ck->tmpl    = NULL;
-  const m_bool ret = traverse_type_def(gwi->gwion->env, tdef);
+  const bool ret = traverse_type_def(gwi->gwion->env, tdef);
   if (gwi->gwion->data->cdoc) {
     gwfmt_indent(gwi->gwfmt);
     gwfmt_type_def(gwi->gwfmt, tdef);
   }
   const Type t = tdef->type;
-  if (ret > 0)
+  if (ret)
     set_tflag(t, tflag_scan0 | tflag_scan1 | tflag_scan2 | tflag_check |
                      tflag_emit);
   free_type_def(gwi->gwion->mp, tdef);
   ck_end(gwi);
-  return ret > 0 ? t : NULL;
+  return ret ? t : NULL;
 }
 
 ANN void ck_clean_tdef(MemPool mp, ImportCK *ck) {

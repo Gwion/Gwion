@@ -636,7 +636,7 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp* *data) {
   e->next = NULL;
   Exp func = { .exp_type = ae_exp_primary, .d = { .prim = { .prim_type = ae_prim_id, .d = { .var = insert_symbol("hash") }} }};
   Exp call = { .exp_type = ae_exp_call, .d = { .exp_call = { .func = &func, .args = e}}};
-  CHECK_BB(traverse_exp(emit->env, &call));
+  CHECK_b(traverse_exp(emit->env, &call));
   e->next = next;
   m_uint count = 0;
   do {
@@ -1420,7 +1420,7 @@ ANN static m_bool emit_exp_post(const Emitter emit, const Exp_Postfix *post) {
 
 ANN static inline m_bool traverse_emit_func_def(const Emitter  emit,
                                                 const Func_Def fdef) {
-  if (!fdef->base->ret_type) CHECK_BB(traverse_func_def(emit->env, fdef));
+  if (!fdef->base->ret_type) CHECK_b(traverse_func_def(emit->env, fdef));
   return emit_func_def(emit, fdef);
 }
 
@@ -1435,11 +1435,11 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Valu
                       .flag  = tflag_emit};
   CHECK_BB(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
-  const m_bool ret = traverse_emit_func_def(emit, fdef);
+  const bool ret = traverse_emit_func_def(emit, fdef);
   emit_pop(emit, scope);
   envset_pop(&es, v->from->owner_class);
   emit->env->scope->shadowing = shadowing;
-  return ret;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 static INSTR(fptr_call) {

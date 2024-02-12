@@ -17,7 +17,7 @@ static OP_CHECK(opck_sift) {
   Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, Stmt, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
   Exp* next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
-  CHECK_BN(traverse_exp(env, next)); // how do we free it?
+  CHECK_ON(traverse_exp(env, next)); // how do we free it?
   fst->d.stmt_exp.val = next;
   Exp* exp = exp_self(bin);
   exp->exp_type = lhs->exp_type;
@@ -41,13 +41,13 @@ static OP_CHECK(opck_ctrl) {
   Exp* call = new_exp_call(mp, dot, NULL, func->loc);
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;
-  CHECK_BN(traverse_exp(env, func));
+  CHECK_ON(traverse_exp(env, func));
   Stmt one = MK_STMT_EXP(func->loc, func);
 
   Exp* samp = new_prim_id(mp, insert_symbol(env->gwion->st, "samp"), func->loc);
   Exp* _now = new_prim_id(mp, insert_symbol(env->gwion->st, "now"), func->loc);
   Exp* time = new_exp_binary(mp, samp, chuck, _now, func->loc);
-  CHECK_BN(traverse_exp(env, time));
+  CHECK_ON(traverse_exp(env, time));
   Stmt two = MK_STMT_EXP(func->loc, time);
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);

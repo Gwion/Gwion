@@ -87,18 +87,18 @@ ANN static inline Type find(const Env env, Type_Decl *td) {
   const m_uint scope = env->context
       ? env_push(env, NULL, env->context->nspc)
       : env_push_global(env);
-  const m_bool ret = traverse_fptr_def(env, fptr);
+  const bool ret = traverse_fptr_def(env, fptr);
   env_pop(env, scope);
   const Type t = fptr->cdef->base.type;
   free_fptr_def(env->gwion->mp, fptr);
-  return ret > 0 ? t : NULL;
+  return ret ? t : NULL;
 }
 
 ANN static inline Type find1(const Env env, const Type base, Type_Decl *td) {
   if (!td->fptr) return scan_type(env, base, td);
   if (!td->fptr->cdef->base.type) {
     CHECK_O(scan0_fptr_def(env, td->fptr));
-    CHECK_BO(traverse_fptr_def(env, td->fptr));
+    CHECK_O(traverse_fptr_def(env, td->fptr));
   }
   return td->fptr->cdef->base.type;
 }

@@ -57,7 +57,7 @@ ANN static bool trait_inherit(const Env env, const Type t, const Func_Def req) {
   nspc_add_type(env->curr, insert_symbol("Self"), t);
   const Func_Def cpy   = cpy_func_def(env->gwion->mp, req);
   if(global) SET_FLAG(cpy->base, global);
-  const m_bool ret   = traverse_func_def(env, cpy);
+  const bool ret   = traverse_func_def(env, cpy);
   nspc_pop_type(env->gwion->mp, env->curr);
   Section section = MK_SECTION(func, func_def, cpy);
   if(!env->context->extend)

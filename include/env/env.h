@@ -50,12 +50,12 @@ ANN static inline m_uint env_push_global(const Env env) {
 ANN void   env_pop(const Env, const m_uint);
 ANN Type   scan_type(const Env, const Type, Type_Decl *);
 ANN Value  mk_class(const Env env, const Type base, const loc_t);
-ANN m_bool compat_func(const __restrict__ Func_Def,
+ANN bool   compat_func(const __restrict__ Func_Def,
                        const __restrict__ Func_Def);
 ANN Type   known_type(const Env env, Type_Decl *);
 ANN Type   prim_ref(const Env env, const Type t, const Type_Decl *td);
-ANN bool env_access(const Env env, const ae_flag flag, const loc_t);
-ANN bool env_storage(const Env env, ae_flag flag, const loc_t);
+ANN bool   env_access(const Env env, const ae_flag flag, const loc_t);
+ANN bool   env_storage(const Env env, ae_flag flag, const loc_t);
 ANN void   env_add_type(const Env, const Type, const loc_t);
 ANN Type   find_type(const Env, Type_Decl *);
 ANN m_bool traverse_func_template(const Env, const Func_Def);

@@ -34,7 +34,7 @@ tmpl_valid(const Env env, const Func_Def fdef, const m_str filename) {
   if (safe_fflag(fdef->base->func, fflag_valid)) return true;
   const m_str old_file = env->name;
   env->name = filename;
-  const bool ret = check_traverse_fdef(env, fdef) > 0;
+  const bool ret = check_traverse_fdef(env, fdef);
   env->name = old_file;
   if(!fdef->base->func) free_func_def(env->gwion->mp, fdef);
   return ret;
@@ -57,7 +57,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
 
 ANN static inline Func ensure_fptr(const Env env, struct ResolverArgs *ra,
                                    const Fptr_Def fptr) {
-  CHECK_BO(traverse_fptr_def(env, fptr));
+  CHECK_O(traverse_fptr_def(env, fptr));
   const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   return find_func_match(env, fdef->base->func, ra->e);
 }
@@ -210,16 +210,23 @@ ANN static Func _find_template_match(const Env env, const Value v,
   return f;
 }
 
-ANN static inline m_bool check_call(const Env env, const Exp_Call *exp) {
+#undef ERR_B
+#define ERR_B(a, b, ...)                                                       \
+  {                                                                            \
+    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
+    return false;                                                              \
+  }
+
+ANN static inline bool check_call(const Env env, const Exp_Call *exp) {
   const ae_exp_t et = exp->func->exp_type;
   if (et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
     ERR_B(exp->func->loc, _("invalid expression for function call."))
-  return GW_OK;
+  return true;
 }
 
 ANN Func find_template_match(const Env env, const Value value,
                              Exp_Call *const exp) {
-  CHECK_BO(check_call(env, exp));
+  CHECK_O(check_call(env, exp));
   const Func f = _find_template_match(env, value, exp);
   if (f) return f;
   Type t = value->from->owner_class;

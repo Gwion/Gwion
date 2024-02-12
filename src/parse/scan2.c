@@ -87,7 +87,7 @@ ANN bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   const bool ret = scan2_class_def(env, fptr->cdef);
   const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
-  else CHECK_b(tmpl_fptr(env, fptr, fdef));
+  else CHECK_B(tmpl_fptr(env, fptr, fdef));
   if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
   return ret;
 }
@@ -386,7 +386,7 @@ static bool scan2_fdef_tmpl(const Env env, const Func_Def f,
           ++i;
           continue;
         }
-        if (compat_func(ff->def, f) > 0) {
+        if (compat_func(ff->def, f)) {
           if (ff->value_ref->from->owner == env->curr)
             ERR_B(f->base->tag.loc,
                   "template function '%s' already defined with those arguments "

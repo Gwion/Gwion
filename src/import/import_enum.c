@@ -47,9 +47,9 @@ ANN Type gwi_enum_end(const Gwi gwi) {
       new_enum_def(gwion->mp, gwi->ck->tmpl, gwi->ck->xid, gwi->loc);
 // clean the vector
   gwi->ck->tmpl    = NULL;
-  const m_bool ret = traverse_enum_def(gwion->env, edef);
+  const bool ret = traverse_enum_def(gwion->env, edef);
   if (gwi->gwion->data->cdoc) gwfmt_enum_def(gwi->gwfmt, edef);
-  const Type t = ret > 0 ? edef->type : NULL;
+  const Type t = ret ? edef->type : NULL;
   free_enum_def(gwion->mp, edef);
   ck_end(gwi);
   return t;

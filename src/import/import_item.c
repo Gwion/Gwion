@@ -41,7 +41,7 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   }
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
-  CHECK_BB(traverse_exp(env, gwi->ck->exp));
+  CHECK_b(traverse_exp(env, gwi->ck->exp));
   const Value value = gwi->ck->exp->d.exp_decl.var.vd.value;
   value->d          = addr;
   set_vflag(value, vflag_builtin);

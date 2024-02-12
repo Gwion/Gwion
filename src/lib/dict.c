@@ -348,7 +348,7 @@ struct Op_Import opi = {
 };
 
 
-CHECK_BB(traverse_exp(env, &call));
+CHECK_B(traverse_exp(env, &call));
 if(info->is_var) {
 
   const Instr instr = emit_add_instr(emit, hmap_grow);
@@ -424,7 +424,7 @@ static OP_EMIT(opem_dict_remove) {
     .data = (m_uint)&_bin
   };
 
-  CHECK_BB(traverse_exp(env, &call));
+  CHECK_B(traverse_exp(env, &call));
   CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
   const Instr pushval = emit_add_instr(emit, hmap_remove);
   pushval->m_val2 = hinfo->key->size;
@@ -479,7 +479,7 @@ struct Op_Import opi = {
 };
 
 
-  CHECK_BN(traverse_exp(env, &call));
+  CHECK_ON(traverse_exp(env, &call));
   CHECK_ON(op_check(env, &opi));
 
   if(!array->exp->next) return hinfo->val;
@@ -576,7 +576,7 @@ static OP_CHECK(opck_dict_scan) {
   CHECK_ON(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   t->nspc->class_data_size = sizeof(struct HMapInfo);
-  const m_bool ret = traverse_cdef(env, t);
+  const bool ret = traverse_cdef(env, t);
     set_tflag(t, tflag_cdef);
   if(is_global) {
     env_pop(env, scope);
@@ -607,7 +607,7 @@ static OP_CHECK(opck_dict_scan) {
   CHECK_ON(add_op(env->gwion, &opi));
 
   }
-  return ret > 0 ? t : NULL;
+  return ret ? t : NULL;
 }
 
 GWION_IMPORT(dict) {

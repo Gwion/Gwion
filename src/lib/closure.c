@@ -43,7 +43,7 @@ ANN static Exp* uncurry(const Env env, const Exp_Binary *bin) {
     }
     args = args->next;
   }
-  if(traverse_exp(env, base) > 0) {
+  if(traverse_exp(env, base)) {
     free_exp(env->gwion->mp, bin->lhs);
     return base;
   }
@@ -331,7 +331,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   const bool shadowing = env->scope->shadowing;
   env->scope->shadowing = true;
   if(env->class_def)SET_FLAG(l->def->base, static);
-  const m_bool ret  = traverse_func_def(env, l->def);
+  const bool ret  = traverse_func_def(env, l->def);
   env->scope->shadowing = shadowing;
   env->scope->depth = scope;
 
@@ -348,7 +348,7 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
     owner = owner->info->value->from->owner_class;
   }
   envset_pop(&es, owner);
-  if(ret < 0) {
+  if(!ret) {
     if(args) {
       for(uint32_t i = 0; i < bases->len; i++) {
         Arg *arg  = mp_vector_at(args, Arg, i);
@@ -381,7 +381,7 @@ ANN static m_bool fptr_do(const Env env, struct FptrInfo *info) {
 ANN static Type partial2auto(const Env env, const Exp_Binary *bin) {
   const Func_Def fdef = bin->lhs->d.exp_lambda.def;
   unset_fbflag(fdef->base, fbflag_lambda);
-  CHECK_BN(traverse_func_def(env, fdef));
+  CHECK_ON(traverse_func_def(env, fdef));
   set_fbflag(fdef->base, fbflag_lambda);
   const Type actual = fdef->base->func->value_ref->type;
   set_fbflag(fdef->base, fbflag_lambda);
@@ -414,13 +414,13 @@ static OP_CHECK(opck_auto_fptr) {
   sprintf(name, "generated@%s@%u:%u", env->curr->name, bin->rhs->loc.first.line,
           bin->rhs->loc.first.column);
   fptr_def->base->tag.sym = insert_symbol(name);
-  const m_bool ret    = traverse_fptr_def(env, fptr_def);
+  const bool ret    = traverse_fptr_def(env, fptr_def);
   const Type   t      = fptr_def->cdef->base.type;
   free_fptr_def(env->gwion->mp, fptr_def);
   Var_Decl vd = bin->rhs->d.exp_decl.var.vd;
   vd.value->type = bin->rhs->type =
       bin->rhs->d.exp_decl.type                = t;
-  return ret > 0 ? t : env->gwion->type[et_error];
+  return ret ? t : env->gwion->type[et_error];
 }
 
 static OP_CHECK(opck_fptr_assign) {
@@ -689,8 +689,8 @@ static OP_CHECK(opck_closure_scan) {
                       .flag  = tflag_scan0};
   const Type    owner = ts->t;
   CHECK_BO(envset_pushv(&es, owner->info->value));
-  const m_bool ret = traverse_fptr_def(env, fdef);
-  const Type t = ret > 0 ? fdef->cdef->base.type : NULL;
+  const bool ret = traverse_fptr_def(env, fdef);
+  const Type t = ret ? fdef->cdef->base.type : NULL;
   envset_pop(&es, owner->info->value->from->owner_class);
   free_fptr_def(env->gwion->mp, fdef); // clean?
   if(t) set_tflag(t, tflag_emit);
@@ -704,7 +704,7 @@ static CTOR(fptr_ctor) {
 ANN bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
   fptr->cdef->base.type->nspc->offset += SZ_INT * 3;
   env_push_type(env, fptr->cdef->base.type);
-  CHECK_B(traverse_func_def(env, fdef));
+  CHECK_b(traverse_func_def(env, fdef));
   builtin_func(env->gwion, fdef->base->func, fptr_ctor);
   set_tflag(fdef->base->func->value_ref->type, tflag_ftmpl);
   env_pop(env, 0);

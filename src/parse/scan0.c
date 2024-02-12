@@ -28,12 +28,10 @@ ANN static inline bool scan0_defined(const Env env, const Tag tag) {
   if (nspc_lookup_type1(env->curr, tag.sym)) {
 //    ERR_B(tag.loc, _("type '%s' already defined"), s_name(tag.sym));
     env_err(env, tag.loc, _("type '%s' already defined"), s_name(tag.sym));
-puts ("yululuy");
     return false;
   }
 //  return already_defined(env, tag.sym, tag.loc);
   int ret = already_defined(env, tag.sym, tag.loc);
-printf("ret %i\n", ret);
   return ret;
 }
 

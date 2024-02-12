@@ -53,8 +53,8 @@ static m_str type_name(const Type t) {
   return t ? t == OP_ANY_TYPE ? "any" : t->name : "";
 }
 
-static m_bool op_match(const restrict Type t, const restrict Type mo) {
-  if (t == OP_ANY_TYPE || mo == OP_ANY_TYPE) return GW_OK;
+static bool op_match(const restrict Type t, const restrict Type mo) {
+  if (t == OP_ANY_TYPE || mo == OP_ANY_TYPE) return true;
   return t == mo;
 }
 
@@ -246,7 +246,7 @@ ANN static Type op_def(const Env env, struct Op_Import *const opi,
        op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->loc, 1);
   } else
        op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->rhs, opi->loc, 0);
-  if (traverse_func_def(env, tmpl_fdef) < 0) {
+  if (!traverse_func_def(env, tmpl_fdef)) {
     if (!tmpl_fdef->base->func) func_def_cleaner(env->gwion, tmpl_fdef);
     return NULL;
   }
@@ -366,19 +366,19 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   return NULL;
 }
 
-ANN m_bool operator_set_func(const struct Op_Import *opi) {
+ANN bool operator_set_func(const struct Op_Import *opi) {
   const Nspc   nspc = ((Func)opi->data)->value_ref->from->owner;
   const m_int  idx  = map_index(&nspc->operators->map, (vtype)opi->op);
   const Vector v    = (Vector)&VVAL(&nspc->operators->map, idx);
-  DECL_OB(M_Operator *, mo, = operator_find(v, opi->lhs, opi->rhs));
+  DECL_B(M_Operator *, mo, = operator_find(v, opi->lhs, opi->rhs));
   mo->func = (Func)opi->data;
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool handle_instr(const Emitter emit, const M_Operator *mo) {
+ANN static bool handle_instr(const Emitter emit, const M_Operator *mo) {
   if (mo->func) {
     emit_pushfunc(emit, mo->func);
-    CHECK_BB(emit_exp_call1(emit, mo->func,
+    CHECK_B(emit_exp_call1(emit, mo->func,
           mo->func->def->base->ret_type->size, true));
     if (mo->func->def->base->tag.sym ==
         insert_symbol(emit->gwion->st, "@conditional"))
@@ -386,10 +386,10 @@ ANN static m_bool handle_instr(const Emitter emit, const M_Operator *mo) {
     else if (mo->func->def->base->tag.sym ==
              insert_symbol(emit->gwion->st, "@unconditional"))
       emit_add_instr(emit, BranchNeqInt);
-    return GW_OK;
+    return true;
   }
   (void)emit_add_instr(emit, mo->instr);
-  return GW_OK;
+  return true;
 }
 
 ANN m_bool op_emit(const Emitter emit, const struct Op_Import *opi) {
@@ -412,7 +412,7 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import *opi) {
               const m_bool ret = mo->em(emit, (void *)opi->data);
               if (ret) return ret;
             } else if (mo->func || mo->instr)
-              return handle_instr(emit, mo);
+              return handle_instr(emit, mo) ? GW_OK : GW_ERROR;
           }
         } while (r && (r = op_parent(emit->env, r)));
       } while (l && (l = op_parent(emit->env, l)));
@@ -488,7 +488,7 @@ ANN void op_cpy(const Env env, const struct Op_Import *opi) {
   vector_release(&visited);
 }
 
-ANN m_bool add_op_func_check(const Env env, const Type t, const struct Op_Func *opfunc, const m_uint idx) {
+ANN bool add_op_func_check(const Env env, const Type t, const struct Op_Func *opfunc, const m_uint idx) {
   const Func f = (Func)vector_at(&t->nspc->vtable, idx);
   const struct Op_Import opi = {
       .rhs  = f->value_ref->type,

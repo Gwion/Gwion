@@ -269,7 +269,7 @@ static OP_CHECK(opck_array_cast) {
     parent = parent->info->parent;
   }
   Exp e = { .type = l, .loc = cast->exp->loc };
-  CHECK_BN(check_implicit(env, &e, r));
+  CHECK_ON(check_implicit(env, &e, r));
   return t;
 }
 
@@ -378,7 +378,7 @@ static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
   const Type      t_int = env->gwion->type[et_int];
   Exp*             e     = array->exp;
-  do CHECK_BN(check_implicit(env, e, t_int));
+  do CHECK_ON(check_implicit(env, e, t_int));
   while ((e = e->next));
   const Type t = get_array_type(array->type);
   if (t->array_depth >= array->depth)
@@ -833,11 +833,11 @@ static OP_CHECK(opck_array_scan) {
     SET_FLAG(t, abstract);
   else
     UNSET_FLAG(t, abstract);
-  const m_bool ret = traverse_cdef(env, t);
+  const bool ret = traverse_cdef(env, t);
     UNSET_FLAG(t, abstract);
   env_pop(env, scope);
   env->context = ctx;
-  if (ret == GW_ERROR) return NULL;
+  if (!ret) return NULL;
   set_tflag(t, tflag_emit);
   t->array_depth     = base->array_depth + 1;
   t->info->base_type = array_base(base);
@@ -901,7 +901,7 @@ ANN static inline Type foreach_type(const Env env, Exp* exp) {
 static OP_CHECK(opck_array_each_val) {
   Exp* exp = (Exp*) data;
   DECL_ON(const Type, base, = foreach_type(env, exp));
-  CHECK_BN(ensure_traverse(env, base));
+  CHECK_ON(ensure_traverse(env, base));
   return ref_type(env->gwion, base, exp->loc);
 }
 

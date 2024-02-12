@@ -10,7 +10,7 @@
 #define min2(a, b)   ((a) < (b) ? (a) : (b))
 #define min(a, b, c) (min2(min2((a), (b)), (c)))
 
-static m_bool wagner_fisher(const char *s, const char *t) {
+static bool wagner_fisher(const char *s, const char *t) {
   const size_t m = strlen(s);
   const size_t n = strlen(t);
   unsigned int d[m][n];

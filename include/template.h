@@ -27,5 +27,5 @@ ANN static inline Tmpl* get_tmpl(const Type t) {
     return (a);                                                                \
   }
 
-ANN m_bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ);
+ANN bool const_generic_typecheck(const Env env, const Specialized *spec, const TmplArg *targ);
 #endif

@@ -95,8 +95,8 @@
     RET_NSPC_B(exp)                                                            \
   }
 
-ANN m_bool check_stmt(const Env env, Stmt* stmt);
-ANN m_bool check_stmt_list(const Env env, const Stmt_List);
+//ANN m_bool check_stmt(const Env env, Stmt* stmt);
+ANN bool check_stmt_list(const Env env, const Stmt_List);
 
 typedef m_bool (*_exp_func)(const void *, const void *);
 ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,
@@ -136,6 +136,8 @@ static inline m_bool prefix##_union_def_b(const Env env, const Union_Def udef) {
 xxx_cdef_b(scan0);
 xxx_cdef_b(scan1);
 xxx_cdef_b(scan2);
+xxx_cdef_b(check);
+xxx_cdef_b(traverse);
 
 #define xxx_cdef(prefix)                                                       \
   static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
@@ -143,18 +145,15 @@ xxx_cdef_b(scan2);
                       (_exp_func)prefix##_union_def);                          \
   }
 
-xxx_cdef(check);
-xxx_cdef(traverse);
-
 ANN m_bool
 scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
 ANN bool
 scanx_fdef_b(const Env, void *, const Func_Def, const _exp_func_b);
 
-ANN m_bool check_subscripts(const Env, const Array_Sub, const m_bool is_decl);
-ANN m_bool check_implicit(const Env env, Exp* e, const Type t);
-ANN m_bool ensure_traverse(const Env env, const Type t);
-ANN m_bool check_traverse_fdef(const Env env, const Func_Def fdef);
+ANN bool check_subscripts(const Env, const Array_Sub, const bool is_decl);
+ANN bool check_implicit(const Env env, Exp* e, const Type t);
+ANN bool ensure_traverse(const Env env, const Type t);
+ANN bool check_traverse_fdef(const Env env, const Func_Def fdef);
 
 ANN static inline void env_weight(const Env env, const uint16_t weight) {
   if (env->func)

@@ -170,7 +170,7 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
   if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 
-ANN m_bool not_from_owner_class(const Env env, const Type t, const Value v,
+ANN bool not_from_owner_class(const Env env, const Type t, const Value v,
                                 const loc_t loc);
 
 ANN static inline Value get_value(const Env env, const Exp_Dot *member,
@@ -220,7 +220,7 @@ OP_CHECK(opck_object_dot) {
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
-  CHECK_BN(not_from_owner_class(env, the_base, value, self->loc));
+  CHECK_ON(not_from_owner_class(env, the_base, value, self->loc));
   CHECK_BN(member_access(env, self, value));
   if ((base_static && vflag(value, vflag_member)) ||
       (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
