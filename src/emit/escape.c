@@ -22,13 +22,14 @@ char *escape_table(MemPool p) {
   return escape;
 }
 
-static int get_escape(const Emitter emit, const char c, const loc_t loc) {
-  if (emit->info->escape[(int)c]) return emit->info->escape[(int)c];
+static bool get_escape(const Emitter emit, const char c, char *out, const loc_t loc) {
+  *out = emit->info->escape[(int)c];
+  if(out) return true;
   env_err(emit->env, loc, _("unrecognized escape sequence '\\%c'"), c);
-  return GW_ERROR;
+  return false;
 }
 
-m_bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
+bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
   unsigned char *str_lit = (unsigned char *)base;
   m_str          str     = base;
   while (*str_lit) {
@@ -62,16 +63,22 @@ m_bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
                   c1, c3);
           return GW_ERROR;
         }
-      } else
-        CHECK_BB((*str++ = (char)get_escape(emit, (char)c, loc)));
+      } else {
+        char out;
+        CHECK_B((*str++ = (char)get_escape(emit, (char)c, &out, loc)));
+      }
     } else
       *str++ = (char)*str_lit;
     ++str_lit;
   }
   *str = '\0';
-  return GW_OK;
+  return true;
 }
 
-ANN char str2char(const Emitter emit, const m_str c, const loc_t loc) {
-  return c[0] != '\\' ? c[0] : get_escape(emit, c[1], loc);
+ANN bool str2char(const Emitter emit, const m_str c, char *out, const loc_t loc) {
+  if(c[0] != '\\') {
+    *out = c[0];
+    return true;
+  }
+  return get_escape(emit, c[1], out, loc);
 }

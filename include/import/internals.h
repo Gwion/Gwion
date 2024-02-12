@@ -15,10 +15,11 @@
   }
 #define GWION_ERR(pos, a, ...)                                                 \
   { env_err(gwion->env, pos, (a), ##__VA_ARGS__); }
+
 #define GWION_ERR_B(pos, a, ...)                                               \
   {                                                                            \
     GWION_ERR(pos, (a), ##__VA_ARGS__);                                        \
-    return GW_ERROR;                                                           \
+    return false;                                                              \
   }
 #define GWION_ERR_O(pos, a, ...)                                               \
   {                                                                            \

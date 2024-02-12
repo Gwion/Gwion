@@ -359,7 +359,7 @@ if(info->is_var) {
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
   CHECK_BB(emit_exp(emit, call.d.exp_call.func));
-  CHECK_BB(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
+  CHECK_b(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
     call.d.exp_call.func->type->info->func->def->base->ret_type->size, true));
   emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);

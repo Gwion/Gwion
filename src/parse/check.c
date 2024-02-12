@@ -1384,12 +1384,12 @@ ANN bool check_enum_def(const Env env, const Enum_Def edef) {
 }
 
 ANN static bool check_stmt_code(const Env env, const Stmt_Code stmt) {
-  if (stmt->stmt_list) { RET_NSPC_B(check_stmt_list(env, stmt->stmt_list)) }
+  if (stmt->stmt_list) { RET_NSPC(check_stmt_list(env, stmt->stmt_list)) }
   return true;
 }
 
 ANN static inline bool _check_breaks(const Env env, Stmt* b) {
-    RET_NSPC_B(check_stmt(env, b))}
+    RET_NSPC(check_stmt(env, b))}
 
 ANN static bool check_breaks(const Env env, Stmt* a, Stmt* b) {
   vector_add(&env->scope->breaks, (vtype)a);
@@ -1476,7 +1476,7 @@ ANN static inline bool repeat_type(const Env env, Exp* e) {
 }
 
 #define stmt_func_xxx(name, type, prolog, exp)                                 \
-  describe_stmt_func_b(check, name, type, prolog, exp)
+  describe_stmt_func(check, name, type, prolog, exp)
 stmt_func_xxx(if, Stmt_If,, !(!check_flow(env, stmt->cond)   ||
   !check_stmt(env, stmt->if_body) ||
   (stmt->else_body && !check_stmt(env, stmt->else_body))) ? true : false)
@@ -1639,7 +1639,7 @@ ANN static bool _check_stmt_case(const Env env, const Stmt_Match stmt) {
 }
 
 ANN static bool check_stmt_case(const Env env, const Stmt_Match stmt) {
-    RET_NSPC_B(_check_stmt_case(env, stmt))}
+    RET_NSPC(_check_stmt_case(env, stmt))}
 
 ANN static bool case_loop(const Env env, const Stmt_Match stmt) {
   bool ok = true;
@@ -1653,7 +1653,7 @@ ANN static bool case_loop(const Env env, const Stmt_Match stmt) {
 
 ANN static inline bool check_handler(const restrict Env env,
                                             const Handler *handler) {
-  RET_NSPC_B(check_stmt(env, handler->stmt));
+  RET_NSPC(check_stmt(env, handler->stmt));
 }
 
 ANN static inline bool check_handler_list(const restrict Env env,
@@ -1681,7 +1681,7 @@ ANN static inline bool find_handler(const Handler_List handlers, const Symbol xi
 
 ANN static inline bool check_stmt_try_start(const restrict Env env,
                                               const Stmt_Try     stmt) {
-    RET_NSPC_B(check_stmt(env, stmt->stmt))
+    RET_NSPC(check_stmt(env, stmt->stmt))
 }
 
 ANN static inline bool check_stmt_try(const restrict Env env, const Stmt_Try stmt) {
@@ -1710,11 +1710,11 @@ ANN static bool _check_stmt_match(const Env env, const Stmt_Match stmt) {
 
 ANN static inline bool handle_where(const Env env, const Stmt_Match stmt) {
   if (stmt->where) CHECK_B(check_stmt(env, stmt->where));
-  RET_NSPC_B(_check_stmt_match(env, stmt))
+  RET_NSPC(_check_stmt_match(env, stmt))
 }
 
 ANN static bool check_stmt_match(const Env env, const Stmt_Match stmt) {
-  RET_NSPC_B(handle_where(env, stmt))
+  RET_NSPC(handle_where(env, stmt))
 }
 
 #define check_stmt_while check_stmt_flow
@@ -2081,7 +2081,7 @@ ANN static bool _check_trait_def(const Env env, const Trait_Def pdef) {
 }
 
 ANN static bool check_trait_def(const Env env, const Trait_Def pdef) {
-  RET_NSPC_B(_check_trait_def(env, pdef));
+  RET_NSPC(_check_trait_def(env, pdef));
 }
 
 ANN bool check_fptr_def(const Env env, const Fptr_Def fptr) {

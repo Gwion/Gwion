@@ -18,9 +18,9 @@
 ANN2(1, 2, 3)
 static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
                            const restrict m_str n) {
-  CHECK_BB(ck_ini(gwi, ck_fdef));
+  CHECK_b(ck_ini(gwi, ck_fdef));
   gwi->ck->name = n;
-  CHECK_BB(check_typename_def(gwi, gwi->ck));
+  CHECK_b(check_typename_def(gwi, gwi->ck));
   CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)));
   gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
   return GW_OK;
@@ -84,7 +84,7 @@ ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
-  CHECK_BB(ck_ok(gwi, ck_fdef));
+  CHECK_b(ck_ok(gwi, ck_fdef));
   gwi->ck->addr    = addr;
   gwi->ck->flag    = flag;
   const m_bool ret = gwi_func_valid(gwi, gwi->ck);
@@ -94,10 +94,10 @@ ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 
 ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
                        const restrict m_str n) {
-  CHECK_BB(ck_ok(gwi, ck_fdef));
+  CHECK_b(ck_ok(gwi, ck_fdef));
   DECL_OB(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
-  if(gwi_str2var(gwi, &var, n) > 0) {
+  if(gwi_str2var(gwi, &var, n)) {
     Arg arg = { .var = MK_VAR(td, var) };
     mp_vector_add(gwi->gwion->mp, &gwi->ck->mpv, Arg, arg);
     return GW_OK;
@@ -123,7 +123,7 @@ ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_BO(ck_ok(gwi, ck_fdef));
+  CHECK_O(ck_ok(gwi, ck_fdef));
   DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi));
   fptr->base->flag |= flag;
   if (gwi->gwion->data->cdoc) {

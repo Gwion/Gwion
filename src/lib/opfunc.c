@@ -124,7 +124,7 @@ OP_CHECK(opck_new) {
     if(GET_FLAG(base, abstract))
       CHECK_ON(abstract_array(env, array));
     if(GET_FLAG(base, abstract))
-      CHECK_BN(check_array_instance(env, unary->ctor.td, unary->ctor.exp));
+      CHECK_ON(check_array_instance(env, unary->ctor.td, unary->ctor.exp));
   }
   CHECK_ON(ensure_traverse(env, t));
   if (type_ref(t))
@@ -160,7 +160,7 @@ OP_CHECK(opck_new) {
 OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   if(!tflag(exp_self(unary)->type, tflag_struct))
-    CHECK_BB(emit_instantiate_object(emit, exp_self(unary)->type,
+    CHECK_b(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
   if(!unary->ctor.exp)
     emit_local_exp(emit, exp_self(unary));

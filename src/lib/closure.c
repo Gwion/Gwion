@@ -537,7 +537,7 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
 static OP_EMIT(opem_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   if(!impl->e->type->info->func->code)
-    emit_ensure_func(emit, impl->e->type->info->func);
+    CHECK_b(emit_ensure_func(emit, impl->e->type->info->func));
   emit_pushimm(emit, (m_uint)impl->e->type->info->func->code);
   return emit_fptr_assign(emit, impl->e->type, impl->t);
 }

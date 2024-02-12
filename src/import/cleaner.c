@@ -14,17 +14,17 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN m_bool ck_ini(const Gwi gwi, const enum importck_type t) {
+ANN bool ck_ini(const Gwi gwi, const enum importck_type t) {
   if (gwi->ck) // TODO: improve error message
     GWI_ERR_B(_("already importing"))
   gwi->ck       = mp_calloc2(gwi->gwion->mp, sizeof(ImportCK));
   gwi->ck->type = t;
-  return GW_OK;
+  return true;
 }
 
-ANN m_bool ck_ok(const Gwi gwi, const enum importck_type t) {
+ANN bool ck_ok(const Gwi gwi, const enum importck_type t) {
   if (!gwi->ck) GWI_ERR_B(_("import not started"))
-  if (gwi->ck->type == t) return GW_OK;
+  if (gwi->ck->type == t) return true;
   // TODO: improve error message
   GWI_ERR_B(_("already importing"))
 }

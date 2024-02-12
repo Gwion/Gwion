@@ -27,7 +27,7 @@ typedef struct CliArg_ {
   enum COLOR         color;
 } CliArg;
 
-ANN void   arg_release(CliArg *);
-ANN m_bool arg_parse(const Gwion, CliArg *);
-ANN void   arg_compile(const Gwion, CliArg *);
+ANN void arg_release(CliArg *);
+ANN bool arg_parse(const Gwion, CliArg *);
+ANN void arg_compile(const Gwion, CliArg *);
 #endif

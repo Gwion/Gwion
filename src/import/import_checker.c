@@ -28,7 +28,7 @@ struct AC {
   m_uint depth;
 };
 
-ANN static m_bool    ac_run(const Gwion gwion, struct AC *const ac);
+ANN static bool ac_run(const Gwion gwion, struct AC *const ac);
 ANN static Array_Sub mk_array(MemPool mp, struct AC *ac) {
   const Array_Sub array = new_array_sub(mp, ac->base);
   array->depth          = ac->depth;
@@ -70,14 +70,14 @@ ANN Symbol str2sym(const Gwion gwion, const m_str path, const loc_t loc) {
   return _str2sym(gwion, &tdc, path);
 }
 
-ANN m_bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t loc) {
+ANN bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t loc) {
   struct td_checker tdc = {.str = path, .loc = loc};
-  DECL_OB(const Symbol, sym, = __str2sym(gwion, &tdc));
+  DECL_B(const Symbol, sym, = __str2sym(gwion, &tdc));
   struct AC ac = {.str = tdc.str, .loc = loc};
-  CHECK_BB(ac_run(gwion, &ac));
+  CHECK_B(ac_run(gwion, &ac));
   vd->tag = MK_TAG(sym, loc);
   vd->value = NULL;
-  return GW_OK;
+  return true;
 }
 
 #define SPEC_ERROR (Specialized_List) GW_ERROR
@@ -114,14 +114,14 @@ ANN static Specialized_List __tmpl_list(const Gwion        gwion,
   return sl;
 }
 
-ANN m_bool check_typename_def(const Gwi gwi, ImportCK *ck) {
+ANN bool check_typename_def(const Gwi gwi, ImportCK *ck) {
   struct td_checker tdc = {.str = ck->name, .loc = gwi->loc};
-  if (!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str))) return GW_ERROR;
+  if (!(ck->sym = _str2sym(gwi->gwion, &tdc, tdc.str))) return false;
   Specialized_List sl = __tmpl_list(gwi->gwion, &tdc);
-  if (sl == SPEC_ERROR) return GW_ERROR;
+  if (sl == SPEC_ERROR) return false;
   ck->sl   = sl;
   ck->name = s_name(ck->sym);
-  return GW_OK;
+  return true;
 }
 
 ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc);
@@ -213,7 +213,7 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   }
   tdc->str += 2;
   struct AC ac = {.str = tdc->str, .loc = tdc->loc};
-  if(ac_run(gwion, &ac) < 0 ) {
+  if(!ac_run(gwion, &ac)) {
     if(tl) free_tmplarg_list(gwion->mp, tl);
     if(args) free_arg_list(gwion->mp, args);
     return NULL;
@@ -239,7 +239,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
   DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
   TmplArg_List tl = td_tmpl(gwion, tdc);
   struct AC ac = {.str = tdc->str, .loc = tdc->loc};
-  CHECK_BO(ac_run(gwion, &ac));
+  CHECK_O(ac_run(gwion, &ac));
   tdc->str     = ac.str;
   if (tl == (TmplArg_List)GW_ERROR) return NULL;
   const uint option = get_n(tdc, '?');
@@ -302,7 +302,7 @@ ANN Exp* td2exp(const MemPool mp, const Type_Decl *td) {
   return base;
 }
 
-ANN static m_bool td_info_run(const Env env, struct td_info *info) {
+ANN static bool td_info_run(const Env env, struct td_info *info) {
   const Gwion gwion = env->gwion;
   TmplArg_List tl = info->tl;
   for(uint32_t i = 0; i < tl->len; i++) {
@@ -351,23 +351,23 @@ ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
   text_init(&ls.text, gwion->mp);
   Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
   struct td_info info = {.tl = tl, .fmt = &l };
-  CHECK_BO(td_info_run(gwion->env, &info));
+  CHECK_O(td_info_run(gwion->env, &info));
   return ls.text.str;
 }
 
-ANN static inline m_bool ac_finish(const Gwion gwion, const struct AC *ac) {
-  if (*ac->str == ']') return GW_OK;
+ANN static inline bool ac_finish(const Gwion gwion, const struct AC *ac) {
+  if (*ac->str == ']') return true;
   GWION_ERR_B(ac->loc, "unfinished array");
 }
 
-ANN static inline m_bool ac_num(const Gwion gwion, const struct AC *ac,
+ANN static inline bool ac_num(const Gwion gwion, const struct AC *ac,
                                 const m_int num) {
-  if (num >= 0) return GW_OK;
+  if (num >= 0) return true;
   GWION_ERR_B(ac->loc, "negative array dimension")
 }
 
-ANN static inline m_bool ac_exp(const Gwion gwion, const struct AC *ac) {
-  if (!ac->depth || ac->base) return GW_OK;
+ANN static inline bool ac_exp(const Gwion gwion, const struct AC *ac) {
+  if (!ac->depth || ac->base) return true;
   GWION_ERR_B(ac->loc, "malformed array [][...]")
 }
 
@@ -378,34 +378,34 @@ ANN static void ac_add_exp(struct AC *ac, Exp* exp) {
     ac->base = ac->exp = exp;
 }
 
-ANN static inline m_bool ac_noexp(const Gwion gwion, struct AC *ac) {
-  if (!ac->exp) return GW_OK;
+ANN static inline bool ac_noexp(const Gwion gwion, struct AC *ac) {
+  if (!ac->exp) return true;
   GWION_ERR_B(ac->loc, "malformed array [...][]")
 }
 
-ANN static m_bool _ac_run(const Gwion gwion, struct AC *const ac) {
+ANN static bool _ac_run(const Gwion gwion, struct AC *const ac) {
   const m_str str = ac->str;
   const m_int num = strtol(str, &ac->str, 10);
-  CHECK_BB(ac_finish(gwion, ac));
+  CHECK_B(ac_finish(gwion, ac));
   if (str != ac->str) {
-    CHECK_BB(ac_num(gwion, ac, num));
-    CHECK_BB(ac_exp(gwion, ac));
+    CHECK_B(ac_num(gwion, ac, num));
+    CHECK_B(ac_exp(gwion, ac));
     Exp* exp = new_prim_int(gwion->mp, num, ac->loc);
     // set type: otherwise could fail at emit time
     exp->type = gwion->type[et_int];
     ac_add_exp(ac, exp);
   } else
-    CHECK_BB(ac_noexp(gwion, ac));
+    CHECK_B(ac_noexp(gwion, ac));
   ++ac->str;
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool ac_run(const Gwion gwion, struct AC *const ac) {
+ANN static bool ac_run(const Gwion gwion, struct AC *const ac) {
   while (*ac->str) {
     if (*ac->str != '[') break;
     ++ac->str;
-    CHECK_BB(_ac_run(gwion, ac));
+    CHECK_B(_ac_run(gwion, ac));
     ++ac->depth;
   }
-  return GW_OK;
+  return true;
 }

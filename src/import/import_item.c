@@ -12,7 +12,7 @@
 
 ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type,
                        const restrict m_str name) {
-  CHECK_BB(ck_ini(gwi, ck_item));
+  CHECK_b(ck_ini(gwi, ck_item));
   if ((gwi->ck->exp = make_exp(gwi, type, name))) return GW_OK;
   GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
 }
@@ -30,7 +30,7 @@ ANN static m_int gwi_item_tmpl(const Gwi gwi) {
 #undef gwi_item_end
 ANN2(1)
 m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
-  CHECK_BB(ck_ok(gwi, ck_item));
+  CHECK_b(ck_ok(gwi, ck_item));
   const Env env                     = gwi->gwion->env;
   gwi->ck->exp->d.exp_decl.var.td->flag = flag;
   if (gwi->gwion->data->cdoc) {

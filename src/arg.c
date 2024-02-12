@@ -227,7 +227,7 @@ ANN static void split_line(const m_str line, const Vector v) {
   while (d) {
     const m_str  str = strsep(&d, " ");
     const size_t sz  = strlen(str);
-    const m_bool arg = (str[sz - 1] == '\n');
+    const bool arg = (str[sz - 1] == '\n');
     vector_add(v, (vtype)strndup(str, arg ? sz - 1 : sz));
   }
   xfree(d);
@@ -238,7 +238,7 @@ ANN static Vector get_config(const char *name) {
   char * line = NULL;
   size_t len  = 0;
   FILE * f    = fopen(name, "r");
-  CHECK_OO(f);
+  CHECK_O(f);
   const Vector v = (Vector)xmalloc(sizeof(struct Vector_));
   vector_init(v);
   while (getline(&line, &len, f) != -1) {
@@ -254,7 +254,7 @@ struct ArgInternal {
   CliArg     *arg;
 };
 
-ANN m_bool _arg_parse(struct ArgInternal *arg);
+ANN bool _arg_parse(struct ArgInternal *arg);
 
 ANN static void config_parse(struct ArgInternal *arg, const char *name) {
   const Vector v = get_config(name);
@@ -358,7 +358,7 @@ static void myproc(void *data, cmdopt_t *option, const char *arg) {
 #define GWION_VERSION "N.A."
 #endif
 
-ANN m_bool _arg_parse(struct ArgInternal *arg) {
+ANN bool _arg_parse(struct ArgInternal *arg) {
   cmdapp_t            app;
   const cmdapp_info_t info = {
       .program         = "gwion",
@@ -381,7 +381,7 @@ ANN m_bool _arg_parse(struct ArgInternal *arg) {
   if (cmdapp_run(&app) == EXIT_SUCCESS && cmdapp_should_exit(&app))
     arg->arg->quit = 1;
   cmdapp_destroy(&app);
-  return GW_OK;
+  return true;
 }
 
 ANN static void config_default(struct ArgInternal *arg) {
@@ -391,7 +391,7 @@ ANN static void config_default(struct ArgInternal *arg) {
   config_parse(arg, c);
 }
 
-ANN m_bool arg_parse(const Gwion gwion, CliArg *a) {
+ANN bool arg_parse(const Gwion gwion, CliArg *a) {
   if(!a->uargs) a->arg.argc = 1;
   if(a->config_args) a->arg.argv = a->config_args(&a->arg.argc, a->arg.argv);
   struct ArgInternal arg = {.gwion = gwion, .arg = a};

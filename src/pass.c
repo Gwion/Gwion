@@ -28,7 +28,7 @@ ANN void pass_register(const Gwion gwion, const m_str name,
   map_set(&gwion->data->passes->map, (vtype)sym, (vtype)pass);
 }
 
-ANN m_bool pass_set(const Gwion gwion, const Vector passes) {
+ANN bool pass_set(const Gwion gwion, const Vector passes) {
   const Vector v = &gwion->data->passes->vec;
   vector_clear(v);
   for (m_uint i = 0; i < vector_size(passes); ++i) {
@@ -45,11 +45,11 @@ if(!strcmp(name, "none")) {
 */
       gw_err("Failed to set compilation passes, back to default\n");
       pass_default(gwion);
-      return GW_ERROR;
+      return false;
     }
     vector_add(v, (vtype)pass);
   }
-  return GW_OK;
+  return true;
 }
 
 ANN void pass_default(const Gwion gwion) {

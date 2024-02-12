@@ -176,7 +176,7 @@ ANN static inline bool _scan2_stmt_match_case(const restrict Env env,
 
 ANN static inline bool scan2_stmt_match_case(const restrict Env env,
                                                const Stmt_Match   stmt) {
-    RET_NSPC_B(_scan2_stmt_match_case(env, stmt))}
+    RET_NSPC(_scan2_stmt_match_case(env, stmt))}
 
 ANN static inline bool
     _scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
@@ -193,7 +193,7 @@ ANN static inline bool
 
 ANN static inline bool scan2_handler(const restrict Env env,
                                             const Handler *handler) {
-  RET_NSPC_B(scan2_stmt(env, handler->stmt));
+  RET_NSPC(scan2_stmt(env, handler->stmt));
 }
 
 ANN static inline bool scan2_handler_list(const restrict Env env,
@@ -210,13 +210,13 @@ ANN static inline bool scan2_handler_list(const restrict Env env,
 ANN static inline bool scan2_stmt_try(const restrict Env env,
                                         const Stmt_Try     stmt) {
   CHECK_B(scan2_handler_list(env, stmt->handler));
-  RET_NSPC_B(scan2_stmt(env, stmt->stmt))
+  RET_NSPC(scan2_stmt(env, stmt->stmt))
 }
 
 ANN static inline bool scan2_stmt_match(const restrict Env env,
                                           const Stmt_Match   stmt) {
   CHECK_B(scan2_exp(env, stmt->cond));
-  RET_NSPC_B(_scan2_stmt_match(env, stmt))
+  RET_NSPC(_scan2_stmt_match(env, stmt))
 }
 
 #define scan2_exp_lambda bdummy_func
@@ -224,7 +224,7 @@ ANN static inline bool scan2_stmt_match(const restrict Env env,
 HANDLE_EXP_FUNC_B(scan2, bool, Env)
 
 #define scan2_stmt_func(name, type, prolog, exp)                               \
-  describe_stmt_func_b(scan2, name, type, prolog, exp)
+  describe_stmt_func(scan2, name, type, prolog, exp)
 scan2_stmt_func(flow, Stmt_Flow,, !(!scan2_exp(env, stmt->cond) ||
     !scan2_stmt(env, stmt->body)) ? true : false)
 scan2_stmt_func(for, Stmt_For,, !(!scan2_stmt(env, stmt->c1) ||
@@ -240,7 +240,7 @@ scan2_stmt_func(if, Stmt_If,, !(!scan2_exp(env, stmt->cond) ||
     (stmt->else_body && !scan2_stmt(env, stmt->else_body))) ? true : false)
 
 ANN static inline bool scan2_stmt_code(const Env env, const Stmt_Code stmt) {
-  if (stmt->stmt_list) { RET_NSPC_B(scan2_stmt_list(env, stmt->stmt_list)) }
+  if (stmt->stmt_list) { RET_NSPC(scan2_stmt_list(env, stmt->stmt_list)) }
   return true;
 }
 

@@ -6,7 +6,7 @@
 #include "traverse.h"
 #include "parse.h"
 
-ANN static inline bool _body(const Env e, Ast b, const _exp_func f) {
+ANN static inline bool _body(const Env e, Ast b, const _envset_func f) {
   for(m_uint i = 0; i < b->len; i++) {
     Section *section = mp_vector_at(b, Section, i);
     CHECK_B(f(e, section));

@@ -80,7 +80,7 @@ ANN static Type type_finish(const Gwi gwi, const Type t) {
 ANN2(1, 2)
 Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   struct ImportCK ck = {.name = name};
-  CHECK_BO(check_typename_def(gwi, &ck));
+  CHECK_O(check_typename_def(gwi, &ck));
   DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, parent ?: "Object"));
   Tmpl *tmpl = ck.sl ? new_tmpl(gwi->gwion->mp, ck.sl) : NULL;
   if (tmpl) CHECK_O(template_push_types(gwi->gwion->env, tmpl));
@@ -106,7 +106,7 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
 
 ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   struct ImportCK ck = {.name = name};
-  CHECK_BO(check_typename_def(gwi, &ck));
+  CHECK_O(check_typename_def(gwi, &ck));
   const Type t =
       new_type(gwi->gwion->mp, s_name(ck.sym), gwi->gwion->type[et_compound]);
   t->size = 0;

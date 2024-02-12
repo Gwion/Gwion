@@ -237,8 +237,6 @@ OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Type     t_base = member_type(emit->gwion, member->base->type);
   const Value    value  = find_value(t_base, member->xid);
-//  if(!tflag(t_base, tflag_emit) /*&& emit->env->class_def != t_base*/)
-//      ensure_emit(emit, t_base);
   if (is_class(emit->gwion, value->type)) {
     emit_pushimm(emit, (m_uint)value->type);
     return GW_OK;

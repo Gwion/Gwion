@@ -269,7 +269,7 @@ ANN static inline bool _scan1_stmt_match_case(const restrict Env env,
 
 ANN static inline bool scan1_stmt_match_case(const restrict Env env,
                                                const Stmt_Match   stmt) {
-    RET_NSPC_B(_scan1_stmt_match_case(env, stmt))}
+    RET_NSPC(_scan1_stmt_match_case(env, stmt))}
 
 ANN static inline bool
     _scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
@@ -287,12 +287,12 @@ ANN static inline bool
 ANN static inline bool scan1_stmt_match(const restrict Env env,
                                           const Stmt_Match   stmt) {
   CHECK_B(scan1_exp(env, stmt->cond));
-  RET_NSPC_B(_scan1_stmt_match(env, stmt))
+  RET_NSPC(_scan1_stmt_match(env, stmt))
 }
 
 ANN static inline bool scan1_handler(const restrict Env env,
                                             const Handler *handler) {
-  RET_NSPC_B(scan1_stmt(env, handler->stmt));
+  RET_NSPC(scan1_stmt(env, handler->stmt));
 }
 
 ANN static inline bool scan1_handler_list(const restrict Env env,
@@ -309,7 +309,7 @@ ANN static inline bool scan1_handler_list(const restrict Env env,
 ANN static inline bool scan1_stmt_try(const restrict Env env,
                                         const Stmt_Try     stmt) {
   CHECK_B(scan1_handler_list(env, stmt->handler));
-  RET_NSPC_B(scan1_stmt(env, stmt->stmt))
+  RET_NSPC(scan1_stmt(env, stmt->stmt))
 }
 
 ANN static inline bool stmt_each_defined(const restrict Env env,
@@ -354,7 +354,7 @@ ANN static inline bool shadow_var(const Env env, const Tag tag){
 }
 
 #define describe_ret_nspc(name, type, prolog, exp)                             \
-  describe_stmt_func_b(scan1, name, type, prolog, exp)
+  describe_stmt_func(scan1, name, type, prolog, exp)
 describe_ret_nspc(flow, Stmt_Flow,, !(!scan1_exp(env, stmt->cond) ||
     !scan1_stmt(env, stmt->body)) ? true : false)
 describe_ret_nspc(for, Stmt_For,, !(!scan1_stmt(env, stmt->c1) ||
@@ -391,12 +391,12 @@ ANN static inline bool _scan1_stmt_if(const Env env, const Stmt_If stmt) {
 }
 
 ANN static inline bool scan1_stmt_if(const Env env, const Stmt_If stmt) {
-  RET_NSPC_B(_scan1_stmt_if(env, stmt));
+  RET_NSPC(_scan1_stmt_if(env, stmt));
   return true;
 }
 
 ANN static inline bool scan1_stmt_code(const Env env, const Stmt_Code stmt) {
-  if (stmt->stmt_list) { RET_NSPC_B(scan1_stmt_list(env, stmt->stmt_list)) }
+  if (stmt->stmt_list) { RET_NSPC(scan1_stmt_list(env, stmt->stmt_list)) }
   return true;
 }
 
@@ -732,7 +732,7 @@ ANN bool scan1_fdef(const Env env, const Func_Def fdef) {
   else if (fbflag(fdef->base, fbflag_op) && env->class_def)
     SET_FLAG(fdef->base, static);
   if(!is_ctor(fdef)) {
-    RET_NSPC_B(scan1_fbody(env, fdef))
+    RET_NSPC(scan1_fbody(env, fdef))
   } else if(!fdef->builtin)
       CHECK_B(scan1_stmt_list(env, fdef->d.code));
   return true;

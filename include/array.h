@@ -22,5 +22,5 @@ typedef struct ArrayInfo_ {
 ANN Type   check_array_access(const Env env, const Array_Sub array);
 ANN m_bool emit_array_access(const Emitter                 emit,
                              struct ArrayAccessInfo *const info);
-ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, Exp* args);
+ANN2(1,2) bool check_array_instance(const Env env, Type_Decl *td, Exp* args);
 #endif

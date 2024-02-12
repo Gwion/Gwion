@@ -35,14 +35,6 @@
 #define RET_NSPC(exp)                                                          \
   ++env->scope->depth;                                                         \
   nspc_push_value(env->gwion->mp, env->curr);                                  \
-  const m_bool ret = exp;                                                      \
-  nspc_pop_value(env->gwion->mp, env->curr);                                   \
-  --env->scope->depth;                                                         \
-  return ret;
-
-#define RET_NSPC_B(exp)                                                        \
-  ++env->scope->depth;                                                         \
-  nspc_push_value(env->gwion->mp, env->curr);                                  \
   const bool ret = exp;                                                        \
   nspc_pop_value(env->gwion->mp, env->curr);                                   \
   --env->scope->depth;                                                         \
@@ -86,24 +78,16 @@
   }
 
 #define describe_stmt_func(prefix, name, type, prolog, exp)                    \
-  ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) {     \
+  ANN static bool prefix##_stmt_##name(const Env env, const type stmt) {     \
     RET_NSPC(exp)                                                              \
   }
 
-#define describe_stmt_func_b(prefix, name, type, prolog, exp)                  \
-  ANN static bool prefix##_stmt_##name(const Env env, const type stmt) {       \
-    RET_NSPC_B(exp)                                                            \
-  }
-
-//ANN m_bool check_stmt(const Env env, Stmt* stmt);
 ANN bool check_stmt_list(const Env env, const Stmt_List);
-
-typedef m_bool (*_exp_func)(const void *, const void *);
 
 ANN bool scanx_body(const Env e, const Class_Def c, const _envset_func f,
                       void *d);
 
-static inline ANN m_bool env_body(const Env env, const Class_Def cdef,
+static inline ANN bool env_body(const Env env, const Class_Def cdef,
                                   const _envset_func f) {
   return scanx_body(env, cdef, f, env);
 }

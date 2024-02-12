@@ -413,13 +413,14 @@ ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
   return GW_OK;
 }
 
-ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
+ANN bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
   const Env env = emit->env;
   bool vars[2] = { is_var };
   struct Op_Import opi = {.op   = insert_symbol("@array_init"),
                           .lhs  = t,
                           .data = (uintptr_t)vars};
-  CHECK_BB(op_emit(emit, &opi));
+  if(op_emit(emit, &opi) != GW_OK)
+    return false;
   return vars[1];
 }
 
@@ -1192,7 +1193,14 @@ ANN static bool last_is_zero(Exp* e) {
   return exp_is_zero(e);
 }
 
-ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
+#undef ERR_B
+#define ERR_B(a, b, ...)                                                       \
+  {                                                                            \
+    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
+    return false;                                                              \
+  }
+
+ANN2(1,2) bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
   if (!last_is_zero(td->array->exp)) {
     if (!args)
       ERR_B(td->tag.loc, "declaration of abstract type arrays needs lambda");
@@ -1201,5 +1209,5 @@ ANN2(1,2) m_bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
       gwerr_warn("array is empty", "no need to provide a lambda",
           NULL, env->name, td->array->exp->loc);
   }
-  return GW_OK;
+  return true;
 }
