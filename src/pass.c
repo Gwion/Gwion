@@ -11,8 +11,15 @@
 #define N_PASS     2
 #define N_SCANPASS 4
 
+static m_bool typecheck_ast(const Env env, Ast *ast) {
+  CHECK_BB(traverse_ast(env, ast));
+  if(env->scope->poison)env->context->error = true;
+  if(env->context->error)return GW_ERROR;
+  return GW_OK;
+}
+
 static const m_str            default_passes_name[2] = {"check", "emit"};
-static const compilation_pass default_passes[4]      = {traverse_ast, emit_ast};
+static const compilation_pass default_passes[4]      = {typecheck_ast, emit_ast};
 static const m_str            scan_passes_name[4] = {"scan0", "scan1", "scan2",
                                           "type_check"};
 static const compilation_pass scan_passes[4] = {scan0_ast, scan1_ast, scan2_ast,

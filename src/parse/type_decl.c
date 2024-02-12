@@ -97,7 +97,7 @@ ANN static inline Type find(const Env env, Type_Decl *td) {
 ANN static inline Type find1(const Env env, const Type base, Type_Decl *td) {
   if (!td->fptr) return scan_type(env, base, td);
   if (!td->fptr->cdef->base.type) {
-    CHECK_BO(scan0_fptr_def(env, td->fptr));
+    CHECK_O(scan0_fptr_def(env, td->fptr));
     CHECK_BO(traverse_fptr_def(env, td->fptr));
   }
   return td->fptr->cdef->base.type;

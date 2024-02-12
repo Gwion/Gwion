@@ -573,7 +573,7 @@ static OP_CHECK(opck_dict_scan) {
 
   const bool is_global = tmpl_global(env, ts->td->types);
   const m_uint scope = is_global ?  env_push_global(env) : env->scope->depth;
-  CHECK_BN(scan0_class_def(env, cdef));
+  CHECK_ON(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   t->nspc->class_data_size = sizeof(struct HMapInfo);
   const m_bool ret = traverse_cdef(env, t);

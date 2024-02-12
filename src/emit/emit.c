@@ -2914,7 +2914,7 @@ ANN /*static */ inline m_bool emit_cdef(const Emitter emit, const Type t) {
 
 ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
   const bool tmpl = !!cdef->base.tmpl;
-  if (tmpl) CHECK_BB(template_push_types(emit->env, cdef->base.tmpl));
+  if (tmpl) CHECK_b(template_push_types(emit->env, cdef->base.tmpl));
   const m_bool ret = emit_parent(emit, cdef);
   if (tmpl) nspc_pop_type(emit->gwion->mp, emit->env->curr);
   return ret;

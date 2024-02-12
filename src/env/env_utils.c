@@ -6,24 +6,24 @@
 #include "parse.h"
 
 #define GET(a, b) ((a) & (b)) == (b)
-ANN m_bool env_access(const Env env, const ae_flag flag, const loc_t loc) {
+ANN bool env_access(const Env env, const ae_flag flag, const loc_t loc) {
   if (env->scope->depth) {
     if (GET(flag, ae_flag_global))
-      ERR_B(loc, _("`{G}global{0}` can only be used at %s scope."),
+      ERR_b(loc, _("`{G}global{0}` can only be used at %s scope."),
             GET(flag, ae_flag_global) && !env->class_def ? "file" : "class")
   }
   if ((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
        GET(flag, ae_flag_protect)) &&
       (!env->class_def || env->scope->depth))
-    ERR_B(loc, _("`{G}static/private/protect{0}` can only be used at class scope."))
-  return GW_OK;
+    ERR_b(loc, _("`{G}static/private/protect{0}` can only be used at class scope."))
+  return true;
 }
 
-ANN m_bool env_storage(const Env env, ae_flag flag, const loc_t loc) {
-  CHECK_BB(env_access(env, flag, loc));
+ANN bool env_storage(const Env env, ae_flag flag, const loc_t loc) {
+  CHECK_B(env_access(env, flag, loc));
   if(env->class_def && GET(flag, ae_flag_global))
-    ERR_B(loc, _("`{G}global{0}` at class scope only valid for function pointers"));
-  return GW_OK;
+    ERR_b(loc, _("`{G}global{0}` at class scope only valid for function pointers"));
+  return true;
 }
 #undef GET
 
@@ -65,13 +65,13 @@ ANN Type find_type(const Env env, Type_Decl *td) {
   return type;
 }
 
-ANN m_bool already_defined(const Env env, const Symbol s, const loc_t loc) {
+ANN bool already_defined(const Env env, const Symbol s, const loc_t loc) {
   const Value v = nspc_lookup_value0(env->curr, s);
-  if (!v || is_class(env->gwion, v->type)) return GW_OK;
+  if (!v || is_class(env->gwion, v->type)) return true;
   gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, loc, 0);
   declared_here(v);
   env_error_footer(env);
-  return GW_ERROR;
+  return false;
 }
 
 ANN static Type class_type(const Env env, const Type base) {
@@ -107,11 +107,11 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   return value;
 }
 
-ANN m_bool isres(const Env env, const Tag tag) {
+ANN bool isres(const Env env, const Tag tag) {
   const Map map = &env->gwion->data->id;
   for (m_uint i = 0; i < map_size(map); i++) {
     if (tag.sym == (Symbol)VKEY(map, i))
-      ERR_B(tag.loc, _("%s is reserved."), s_name(tag.sym));
+      ERR_b(tag.loc, _("%s is reserved."), s_name(tag.sym));
   }
-  return GW_OK;
+  return true;
 }

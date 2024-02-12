@@ -284,13 +284,13 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   if(c->body) cdef->body = cpy_ast(env->gwion->mp, c->body);
   cdef->cflag      = c->cflag;
   cdef->base.tmpl  = mk_tmpl(env, c->base.tmpl, info->td->types);
-  const m_bool ret = scan0_class_def(env, cdef);
+  const bool ret = scan0_class_def(env, cdef);
   if ((info->ret = cdef->base.type)) {
     info->ret->info->cdef = cdef;
     set_tflag(info->ret, tflag_cdef);
   } else
     free_class_def(env->gwion->mp, cdef);
-  return ret;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
@@ -301,14 +301,14 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   udef->tmpl = mk_tmpl(env, u->tmpl, info->td->types);
   // resolve the template here
   if (GET_FLAG(info->base, global)) SET_FLAG(udef, global);
-  const m_bool ret = scan0_union_def(env, udef);
+  const bool ret = scan0_union_def(env, udef);
   if (udef->type) {
     udef->type->info->udef = udef;       // mark as udef
     info->ret              = udef->type; // is info->ret necessary?
     set_tflag(info->ret, tflag_udef);
   } else
     free_union_def(env->gwion->mp, udef);
-  return ret;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 ANN static Type _scan_class(const Env env, struct tmpl_info *info) {

@@ -14,12 +14,20 @@ ANN static inline m_bool _body(const Env e, Ast b, const _exp_func f) {
   return GW_OK;
 }
 
+ANN static inline bool _body_b(const Env e, Ast b, const _exp_func_b f) {
+  for(m_uint i = 0; i < b->len; i++) {
+    Section *section = mp_vector_at(b, Section, i);
+    CHECK_B(f(e, section));
+  }
+  return true;
+}
+
 ANN static inline int actual(const Tmpl *tmpl) {
   return tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list;
 }
 
 ANN static inline m_bool tmpl_push(const Env env, const Tmpl *tmpl) {
-  return actual(tmpl) ? template_push_types(env, tmpl) : GW_ERROR;
+  return actual(tmpl) ? template_push_types(env, tmpl) > 0 ? GW_OK : GW_ERROR: GW_ERROR;
 }
 
 ANN static inline m_int _push(const Env env, const Class_Def c) {
@@ -42,6 +50,14 @@ ANN m_bool scanx_body(const Env e, const Class_Def c, const _exp_func f,
   return ret;
 }
 
+ANN bool scanx_body_b(const Env e, const Class_Def c, const _exp_func_b f,
+                      void *d) {
+  const m_int scope = _push(e, c); // check me
+  const bool ret = _body_b(d, c->body, f);
+  _pop(e, c, scope);
+  return ret;
+}
+
 ANN static m_bool _scanx_cdef(const Env env, void *opt, const Type t,
                               const _exp_func f_cdef, const _exp_func f_udef) {
   if (t->info->parent != env->gwion->type[et_union])
@@ -60,7 +76,7 @@ ANN m_bool scanx_cdef(const Env env, void *opt, const Type t,
 
 ANN m_bool scanx_fdef(const Env env, void *data, const Func_Def fdef,
                       const _exp_func func) {
-  if (fdef->base->tmpl) CHECK_BB(template_push_types(env, fdef->base->tmpl));
+  if (fdef->base->tmpl) CHECK_b(template_push_types(env, fdef->base->tmpl));
   const bool   in_try = env->scope->in_try;
   const m_bool ret    = func(data, fdef);
   if (fdef->base->tmpl) nspc_pop_type(env->gwion->mp, env->curr);

@@ -65,7 +65,7 @@ struct dottmpl_ {
   Type  type;
   m_str tmpl_name;
 };
-ANN bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value v);
+ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value v);
 
 INSTR(SetFunc);
 INSTR(FuncWait);

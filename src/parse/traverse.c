@@ -4,7 +4,7 @@
 #include "traverse.h"
 
 ANN m_bool traverse_ast(const Env env, Ast *const ast) {
-  CHECK_BB(scan0_ast(env, ast));
+  CHECK_b(scan0_ast(env, ast));
   CHECK_BB(scan1_ast(env, ast));
   CHECK_BB(scan2_ast(env, ast));
   return check_ast(env, ast);
@@ -17,7 +17,7 @@ ANN m_bool traverse_exp(const Env env, Exp* exp) {
 }
 
 ANN static m_bool _traverse_func_def(const Env env, const Func_Def fdef) {
-  CHECK_BB(scan0_func_def(env, fdef));
+  CHECK_b(scan0_func_def(env, fdef));
   CHECK_BB(scan1_func_def(env, fdef));
   CHECK_BB(scan2_func_def(env, fdef));
   return check_func_def(env, fdef);
@@ -41,7 +41,7 @@ ANN m_bool traverse_union_def(const Env env, const Union_Def def) {
 }
 
 ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
-  CHECK_BB(scan0_enum_def(env, def));
+  CHECK_b(scan0_enum_def(env, def));
   CHECK_BB(scan1_enum_def(env, def));
   //  CHECK_BB(scan2_enum_def(env, def));
   // return check_enum_def(env, def);
@@ -49,14 +49,14 @@ ANN m_bool traverse_enum_def(const Env env, const Enum_Def def) {
 }
 
 ANN m_bool traverse_fptr_def(const Env env, const Fptr_Def def) {
-  CHECK_BB(scan0_fptr_def(env, def));
+  CHECK_b(scan0_fptr_def(env, def));
   CHECK_BB(scan1_fptr_def(env, def));
   CHECK_BB(scan2_fptr_def(env, def));
   return check_fptr_def(env, def);
 }
 
 ANN m_bool traverse_type_def(const Env env, const Type_Def def) {
-  CHECK_BB(scan0_type_def(env, def));
+  CHECK_b(scan0_type_def(env, def));
   CHECK_BB(scan1_type_def(env, def));
   CHECK_BB(scan2_type_def(env, def));
   return check_type_def(env, def);

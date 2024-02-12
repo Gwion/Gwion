@@ -798,6 +798,8 @@ static OP_CHECK(opck_array_scan) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
   const Type           t_array = env->gwion->type[et_array];
   const Class_Def      c       = t_array->info->cdef;
+  if (ts->t == t_array && !ts->td->types)
+    ERR_N(ts->td->tag.loc, "Array needs template arguments");
   DECL_ON(const Type, base,
           = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   if (base->size == 0) {
@@ -825,7 +827,7 @@ static OP_CHECK(opck_array_scan) {
   env->context       = base->info->value->from->ctx;
   const m_uint scope = env_push(env, base->info->value->from->owner_class,
                                 base->info->value->from->owner);
-  CHECK_BN(scan0_class_def(env, cdef));
+  CHECK_ON(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))
     SET_FLAG(t, abstract);

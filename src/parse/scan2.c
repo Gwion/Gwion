@@ -563,7 +563,7 @@ ANN static m_bool scan2_parent(const Env env, const Class_Def cdef) {
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   const bool tmpl = !!cdef->base.tmpl;
-  if (tmpl) CHECK_BB(template_push_types(env, cdef->base.tmpl));
+  if (tmpl) CHECK_B(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = scan2_parent(env, cdef);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -622,7 +622,11 @@ ANN m_bool scan2_ast(const Env env, Ast *ast) {
   m_bool ret = GW_OK;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
-    if((ret = scan2_section(env, section)) < 0) break;
+    if(section->poison) continue;
+    if((ret = scan2_section(env, section)) < 0) {
+      section->poison = true;
+      break;
+    }
     if (section->section_type == ae_section_func &&
         fbflag(section->d.func_def->base, fbflag_default)) {
       mp_vector_add(env->gwion->mp, &acc, Section, *section);

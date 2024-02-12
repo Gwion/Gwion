@@ -226,9 +226,9 @@ ANN m_bool gwi_primitive(const Gwi gwi, const m_str name, const m_uint size, con
   const Prim_Def pdef = new_prim_def(gwi->gwion->mp, insert_symbol(gwi->gwion->st, name), size, gwi->loc, flag);
   if(gwi->gwion->data->cdoc) gwfmt_prim_def(gwi->gwfmt, pdef);
   if(!env->class_def || !tflag(env->class_def, tflag_tmpl)) {
-    const m_bool ret = scan0_prim_def(gwi->gwion->env, pdef);
+    const bool ret = scan0_prim_def(gwi->gwion->env, pdef);
     free_prim_def(gwi->gwion->mp, pdef);
-    return ret;
+    return ret ? GW_OK : GW_ERROR;
   }
   Section section = MK_SECTION(primitive, prim_def, pdef);
   gwi_body(gwi, &section);

@@ -230,7 +230,7 @@ ANN void env_warn(const Env env, const loc_t loc, const m_str fmt, ...) {
 }
 
 ANN void env_err(const Env env, const loc_t loc, const m_str fmt, ...) {
-  if (env->context && env->context->error) return;
+//  if (env->context && env->context->error) return;
 #ifndef __FUZZING__
   va_list arg;
   va_start(arg, fmt);

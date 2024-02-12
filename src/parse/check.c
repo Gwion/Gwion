@@ -601,7 +601,7 @@ static Func find_func_match_actual(const Env env, const Func f, Exp* exp,
 
       if (arg->type == env->gwion->type[et_auto]) {
         const Type owner = func->value_ref->from->owner_class;
-        if (owner) CHECK_BO(template_push(env, owner));
+        if (owner) CHECK_O(template_push(env, owner));
         arg->type = known_type(env, arg->var.td);
         if (owner) nspc_pop_type(env->gwion->mp, env->curr);
         CHECK_OO(arg->type);
@@ -674,7 +674,7 @@ ANN static m_bool check_func_args(const Env env, Arg_List args) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Var_Decl *decl = &arg->var.vd;
     const Value    v    = decl->value;
-    if(decl->tag.sym) CHECK_BB(already_defined(env, decl->tag.sym, decl->tag.loc));
+    if(decl->tag.sym) CHECK_b(already_defined(env, decl->tag.sym, decl->tag.loc));
     valid_value(env, decl->tag.sym, v);
   }
   return GW_OK;
@@ -2072,7 +2072,7 @@ ANN static m_bool check_parent(const Env env, const Class_Def cdef) {
 
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   const bool tmpl = !!cdef->base.tmpl;
-  if (tmpl) CHECK_BB(template_push_types(env, cdef->base.tmpl));
+  if (tmpl) CHECK_B(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = check_parent(env, cdef);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -2280,7 +2280,11 @@ ANN m_bool check_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
-    CHECK_BB(check_section(env, section));
+if(section->poison) continue;
+    if(check_section(env, section) < 0) {
+      section->poison = GW_OK;
+      return GW_ERROR;
+    }
   }
   if(vector_size(&env->scope->effects)) check_unhandled(env);
   if(env->context->extend) check_extend(env, env->context->extend);

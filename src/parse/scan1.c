@@ -108,7 +108,7 @@ ANN m_bool abstract_array(const Env env, const Array_Sub array) {
 ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
   const bool decl_ref = decl->var.td->array && !decl->var.td->array->exp;
   Var_Decl *const vd = &decl->var.vd;
-  CHECK_BB(isres(env, vd->tag));
+  CHECK_b(isres(env, vd->tag));
   Type t = decl->type;
   CHECK_BB(scan1_defined(env, vd));
   const Type base = array_base_simple(t);
@@ -152,7 +152,7 @@ ANN static m_bool scan1_decl(const Env env, Exp_Decl *const decl) {
 }
 
 ANN m_bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
-  CHECK_BB(env_storage(env, decl->var.td->flag, exp_self(decl)->loc));
+  CHECK_b(env_storage(env, decl->var.td->flag, exp_self(decl)->loc));
   ((Exp_Decl *)decl)->type = scan1_exp_decl_type(env, (Exp_Decl *)decl);
   CHECK_OB(decl->type);
   if(decl->args) CHECK_BB(scan1_exp(env, decl->args));
@@ -426,7 +426,7 @@ ANN static m_bool scan1_args(const Env env, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
     Var_Decl *const vd = &arg->var.vd;
-    if (vd->tag.sym) CHECK_BB(isres(env, vd->tag));
+    if (vd->tag.sym) CHECK_b(isres(env, vd->tag));
     if (arg->var.td) {
       SET_FLAG(arg->var.td, late);
       CHECK_OB((arg->type = void_type(env, arg->var.td)));
@@ -553,7 +553,7 @@ ANN static inline m_bool scan1_union_def_inner_loop(const Env env,
 
 ANN static m_bool scan1_union_def_inner(const Env env, const Union_Def udef) {
   if (udef->tmpl && udef->tmpl->call)
-    CHECK_BB(template_push_types(env, udef->tmpl));
+    CHECK_b(template_push_types(env, udef->tmpl));
   const m_bool ret = scan1_union_def_inner_loop(env, udef);
   if (udef->tmpl && udef->tmpl->call) nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -731,7 +731,7 @@ ANN static inline m_bool scan1_fdef_defined(const Env      env,
 ANN static m_bool _scan1_func_def(const Env env, const Func_Def fdef) {
   if(GET_FLAG(fdef->base, abstract) && !env->class_def)
     ERR_B(fdef->base->tag.loc, "file scope function can't be abstract");
-  CHECK_BB(env_storage(env, fdef->base->flag, fdef->base->tag.loc));
+  CHECK_b(env_storage(env, fdef->base->flag, fdef->base->tag.loc));
   CHECK_BB(scan1_fdef_defined(env, fdef));
   const bool   global = GET_FLAG(fdef->base, global);
   const m_uint scope  = !global ? env->scope->depth : env_push_global(env);
@@ -802,7 +802,7 @@ ANN static inline Type scan1_final(const Env env, Type_Decl *td, const bool tdef
 ANN static m_bool cdef_parent(const Env env, const Class_Def cdef) {
   CHECK_OB((cdef->base.type->info->parent = scan1_final(env, cdef->base.ext, tflag(cdef->base.type, tflag_typedef))));
   const bool tmpl = !!cdef->base.tmpl;
-  if (tmpl) CHECK_BB(template_push_types(env, cdef->base.tmpl));
+  if (tmpl) CHECK_b(template_push_types(env, cdef->base.tmpl));
   const m_bool ret = scan1_parent(env, cdef);
   if (tmpl) nspc_pop_type(env->gwion->mp, env->curr);
   return ret;
@@ -879,7 +879,12 @@ ANN m_bool scan1_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
-    CHECK_BB(scan1_section(env, section));
+//    CHECK_BB(scan1_section(env, section));
+    if(section->poison) continue;
+    if(scan1_section(env, section) < 0) {
+      section->poison = true;
+      return GW_ERROR;
+    }
   }
   return GW_OK;
 }

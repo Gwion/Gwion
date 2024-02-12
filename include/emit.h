@@ -64,25 +64,25 @@ struct Emitter_ {
 
 ANEW ANN Emitter new_emitter(MemPool);
 ANN void         free_emitter(MemPool, Emitter);
-ANN bool       emit_ast(const Env env, Ast *ast);
-ANN bool       emit_func_def(const Emitter emit, const Func_Def fdef);
-ANN bool emit_exp_call1(const Emitter, const Func, const m_uint size, const bool is_static);
+ANN m_bool       emit_ast(const Env env, Ast *ast);
+ANN m_bool       emit_func_def(const Emitter emit, const Func_Def fdef);
+ANN m_bool emit_exp_call1(const Emitter, const Func, const m_uint size, const bool is_static);
 ANN2(1)
 Instr emit_add_instr(const Emitter, const f_instr)
     __attribute__((returns_nonnull));
 ANN Code * emit_class_code(const Emitter, const m_str);
-ANN bool emit_array_extend(const Emitter, const Type, Exp*);
+ANN m_bool emit_array_extend(const Emitter, const Type, Exp*);
 ANN void   emit_class_finish(const Emitter, const Nspc);
 ANN2(1, 2)
-bool     emit_instantiate_object(const Emitter, const Type, const Array_Sub,
-                                   const bool);
+m_bool     emit_instantiate_object(const Emitter, const Type, const Array_Sub,
+                                   const m_bool);
 ANN m_uint emit_code_offset(const Emitter emit);
 ANN m_uint emit_local(const Emitter emit, const Type t);
 ANN m_uint emit_localn(const Emitter emit, const Type t);
 ANN void* emit_localx(const Emitter emit, const Type t);
 ANN m_uint emit_local_exp(const Emitter emit, Exp*);
-ANN bool emit_exp_spork(const Emitter, const Exp_Unary *);
-ANN bool emit_exp(const Emitter, Exp*);
+ANN m_bool emit_exp_spork(const Emitter, const Exp_Unary *);
+ANN m_bool emit_exp(const Emitter, Exp*);
 
 ANN void emit_object_addref(const Emitter emit, const m_int size,
                              const bool emit_var);
@@ -90,7 +90,7 @@ ANN void emit_struct_addref(const Emitter emit, const Type t, const m_int size,
                              const bool emit_var);
 ANN static inline void emit_compound_addref(const Emitter emit, const Type t,
                                              const m_int  size,
-                                             const bool emit_var) {
+                                             const m_bool emit_var) {
   return !tflag(t, tflag_struct) ? emit_object_addref(emit, size, emit_var)
                                  : emit_struct_addref(emit, t, size, emit_var);
 }
@@ -113,8 +113,8 @@ ANN static inline m_uint emit_code_size(const Emitter emit) {
 ANN void emit_push_scope(const Emitter emit);
 ANN void emit_pop_scope(const Emitter emit);
 
-ANN bool ensure_emit(const Emitter, const Type);
-ANN bool emit_ensure_func(const Emitter emit, const Func f);
+ANN m_bool ensure_emit(const Emitter, const Type);
+ANN m_bool emit_ensure_func(const Emitter emit, const Func f);
 ANN m_bool get_emit_var(const Emitter emit, const Type t, bool is_var);
 
 ANN static inline void emit_regmove(const Emitter emit, const m_uint i) {

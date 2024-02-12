@@ -11,10 +11,10 @@
 #include "operator.h"
 #include "import.h"
 
-ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) {
+ANN bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) {
   const m_str data = spread->data;
   char c[256];
-  DECL_OB(FILE *,f, = fmemopen(data, strlen(data), "r"));
+  DECL_B(FILE *,f, = fmemopen(data, strlen(data), "r"));
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     fseek(f, 0, SEEK_SET);
     const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
@@ -25,7 +25,7 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
       env_set_error(env, true);
       return GW_ERROR;
     }
-    DECL_OB(const Type, t, = known_type(env, targ.d.td));
+    DECL_B(const Type, t, = known_type(env, targ.d.td));
     struct AstGetter_ arg =  {env->name, f, env->gwion->st, .ppa = env->gwion->ppa};
     const m_str type = type2str(env->gwion, t, targ.d.td->tag.loc);
     sprintf(c, "%s=%s", s_name(spread->tag.sym), type);
@@ -44,8 +44,8 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
       m_str name = s_name(sym);
       pparg_rem(env->gwion->ppa, name);
     }
-    if(!ast) return GW_ERROR;
-    CHECK_BB(scan0_ast(env, &ast));
+    if(!ast) return false;
+    CHECK_b(scan0_ast(env, &ast));
     for(uint32_t i = 0; i < ast->len; i++) {
       const Section section = *mp_vector_at(ast, Section, i);
       mp_vector_add(env->gwion->mp, &env->context->extend, Section, section);
@@ -54,7 +54,7 @@ ANN m_bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) 
   }
   fclose(f);
   mp_vector_add(env->gwion->mp, &env->context->extend, Section, MK_SECTION(stmt, stmt_list, NULL));
-  return GW_OK;
+  return true;
 }
 
 ANN Ast spread_class(const Env env, const Ast body) {
@@ -103,6 +103,7 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
   const Ast extend = env->context->extend;
   Ast new_body = new_mp_vector(env->gwion->mp, Stmt, 0);
   uint32_t offset = 0;
+  bool ok = true;
   for(uint32_t i = 0; i < body->len; i++) {
     const Stmt stmt = *mp_vector_at(body, Stmt, i);
     if(stmt.stmt_type == ae_stmt_spread) {
@@ -111,7 +112,7 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
         if(section.section_type == ae_section_stmt && !section.d.stmt_list)
           break;
         if(section.section_type != ae_section_stmt)
-          ERR_O(stmt.loc, "invalid section in variadic func");
+          ERR_OK(ok, stmt.loc, "invalid section in variadic func");
         const Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
           const Stmt stmt = *mp_vector_at(list, Stmt, j);
@@ -124,5 +125,6 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
   }
   free_mp_vector(env->gwion->mp, Stmt_List, body);
   free_mp_vector(env->gwion->mp, Section, extend);
-  return new_body;
+  if(ok) return new_body;
+  return NULL;
 }

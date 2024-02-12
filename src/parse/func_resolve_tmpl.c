@@ -47,7 +47,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
   if (exp->args && !exp->args->type) return NULL;
   const Func f    = fdef->base->func;
   const Tmpl tmpl = {.list = fdef->base->tmpl->list, .call = exp->tmpl->call};
-  CHECK_BO(template_push_types(env, &tmpl));
+  CHECK_O(template_push_types(env, &tmpl));
   const Func func = find_func_match(env, f, exp);
   nspc_pop_type(env->gwion->mp, env->curr);
   if (func)
@@ -75,7 +75,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   const Func_Def base =
       v->d.func_ref ? v->d.func_ref->def : ra->e->func->type->info->func->def;
   const Tmpl tmpl = {.list = base->base->tmpl->list, .call = ra->types};
-  CHECK_BO(template_push_types(env, &tmpl));
+  CHECK_O(template_push_types(env, &tmpl));
   Func_Base *const fbase = cpy_func_base(env->gwion->mp, base->base);
   fbase->tag.sym         = sym;
   fbase->tmpl->call      = cpy_tmplarg_list(env->gwion->mp, ra->types);

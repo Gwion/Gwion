@@ -25,7 +25,7 @@ typedef struct Gwi_ *Gwi;
   void a(const Type t NUSED, m_bit *const VALUE NUSED,                         \
          const VM_Shred shred NUSED)
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void *data NUSED)
-#define OP_EMIT(a)  ANN bool a(const Emitter emit NUSED, void *data NUSED)
+#define OP_EMIT(a)  ANN m_bool a(const Emitter emit NUSED, void *data NUSED)
 #ifdef GWION_BUILTIN
 #define GWI_BB(a)                                                              \
   {                                                                            \
