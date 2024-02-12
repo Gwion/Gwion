@@ -425,7 +425,7 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
       if (stmt->d.stmt_pp.pp_type == ae_pp_include)
         env->name = stmt->d.stmt_pp.data;
       else if (stmt->d.stmt_pp.pp_type == ae_pp_import) {
-        if(plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->loc) < 0)
+        if(!plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->loc))
           ok = false;
       }
     } else if (stmt->stmt_type == ae_stmt_spread) {

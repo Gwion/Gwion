@@ -18,7 +18,7 @@ struct Gwion_ {
   struct PPArg_ *    ppa;
 };
 
-ANN m_bool gwion_ini(const Gwion, CliArg*);
+ANN bool gwion_ini(const Gwion, CliArg*);
 ANN VM * gwion_cpy(const VM *);
 ANN void gwion_run(const Gwion gwion);
 ANN void gwion_end(const Gwion gwion);

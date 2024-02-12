@@ -36,6 +36,6 @@ static inline Tmpl *gwi_tmpl(const Gwi gwi) {
   return new_tmpl(gwi->gwion->mp, gwi->ck->sl);
 }
 
-ANN void   gwi_effects(const Gwi gwi, const m_str name);
-ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi));
+ANN void gwi_effects(const Gwi gwi, const m_str name);
+ANN bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi));
 #endif

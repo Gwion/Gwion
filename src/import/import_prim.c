@@ -217,7 +217,7 @@ ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
     prim_op(env, t, "$", NULL, (opem)dummy_func);
     prim_implicit(env, t);
   } // else provide function to get slices
-  CHECK_BO(mk_gack(env->gwion->mp, t, gack_prim));
+  CHECK_O(mk_gack(env->gwion->mp, t, gack_prim));
   return t;
 }
 

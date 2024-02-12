@@ -74,7 +74,7 @@ ANN static void plug_get_all(struct PlugHandle *h, const m_str name) {
 #endif
 }
 
-ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
+ANN bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
   gwion->data->plugs = mp_calloc2(gwion->mp, sizeof(Plugs));
   const Map map = &gwion->data->plugs->map;
   map_init(map);
@@ -84,10 +84,10 @@ ANN m_bool plug_ini(const struct Gwion_ *gwion, const Vector list) {
     const m_str dir = (m_str)vector_at(list, i - 1);
     h.len           = strlen(dir);
     char name[PATH_MAX];
-    sprintf(name, "%s/*.so", dir);
+    sprintf(name, "%s/" "*.so", dir);
     plug_get_all(&h, name);
   }
-  return GW_OK;
+  return true;
 }
 
 void free_plug(const Gwion gwion) {
@@ -115,21 +115,21 @@ ANN static void plug_free_arg(MemPool p, const Vector v) {
   free_vector(p, v);
 }
 
-ANN m_bool set_module(const struct Gwion_ *gwion, const m_str name,
+ANN bool set_module(const struct Gwion_ *gwion, const m_str name,
                     void *const ptr) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint j = 0; j < map_size(map); ++j) {
     if (!strcmp(name, (m_str)VKEY(map, j))) {
       Plug plug  = (Plug)VVAL(map, j);
       plug->self = ptr;
-      return GW_OK;
+      return true;
     }
   }
   gw_err("%s: no such module\n", name);
-  return GW_ERROR;
+  return false;
 }
 
-ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
+ANN bool plug_run(const struct Gwion_ *gwion, const Map mod) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(mod); ++i) {
     const m_str name = (m_str)VKEY(mod, i);
@@ -147,27 +147,27 @@ ANN m_bool plug_run(const struct Gwion_ *gwion, const Map mod) {
     }
     if(j == map_size(map)) {
       gw_err("%s: no such module\n", name);
-      return GW_ERROR;
+      return false;
     }
   }
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
+ANN static bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
   const gwdepend_t dep = plug->depend;
   bool ret = true;
   if (dep) {
     m_str *const base = dep();
     m_str *      deps = base;
     while (*deps) {
-      if(plugin_ini(gwion, *deps, loc) < 0) {
+      if(!plugin_ini(gwion, *deps, loc)) {
         gw_err("%s: no such plugin (dependency)\n", *deps);
         ret = false;
       }
       ++deps;
     }
   }
-  return ret ? GW_OK : GW_ERROR;
+  return ret;
 }
 
 ANN static void plug_name(m_str name, const m_str iname, const m_uint size) {
@@ -182,11 +182,11 @@ ANN static void set_parent(const Nspc nspc, const Gwion gwion ) {
   user->parent = nspc;
 }
 
-ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, const loc_t loc) {
-  if(!plug->plugin) return GW_ERROR;
+ANN static bool start(const Plug plug, const Gwion gwion, const m_str iname, const loc_t loc) {
+  if(!plug->plugin) return false;
   const bool cdoc = gwion->data->cdoc;
   gwion->data->cdoc = 0; // check cdoc
-  CHECK_BB(dependencies(gwion, plug, loc));
+  CHECK_B(dependencies(gwion, plug, loc));
   gwion->data->cdoc = cdoc;
   plug->nspc = new_nspc(gwion->mp, iname);
   vector_add(&gwion->data->plugs->vec, (m_uint)plug->nspc);
@@ -194,22 +194,22 @@ ANN static m_bool start(const Plug plug, const Gwion gwion, const m_str iname, c
   const m_uint scope = env_push(gwion->env, NULL, plug->nspc);
   const m_str  name  = gwion->env->name;
   gwion->env->name   = iname;
-  const m_bool ret   = gwi_run(gwion, plug->plugin);
+  const bool ret   = gwi_run(gwion, plug->plugin);
   gwion->env->name   = name;
   env_pop(gwion->env, scope);
   return ret;
 }
 
-ANN static m_bool started(const Plug plug, const Gwion gwion, const m_str iname) {
+ANN static bool started(const Plug plug, const Gwion gwion, const m_str iname) {
   Nspc nspc = gwion->env->global_nspc->parent;
   do if(!strcmp(nspc->name, iname))
-    return GW_OK;
+    return true;
   while((nspc = nspc->parent));
   set_parent(plug->nspc, gwion);
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
+ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
@@ -222,15 +222,15 @@ ANN static m_bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc
       else return started(plug, gwion, iname);
     }
   }
-  return GW_ERROR;
+  return false;
 }
 
-ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
+ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Env env = gwion->env;
-  if(_plugin_ini(gwion, iname, loc) < 0) {
+  if(!_plugin_ini(gwion, iname, loc)) {
     if(gwion->env->context && !gwion->env->context->error)
       env_err(env, loc, "%s: no such plugin\n", iname);
-    return GW_ERROR;
+    return false;
   }
   return GW_OK;
 }

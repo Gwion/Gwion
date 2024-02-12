@@ -90,9 +90,9 @@ int main(int argc, char **argv) {
     .thread_count = 4,
     .queue_size = 16
   };
-  const m_bool  ini = gwion_ini(&gwion, &arg);
+  const bool  ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);
-  if (ini > 0) gwion_run(&gwion);
+  if (ini) gwion_run(&gwion);
   const bool ret = gwion.data->errored;
   gwion_end(&gwion);
   gwion.vm = NULL;

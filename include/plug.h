@@ -24,14 +24,14 @@ ANN static inline Plug new_plug(MemPool p) {
   return (Plug)mp_calloc(p, Plug);
 }
 
-ANN m_bool plug_ini(const struct Gwion_ *, const Vector);
+ANN bool plug_ini(const struct Gwion_ *, const Vector);
 ANN gwdriver_t driver_ini(const struct Gwion_ *, struct SoundInfo_ *);
-ANN m_bool plug_run(const struct Gwion_ *, const Map);
+ANN bool plug_run(const struct Gwion_ *, const Map);
 ANN void   free_plug(const Gwion);
 ANN void * get_module(const struct Gwion_ *, const m_str);
-ANN m_bool   set_module(const struct Gwion_ *gwion, const m_str name,
+ANN bool   set_module(const struct Gwion_ *gwion, const m_str name,
                       void *const ptr);
-ANN m_bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t);
+ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t);
 
 
 #define GWIMPORT_NAME(a) gwimport_##a

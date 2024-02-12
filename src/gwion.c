@@ -16,13 +16,14 @@
 #include "shreduler_private.h"
 #include "ugen.h"
 
-ANN m_bool gwion_audio(const Gwion gwion) {
+ANN static bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
-  if (di->si->arg) CHECK_OB((di->func = driver_ini(gwion, di->si)));
+  if (di->si->arg) CHECK_B((di->func = driver_ini(gwion, di->si)));
   di->func(di->driver);
-  CHECK_BB(di->driver->ini(gwion->vm, di));
+  if(di->driver->ini(gwion->vm, di) < 0)
+    return false;
   driver_alloc(di);
-  return GW_OK;
+  return true;
 }
 
 ANN static VM_Shred gwion_cleaner(const Gwion gwion) {
@@ -73,22 +74,22 @@ ANN static Func gwion_locale(const Gwion gwion) {
    return v->d.func_ref;
 }
 
-ANN static m_bool gwion_ok(const Gwion gwion, CliArg *arg) {
-  CHECK_BB(plug_ini(gwion, &arg->lib));
+ANN static bool gwion_ok(const Gwion gwion, CliArg *arg) {
+  if(!plug_ini(gwion, &arg->lib)) return false;
   shreduler_set_loop(gwion->vm->shreduler, arg->loop);
   if(arg->embed_libs) arg->embed_libs(gwion);
-  if (gwion_audio(gwion) > 0) {
-    CHECK_BB(plug_run(gwion, &arg->mod));
+  if (gwion_audio(gwion)) {
+    if(!plug_run(gwion, &arg->mod)) return false;
     if (type_engine_init(gwion)) {
       vector_add(&gwion->data->plugs->vec, (m_uint)gwion->env->global_nspc);
       gwion->vm->cleaner_shred = gwion_cleaner(gwion);
       gwion->emit->locale = gwion_locale(gwion);
       if(arg->embed_scripts) arg->embed_scripts(gwion);
       arg_compile(gwion, arg);
-      return GW_OK;
+      return true;
     }
   }
-  return GW_ERROR;
+  return false;
 }
 
 #define LOCALE_INFO INSTALL_PREFIX "/share"
@@ -101,7 +102,7 @@ ANN static void doc_mode(const Gwion gwion) {
   vector_release(&v);
 }
 
-ANN m_bool gwion_ini(const Gwion gwion, CliArg *arg) {
+ANN bool gwion_ini(const Gwion gwion, CliArg *arg) {
 #ifdef USE_GETTEXT
   setlocale(LC_ALL, NULL);
   bindtextdomain(GWION_PACKAGE, LOCALE_INFO);
@@ -129,7 +130,7 @@ ANN m_bool gwion_ini(const Gwion gwion, CliArg *arg) {
     pass_default(gwion);
     else doc_mode(gwion);
   }
-  return !arg->quit ? gwion_ok(gwion, arg) : GW_ERROR;
+  return !arg->quit ? gwion_ok(gwion, arg) : false;
 }
 
 ANN void gwion_run(const Gwion gwion) {

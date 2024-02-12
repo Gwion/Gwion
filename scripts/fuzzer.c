@@ -10,7 +10,7 @@
 static struct Gwion_ gwion;
 static void initialize() {
   Arg arg = { .loop=-1 };
-  const m_bool ini = gwion_ini(&gwion, &arg);
+  const bool ini = gwion_ini(&gwion, &arg);
   arg_release(&arg);
 }
 

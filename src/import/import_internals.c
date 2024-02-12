@@ -29,7 +29,7 @@ ANN void gwi_reset(const Gwi gwi) {
   env_reset(gwi->gwion->env);
 }
 
-ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
+ANN static bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
   struct GwfmtState ls     = {.builtin = true, .nindent = 4};
   text_init(&ls.text, gwi->gwion->mp);
   Gwfmt             gwfmter = {.mp = gwi->gwion->mp, .ls = &ls, .st = gwi->gwion->st };
@@ -38,10 +38,10 @@ ANN static m_bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
   gwi->gwfmt = &gwfmter;
   const m_bool ret = f(gwi);
   fprintf(stdout, "%s", ls.text.str);
-  return ret;
+  return ret > 0;
 }
 
-ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
+ANN bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   const m_str name = gwion->env->name;
   //  const Context ctx = gwion->env->context;
   //  gwion->env->context = NULL;
@@ -51,6 +51,6 @@ ANN m_bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
   if (ret < 0) gwi_reset(&gwi);
   gwion->env->name = name;
   //  gwion->env->context = ctx;
-  return ret;
+  return ret > 0;
 }
 
