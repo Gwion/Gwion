@@ -40,6 +40,14 @@
   --env->scope->depth;                                                         \
   return ret;
 
+#define RET_NSPC_B(exp)                                                        \
+  ++env->scope->depth;                                                         \
+  nspc_push_value(env->gwion->mp, env->curr);                                  \
+  const bool ret = exp;                                                        \
+  nspc_pop_value(env->gwion->mp, env->curr);                                   \
+  --env->scope->depth;                                                         \
+  return ret;
+
 #define SET_ACCESS(a, b)                                                       \
   if (GET_FLAG(a, private))                                                    \
     SET_FLAG(b, private);                                                      \
@@ -65,18 +73,26 @@
 #define HANDLE_EXP_FUNC_B(prefix, type, Arg)                                   \
   DECL_EXP_FUNC(prefix, type, Arg)                                             \
   ANN type prefix##_exp(const Arg arg, Exp* exp) {                             \
+    bool ok = true;                                                            \
     do {                                                                       \
       if(!exp->poison) {                                                       \
-        if(!prefix##_exp_func[exp->exp_type](arg, &exp->d));                   \
+        if(!prefix##_exp_func[exp->exp_type](arg, &exp->d)) {                  \
           exp->poison = true;                                                  \
+          ok = false;                                                          \
+        }                                                                      \
       }                                                                        \
     } while ((exp = exp->next));                                               \
-    return GW_OK;                                                              \
+    return ok;                                                                 \
   }
 
 #define describe_stmt_func(prefix, name, type, prolog, exp)                    \
   ANN static m_bool prefix##_stmt_##name(const Env env, const type stmt) {     \
     RET_NSPC(exp)                                                              \
+  }
+
+#define describe_stmt_func_b(prefix, name, type, prolog, exp)                  \
+  ANN static bool prefix##_stmt_##name(const Env env, const type stmt) {       \
+    RET_NSPC_B(exp)                                                            \
   }
 
 ANN m_bool check_stmt(const Env env, Stmt* stmt);
@@ -117,7 +133,8 @@ static inline m_bool prefix##_union_def_b(const Env env, const Union_Def udef) {
                       (_exp_func)prefix##_union_def_b);                          \
   }
 
-xxx_cdef_b(scan0)
+xxx_cdef_b(scan0);
+xxx_cdef_b(scan1);
 
 #define xxx_cdef(prefix)                                                       \
   static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
@@ -125,13 +142,14 @@ xxx_cdef_b(scan0)
                       (_exp_func)prefix##_union_def);                          \
   }
 
-xxx_cdef(scan1)
-xxx_cdef(scan2)
-xxx_cdef(check)
-xxx_cdef(traverse)
+xxx_cdef(scan2);
+xxx_cdef(check);
+xxx_cdef(traverse);
 
-        ANN m_bool
-    scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
+ANN m_bool
+scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
+ANN bool
+scanx_fdef_b(const Env, void *, const Func_Def, const _exp_func_b);
 
 ANN m_bool check_subscripts(const Env, const Array_Sub, const m_bool is_decl);
 ANN m_bool check_implicit(const Env env, Exp* e, const Type t);
@@ -174,7 +192,7 @@ ANN static inline bool not_upvalue(const Env env, const Value v) {
       nspc_lookup_value1(env->curr, insert_symbol(v->name));
 }
 
-ANN m_bool abstract_array(const Env env, const Array_Sub array);
+ANN bool abstract_array(const Env env, const Array_Sub array);
 
 ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
   if (e->exp_type != ae_exp_dot) return true;

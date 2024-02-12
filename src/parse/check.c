@@ -170,7 +170,7 @@ ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
     e->ref = exp_self(decl);
   }
   if (decl->var.td->tag.sym == insert_symbol("auto")) { // should be better
-    CHECK_BO(scan1_exp(env, exp_self(decl)));
+    CHECK_O(scan1_exp(env, exp_self(decl)));
     CHECK_BO(scan2_exp(env, exp_self(decl)));
   }
   if (!decl->type) ERR_O(decl->var.td->tag.loc, _("can't find type"));

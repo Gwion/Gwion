@@ -83,3 +83,13 @@ ANN m_bool scanx_fdef(const Env env, void *data, const Func_Def fdef,
   env->scope->in_try = in_try;
   return ret;
 }
+ANN bool scanx_fdef_b(const Env env, void *data, const Func_Def fdef,
+                      const _exp_func_b func) {
+  if (fdef->base->tmpl) CHECK_B(template_push_types(env, fdef->base->tmpl));
+  const bool   in_try = env->scope->in_try;
+  const bool ret    = func(data, fdef);
+  if (fdef->base->tmpl) nspc_pop_type(env->gwion->mp, env->curr);
+  env->scope->in_try = in_try;
+  return ret;
+}
+

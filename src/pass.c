@@ -12,6 +12,7 @@
 #define N_SCANPASS 4
 
 static m_bool typecheck_ast(const Env env, Ast *ast) {
+  env->scope->poison = false; // move me
   CHECK_BB(traverse_ast(env, ast));
   if(env->scope->poison)env->context->error = true;
   if(env->context->error)return GW_ERROR;

@@ -122,7 +122,7 @@ OP_CHECK(opck_new) {
   if(array && !unary->ctor.exp) {
     const Type base = array_base(t);
     if(GET_FLAG(base, abstract))
-      CHECK_BN(abstract_array(env, array));
+      CHECK_ON(abstract_array(env, array));
     if(GET_FLAG(base, abstract))
       CHECK_BN(check_array_instance(env, unary->ctor.td, unary->ctor.exp));
   }
