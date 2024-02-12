@@ -2306,7 +2306,11 @@ ANN static inline void check_unhandled(const Env env) {
 ANN static void check_extend(const Env env, Ast ast) {
   for(m_uint i = 0; i < ast->len; i++) {
     Section * section = mp_vector_at(ast, Section, i);
-    (void)check_section(env, section);
+    if(section->poison) continue;
+    if(!check_section(env, section)) {
+      section->poison = true;
+      continue;
+    }
     mp_vector_add(env->gwion->mp, &env->context->tree, Section, *section);
   }
   free_mp_vector(env->gwion->mp, Section, env->context->extend);
@@ -2315,15 +2319,19 @@ ANN static void check_extend(const Env env, Ast ast) {
 
 ANN bool check_ast(const Env env, Ast *ast) {
   Ast a = *ast;
+  bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
-    if(section->poison) return false;
+    if(section->poison) {
+      ok = false;
+      continue;
+    }
     if(!check_section(env, section)) {
       section->poison = true;
-      return false;
+      ok = false;
     }
   }
-  if(vector_size(&env->scope->effects)) check_unhandled(env);
   if(env->context->extend) check_extend(env, env->context->extend);
-  return true;
+  if(ok && vector_size(&env->scope->effects)) check_unhandled(env);
+  return ok;
 }

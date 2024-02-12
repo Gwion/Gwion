@@ -911,7 +911,6 @@ ANN bool scan1_ast(const Env env, Ast *ast) {
     if(!scan1_section(env, section)) {
       section->poison = true;
       ok = false;
-      return false;
     }
   }
   return ok;

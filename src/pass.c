@@ -13,8 +13,16 @@
 
 static m_bool typecheck_ast(const Env env, Ast *ast) {
   env->scope->poison = false; // move me
-  CHECK_b(traverse_ast(env, ast));
+  scan0_ast(env, ast);
   if(env->scope->poison)env->context->error = true;
+  scan1_ast(env, ast);
+  if(env->scope->poison)env->context->error = true;
+  scan2_ast(env, ast);
+  if(env->scope->poison)env->context->error = true;
+    CHECK_b(check_ast(env, ast));
+  if(env->scope->poison)env->context->error = true;
+//  CHECK_b(traverse_ast(env, ast));
+//  if(env->scope->poison)env->context->error = true;
   if(env->context->error)return GW_ERROR;
   return GW_OK;
 }
