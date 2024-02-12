@@ -135,6 +135,7 @@ static inline m_bool prefix##_union_def_b(const Env env, const Union_Def udef) {
 
 xxx_cdef_b(scan0);
 xxx_cdef_b(scan1);
+xxx_cdef_b(scan2);
 
 #define xxx_cdef(prefix)                                                       \
   static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
@@ -142,7 +143,6 @@ xxx_cdef_b(scan1);
                       (_exp_func)prefix##_union_def);                          \
   }
 
-xxx_cdef(scan2);
 xxx_cdef(check);
 xxx_cdef(traverse);
 
