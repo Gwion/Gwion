@@ -326,11 +326,11 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
   if (exists) return exists != env->gwion->type[et_error] ? exists : NULL;
   struct EnvSet es    = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)scan0_cdef,
+                      .func  = (_envset_func)scan0_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_check};
   const Type    owner = t->info->value->from->owner_class;
-  CHECK_BO(envset_pushv(&es, t->info->value));
+  CHECK_O(envset_pushv(&es, t->info->value));
   const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
   if(local && env->context) env_push(env, NULL, env->context->nspc);
   const Type ret = _scan_class(env, &info);

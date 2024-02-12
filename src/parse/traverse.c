@@ -18,7 +18,7 @@ ANN bool traverse_exp(const Env env, Exp* exp) {
   return true;
 }
 
-ANN static m_bool _traverse_func_def(const Env env, const Func_Def fdef) {
+ANN static bool _traverse_func_def(const Env env, const Func_Def fdef) {
   CHECK_B(scan0_func_def(env, fdef));
   CHECK_B(scan1_func_def(env, fdef));
   CHECK_B(scan2_func_def(env, fdef));

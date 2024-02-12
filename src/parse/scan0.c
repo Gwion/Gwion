@@ -550,7 +550,7 @@ ANN static bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   set_tflag(cdef->base.type, tflag_scan0);
   (void)mk_class(env, cdef->base.type, cdef->base.tag.loc);
   add_type(env, cdef->base.type->info->value->from->owner, cdef->base.type);
-  return cdef->body ? env_body_b(env, cdef, scan0_section) : true;
+  return cdef->body ? env_body(env, cdef, scan0_section) : true;
 }
 
 ANN Ast spread_class(const Env env, const Ast body);

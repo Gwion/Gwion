@@ -99,38 +99,23 @@
 ANN bool check_stmt_list(const Env env, const Stmt_List);
 
 typedef m_bool (*_exp_func)(const void *, const void *);
-ANN m_bool scanx_body(const Env env, const Class_Def cdef, const _exp_func f,
-                      void *data);
+
+ANN bool scanx_body(const Env e, const Class_Def c, const _envset_func f,
+                      void *d);
+
 static inline ANN m_bool env_body(const Env env, const Class_Def cdef,
-                                  const _exp_func f) {
+                                  const _envset_func f) {
   return scanx_body(env, cdef, f, env);
 }
-#define env_body(a, b, c) env_body(a, b, (_exp_func)c)
+#define env_body(a, b, c) env_body(a, b, (_envset_func)c)
 
-typedef bool (*_exp_func_b)(const void *, const void *);
-ANN bool scanx_body_b(const Env env, const Class_Def cdef, const _exp_func_b f,
-                      void *data);
-static inline ANN bool env_body_b(const Env env, const Class_Def cdef,
-                                  const _exp_func_b f) {
-  return scanx_body_b(env, cdef, f, env);
-}
-#define env_body_b(a, b, c) env_body_b(a, b, (_exp_func_b)c)
+ANN bool scanx_cdef(const Env, void *, const Type, const _envset_func f_cdef,
+                      const _envset_func f_union);
 
-ANN m_bool scanx_cdef(const Env, void *, const Type, const _exp_func f_cdef,
-                      const _exp_func f_union);
-
-#define xxx_section_b(prefix)                                                     \
-static inline m_bool prefix##_section_b(const Env env, Section *section) { \
-  return prefix##_section(env, section) ? GW_OK : GW_ERROR;}
-
-#define xxx_cdef_b(prefix)                                                     \
-static inline m_bool prefix##_class_def_b(const Env env, const Class_Def cdef) { \
-  return prefix##_class_def(env, cdef) ? GW_OK : GW_ERROR;} \
-static inline m_bool prefix##_union_def_b(const Env env, const Union_Def udef) { \
-  return prefix##_union_def(env, udef) ? GW_OK : GW_ERROR;} \
-  static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
-    return scanx_cdef(env, env, t, (_exp_func)prefix##_class_def_b,              \
-                      (_exp_func)prefix##_union_def_b);                          \
+#define xxx_cdef_b(prefix)                                                        \
+  static inline bool prefix##_cdef(const Env env, const Type t) {                 \
+    return scanx_cdef(env, env, t, (_envset_func)prefix##_class_def,              \
+                      (_envset_func)prefix##_union_def);                          \
   }
 
 xxx_cdef_b(scan0);
@@ -139,16 +124,8 @@ xxx_cdef_b(scan2);
 xxx_cdef_b(check);
 xxx_cdef_b(traverse);
 
-#define xxx_cdef(prefix)                                                       \
-  static inline m_bool prefix##_cdef(const Env env, const Type t) {            \
-    return scanx_cdef(env, env, t, (_exp_func)prefix##_class_def,              \
-                      (_exp_func)prefix##_union_def);                          \
-  }
-
-ANN m_bool
-scanx_fdef(const Env, void *, const Func_Def, const _exp_func);
 ANN bool
-scanx_fdef_b(const Env, void *, const Func_Def, const _exp_func_b);
+scanx_fdef(const Env, void *, const Func_Def, const _envset_func);
 
 ANN bool check_subscripts(const Env, const Array_Sub, const bool is_decl);
 ANN bool check_implicit(const Env env, Exp* e, const Type t);

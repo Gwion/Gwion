@@ -151,12 +151,12 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
   const m_uint        scope  = env->scope->depth;
   struct EnvSet       es     = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)check_cdef,
+                      .func  = (_envset_func)check_cdef,
                       .scope = scope,
                       .flag  = tflag_check};
   struct ResolverArgs ra     = {
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_BO(envset_pushv(&es, v));
+  CHECK_O(envset_pushv(&es, v));
   (void)env_push(env, v->from->owner_class, v->from->owner);
   const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
       get_tmpl(v->from->owner_class) : NULL;

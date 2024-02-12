@@ -30,7 +30,7 @@ ANN static inline bool ensure_scan2(const Env env, const Type t) {
     return true;
   struct EnvSet es = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)scan2_cdef,
+                      .func  = (_envset_func)scan2_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_scan2};
   return envset_run(&es, t);
@@ -548,7 +548,7 @@ ANN bool _scan2_func_def(const Env env, const Func_Def fdef) {
                     !GET_FLAG(f->base, global))
                        ? SZ_INT
                        : 0;
-  const bool ret = scanx_fdef_b(env, env, f, (_exp_func_b)scan2_fdef);
+  const bool ret = scanx_fdef(env, env, f, (_envset_func)scan2_fdef);
   if (GET_FLAG(f->base, global)) env_pop(env, scope);
   CHECK_B(ret);
   fdef->base->func = f->base->func; // only needed if 'is_cpy()'

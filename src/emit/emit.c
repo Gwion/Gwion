@@ -118,7 +118,7 @@ static const f_instr allocword[4]   = {AllocWord, AllocWord2, AllocWord3,
                                     RegPushMem4};
 
 ANN static m_bool      emit_class_def(const Emitter, const Class_Def);
-ANN /*static */ m_bool emit_cdef(const Emitter, const Type);
+ANN static bool emit_cdef(const Emitter, const Type);
 
 ANN /*static inline*/ m_bool ensure_emit(const Emitter emit, const Type t) {
   if (tflag(t, tflag_emit) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
@@ -126,10 +126,10 @@ ANN /*static inline*/ m_bool ensure_emit(const Emitter emit, const Type t) {
   if(!tflag(t, tflag_tmpl))return GW_OK;
   struct EnvSet es = {.env   = emit->env,
                       .data  = emit,
-                      .func  = (_exp_func)emit_cdef,
+                      .func  = (_envset_func)emit_cdef,
                       .scope = emit->env->scope->depth,
                       .flag  = tflag_emit};
-  return envset_run(&es, t);
+  return envset_run(&es, t) ? GW_OK : GW_ERROR;
 }
 
 ANN void emit_object_release(const Emitter emit, const m_uint offset) {
@@ -1430,10 +1430,10 @@ ANN m_bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Valu
   emit->env->scope->shadowing = true;
   struct EnvSet es    = {.env   = emit->env,
                       .data  = emit,
-                      .func  = (_exp_func)emit_cdef,
+                      .func  = (_envset_func)emit_cdef,
                       .scope = scope,
                       .flag  = tflag_emit};
-  CHECK_BB(envset_pushv(&es, v));
+  CHECK_b(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const bool ret = traverse_emit_func_def(emit, fdef);
   emit_pop(emit, scope);
@@ -1476,10 +1476,10 @@ ANN static m_bool emit_template_code(const Emitter emit, const Func f) {
   const size_t  scope = emit->env->scope->depth;
   struct EnvSet es    = {.env   = emit->env,
                       .data  = emit,
-                      .func  = (_exp_func)emit_cdef,
+                      .func  = (_envset_func)emit_cdef,
                       .scope = scope,
                       .flag  = tflag_emit};
-  CHECK_BB(envset_pushv(&es, v));
+  CHECK_b(envset_pushv(&es, v));
   (void)emit_push(emit, v->from->owner_class, v->from->owner);
   const m_bool ret = emit_func_def(emit, f->def);
   envset_pop(&es, v->from->owner_class);
@@ -1928,10 +1928,10 @@ ANN static m_bool emit_exp_lambda(const Emitter     emit,
   }
   struct EnvSet es = {.env   = emit->env,
                       .data  = emit,
-                      .func  = (_exp_func)emit_cdef,
+                      .func  = (_envset_func)emit_cdef,
                       .scope = emit->env->scope->depth,
                       .flag  = tflag_emit};
-  CHECK_BB(envset_pushv(&es, lambda->def->base->func->value_ref));
+  CHECK_b(envset_pushv(&es, lambda->def->base->func->value_ref));
   const m_bool ret = emit_lambda(emit, lambda);
   envset_pop(&es, lambda->owner);
   return ret;
@@ -2808,6 +2808,10 @@ ANN static void emit_lambda_capture(const Emitter emit, const Func_Def fdef) {
   emit_regtomem4(emit, fdef->stack_depth, offset);
 }
 
+ANN static bool emit_fdef_b(const Emitter emit, const Func_Def fdef) {
+  return emit_fdef(emit, fdef) > 0;
+}
+
 ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
   if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return GW_OK;
   const Func     func   = f->base->func;
@@ -2857,15 +2861,15 @@ ANN static m_bool _emit_func_def(const Emitter emit, const Func_Def f) {
     emit_local(emit, emit->gwion->type[et_int]);
     emit_memsetimm(emit, SZ_INT, 0);
   } else if(fdef->captures) emit_lambda_capture(emit, fdef);
-  const m_bool ret = scanx_fdef(emit->env, emit, fdef, (_exp_func)emit_fdef);
+  const bool ret = scanx_fdef(emit->env, emit, fdef, (_envset_func)emit_fdef_b);
   emit_pop_scope(emit);
   emit->env->func = former;
-  if (ret > 0)
+  if (ret)
     emit_fdef_finish(emit, fdef);
   else
     emit_pop_code(emit);
   if (global) env_pop(emit->env, scope);
-  return ret;
+  return ret ? GW_OK : GW_ERROR;
 }
 
 ANN m_bool emit_func_def(const Emitter emit, const Func_Def fdef) {
@@ -2907,9 +2911,15 @@ ANN static m_bool emit_parent(const Emitter emit, const Class_Def cdef) {
   return ensure_emit(emit, parent);
 }
 
-ANN /*static */ inline m_bool emit_cdef(const Emitter emit, const Type t) {
-  return scanx_cdef(emit->env, emit, t, (_exp_func)emit_class_def,
-                    (_exp_func)emit_union_def);
+ANN static bool emit_class_def_b(const Emitter emit, Class_Def cdef) {
+  return emit_class_def(emit, cdef) > 0;
+}
+ANN static bool emit_union_def_b(const Emitter emit, Union_Def udef) {
+  return emit_union_def(emit, udef) > 0;
+}
+ANN static inline bool emit_cdef(const Emitter emit, const Type t) {
+  return scanx_cdef(emit->env, emit, t, (_envset_func)emit_class_def_b,
+                    (_envset_func)emit_union_def_b);
 }
 
 ANN static m_bool cdef_parent(const Emitter emit, const Class_Def cdef) {
@@ -2945,6 +2955,10 @@ ANN static m_bool emit_class_tmpl(const Emitter emit, const Tmpl *tmpl, const Ns
   return GW_OK;
 }
 
+ANN static bool emit_section_b(const Emitter emit, Section *b) {
+  return emit_section(emit, b) > 0;
+}
+
 ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type      t = cdef->base.type;
   set_tflag(t, tflag_emit);
@@ -2954,7 +2968,7 @@ ANN static m_bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_BB(cdef_parent(emit, c));
   if (c->base.tmpl) CHECK_BB(emit_class_tmpl(emit, c->base.tmpl, c->base.type->nspc));
   if (c->body)
-    return scanx_body(emit->env, c, (_exp_func)emit_section, emit);
+    return scanx_body(emit->env, c, (_envset_func)emit_section_b, emit);
   return GW_OK;
 }
 

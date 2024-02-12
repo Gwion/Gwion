@@ -19,11 +19,11 @@ ANN static void check(struct EnvSet *es, const Type t) {
   }
 }
 
-ANN static m_bool push(struct EnvSet *es, const Type t) {
+ANN static bool push(struct EnvSet *es, const Type t) {
   es->env->scope->depth  = 0;
   const Type owner_class = t->info->value->from->owner_class;
   if (owner_class)
-    CHECK_BB(push(es, owner_class));
+    CHECK_B(push(es, owner_class));
   else
     env_push(es->env, NULL,
              t->info->value->from->ctx ? t->info->value->from->ctx->nspc
@@ -33,22 +33,22 @@ ANN static m_bool push(struct EnvSet *es, const Type t) {
     const Tmpl *tmpl = get_tmpl(t);
     CHECK_b(template_push_types(es->env, tmpl));
   }
-  return GW_OK;
+  return true;
 }
 
 ANN2(1, 3)
-m_bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
+bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
   if (t) {
     check(es, t);
 //    if(es->run && type_global(es->env, t))
 //      env_push_global(es->env);
-    return es->run ? push(es, t) : GW_OK;
+    return es->run ? push(es, t) : true;
   }
   if (nspc != es->env->curr) {
     env_push(es->env, NULL, nspc);
     es->run = 1;
   }
-  return GW_OK;
+  return true;
 }
 
 ANN2(1) static void _envset_pop(struct EnvSet *es, const Type t) {
@@ -71,13 +71,13 @@ ANN2(1) void envset_pop(struct EnvSet *es, const Type t) {
   if (es->_filename)  es->env->name = es->_filename;
 }
 
-ANN m_bool envset_run(struct EnvSet *es, const Type t) {
+ANN bool envset_run(struct EnvSet *es, const Type t) {
   check(es, t);
   const Type owner_class = t->info->value->from->owner_class;
-  if (es->run) CHECK_BB(push(es, owner_class));
+  if (es->run) CHECK_B(push(es, owner_class));
   es->env->context = t->info->value->from->ctx;
   es->env->name    = t->info->value->from->filename;
-  const m_bool ret =
+  const bool ret =
       t->info->cdef && !(t->tflag & es->flag) ? es->func(es->data, t) : GW_OK;
   envset_pop(es, owner_class);
   return ret;

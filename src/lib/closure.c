@@ -299,10 +299,10 @@ ANN static m_bool _check_lambda(const Env env, Exp_Lambda *l,
   Type owner = fdef->base->func->value_ref->from->owner_class;
   struct EnvSet es    = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)traverse_cdef,
+                      .func  = (_envset_func)traverse_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_scan0};
-  CHECK_BB(envset_pushv(&es, owner->info->value));
+  CHECK_b(envset_pushv(&es, owner->info->value));
   while(owner) {
     const Tmpl *tmpl = get_tmpl(owner);
     if(tmpl)
@@ -684,11 +684,11 @@ static OP_CHECK(opck_closure_scan) {
   fdef->base->tag.sym = info.name;
   struct EnvSet es    = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)traverse_cdef,
+                      .func  = (_envset_func)traverse_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_scan0};
   const Type    owner = ts->t;
-  CHECK_BO(envset_pushv(&es, owner->info->value));
+  CHECK_O(envset_pushv(&es, owner->info->value));
   const bool ret = traverse_fptr_def(env, fdef);
   const Type t = ret ? fdef->cdef->base.type : NULL;
   envset_pop(&es, owner->info->value->from->owner_class);

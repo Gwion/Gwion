@@ -144,7 +144,7 @@ ANN /*static inline*/ bool ensure_check(const Env env, const Type t) {
   if(!tflag(t, tflag_tmpl)) return GW_OK;
   struct EnvSet es = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)check_cdef,
+                      .func  = (_envset_func)check_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_check};
   return envset_run(&es, t);
@@ -156,7 +156,7 @@ ANN bool ensure_traverse(const Env env, const Type t) {
   if(!tflag(t, tflag_tmpl)) return true;
   struct EnvSet es = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)traverse_cdef,
+                      .func  = (_envset_func)traverse_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_check};
   return envset_run(&es, t);
@@ -753,10 +753,10 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v,
   if (!fdef->base->ret_type) { // template fptr
     struct EnvSet es = {.env   = env,
                         .data  = env,
-                        .func  = (_exp_func)check_cdef,
+                        .func  = (_envset_func)check_cdef,
                         .scope = env->scope->depth,
                         .flag  = tflag_check};
-    CHECK_BO(envset_pushv(&es, v));
+    CHECK_O(envset_pushv(&es, v));
     func->def->base->fbflag |= fbflag_internal;
     const bool ret = check_traverse_fdef(env, func->def);
     envset_pop(&es, v->from->owner_class);
@@ -1981,7 +1981,7 @@ ANN bool _check_func_def(const Env env, const Func_Def f) {
     }
   }
   vector_add(&env->scope->effects, 0);
-  const bool ret = scanx_fdef_b(env, env, fdef, (_exp_func_b)check_fdef);
+  const bool ret = scanx_fdef(env, env, fdef, (_envset_func)check_fdef);
   vector_pop(&env->scope->effects);
   if (fbflag(fdef->base, fbflag_op)) operator_resume(&opi);
   nspc_pop_value(env->gwion->mp, env->curr);
@@ -2241,7 +2241,7 @@ ANN static bool _check_class_def(const Env env, const Class_Def cdef) {
   if (!tflag(t, tflag_struct)) inherit(t);
   if(cdef->base.tmpl) CHECK_B(check_class_tmpl(env, cdef->base.tmpl, cdef->base.type->nspc));
   if (cdef->body) {
-    CHECK_B(env_body_b(env, cdef, check_section));
+    CHECK_B(env_body(env, cdef, check_section));
     if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
 //    if (class_def_has_body(cdef->body))
       set_tflag(t, tflag_ctor);

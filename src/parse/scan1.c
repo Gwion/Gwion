@@ -39,7 +39,7 @@ ANN static inline bool ensure_scan1(const Env env, const Type t) {
     return true;
   struct EnvSet es = {.env   = env,
                       .data  = env,
-                      .func  = (_exp_func)scan1_cdef,
+                      .func  = (_envset_func)scan1_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_scan1};
   return envset_run(&es, t);
@@ -763,7 +763,7 @@ ANN static bool _scan1_func_def(const Env env, const Func_Def fdef) {
   struct Func_ fake = {.name = s_name(fdef->base->tag.sym), .def = fdef }, *const former =
                                                              env->func;
   env->func = &fake;
-  const bool ret = scanx_fdef_b(env, env, fdef, (_exp_func_b)scan1_fdef);
+  const bool ret = scanx_fdef(env, env, fdef, (_envset_func)scan1_fdef);
   env->func = former;
   if (global) env_pop(env, scope);
   if ((strcmp(s_name(fdef->base->tag.sym), "@implicit") || fbflag(fdef->base, fbflag_internal)) && !fdef->builtin && fdef->base->ret_type &&
@@ -857,7 +857,7 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
     free_mp_vector(mp, Section, base);
     cdef->body = body;
   }
-  return env_body_b(env, cdef, scan1_section);
+  return env_body(env, cdef, scan1_section);
 }
 
 ANN static bool scan1_class_tmpl(const Env env, const Class_Def c) {
