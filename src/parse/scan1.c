@@ -116,7 +116,7 @@ ANN bool abstract_array(const Env env, const Array_Sub array) {
 ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
   const bool decl_ref = decl->var.td->array && !decl->var.td->array->exp;
   Var_Decl *const vd = &decl->var.vd;
-  CHECK_B(isres(env, vd->tag));
+  CHECK_B(not_reserved(env, vd->tag));
   Type t = decl->type;
   CHECK_B(scan1_defined(env, vd));
   const Type base = array_base_simple(t);
@@ -441,7 +441,7 @@ ANN static bool scan1_args(const Env env, Arg_List args) {
     Arg *arg = mp_vector_at(args, Arg, i);
     Var_Decl *const vd = &arg->var.vd;
     if (vd->tag.sym) {
-      if(!isres(env, vd->tag))
+      if(!not_reserved(env, vd->tag))
         ok = false;
     }
     if (arg->var.td) {

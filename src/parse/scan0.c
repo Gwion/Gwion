@@ -25,14 +25,9 @@ static inline void add_type(const Env env, const Nspc nspc, const Type t) {
 }
 
 ANN static inline bool scan0_defined(const Env env, const Tag tag) {
-  if (nspc_lookup_type1(env->curr, tag.sym)) {
-//    ERR_B(tag.loc, _("type '%s' already defined"), s_name(tag.sym));
-    env_err(env, tag.loc, _("type '%s' already defined"), s_name(tag.sym));
-    return false;
-  }
-//  return already_defined(env, tag.sym, tag.loc);
-  int ret = already_defined(env, tag.sym, tag.loc);
-  return ret;
+  if (nspc_lookup_type1(env->curr, tag.sym))
+    ERR_B(tag.loc, _("type '%s' already defined"), s_name(tag.sym));
+  return can_define(env, tag.sym, tag.loc);
 }
 
 ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
@@ -520,7 +515,7 @@ ANN static bool scan0_trait_def(const Env env, const Trait_Def pdef) {
     gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->tag.loc, 0);
     gwerr_secondary("defined here", env->name, exists->loc);
     env_set_error(env, true);
-    return already_defined(env, s, pdef->tag.loc);
+    return can_define(env, s, pdef->tag.loc);
   }
   if (pdef->traits) CHECK_B(find_traits(env, pdef->traits, pdef->tag.loc));
   _scan0_trait_def(env, pdef);
@@ -544,7 +539,7 @@ ANN bool scan0_prim_def(const Env env, const Prim_Def pdef) {
 HANDLE_SECTION_FUNC(scan0, bool, Env)
 
 ANN static bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
-  CHECK_B(isres(env, cdef->base.tag));
+  CHECK_B(not_reserved(env, cdef->base.tag));
   CHECK_B((cdef->base.type = scan0_class_def_init(env, cdef)));
   cdef->base.type->info->traits = cdef->traits; // should we copy the traits?
   set_tflag(cdef->base.type, tflag_scan0);

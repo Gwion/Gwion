@@ -684,7 +684,7 @@ ANN static bool check_func_args(const Env env, Arg_List args) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Var_Decl *decl = &arg->var.vd;
     const Value    v    = decl->value;
-    if(decl->tag.sym && !already_defined(env, decl->tag.sym, decl->tag.loc))
+    if(decl->tag.sym && !can_define(env, decl->tag.sym, decl->tag.loc))
       ok = false;
     valid_value(env, decl->tag.sym, v);
   }

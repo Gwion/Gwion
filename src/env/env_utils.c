@@ -65,7 +65,7 @@ ANN Type find_type(const Env env, Type_Decl *td) {
   return type;
 }
 
-ANN bool already_defined(const Env env, const Symbol s, const loc_t loc) {
+ANN bool can_define(const Env env, const Symbol s, const loc_t loc) {
   const Value v = nspc_lookup_value0(env->curr, s);
   if (!v || is_class(env->gwion, v->type)) return true;
   gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, loc, 0);
@@ -107,7 +107,7 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   return value;
 }
 
-ANN bool isres(const Env env, const Tag tag) {
+ANN bool not_reserved(const Env env, const Tag tag) {
   const Map map = &env->gwion->data->id;
   for (m_uint i = 0; i < map_size(map); i++) {
     if (tag.sym == (Symbol)VKEY(map, i))

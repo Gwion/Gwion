@@ -72,5 +72,5 @@ struct ScopeEffect {
 ANN void env_add_effect(const Env a, const Symbol effect, const loc_t);
 ANN void call_add_effect(const Env env, const Func func, const loc_t);
 
-ANN bool already_defined(const Env env, const Symbol s, const loc_t);
+ANN bool can_define(const Env env, const Symbol s, const loc_t);
 #endif
