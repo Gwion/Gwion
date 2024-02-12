@@ -117,7 +117,7 @@ ANN static void assign_channel(const struct Gwion_ *gwion, const UGen u) {
 }
 
 ANN void ugen_gen(const struct Gwion_ *gwion, const UGen u, const f_tick tick,
-                  void *data, const m_bool trig) {
+                  void *data, const bool trig) {
   u->module.gen.tick = tick;
   u->module.gen.data = data;
   if (trig) {

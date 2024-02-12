@@ -309,7 +309,7 @@ ANN static bool _check_lambda(const Env env, Exp_Lambda *l,
                       .func  = (_envset_func)traverse_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_scan0};
-  CHECK_b(envset_pushv(&es, owner->info->value));
+  CHECK_B(envset_pushv(&es, owner->info->value));
   while(owner) {
     const Tmpl *tmpl = get_tmpl(owner);
     if(tmpl)

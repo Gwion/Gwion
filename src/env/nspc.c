@@ -27,7 +27,7 @@ static inline void _free_nspc_value(const Nspc a, const Value v, Gwion gwion) {
   ANN static void nspc_free_##b(Nspc n, Gwion gwion) {                         \
     struct scope_iter iter = {n->info->b, 0, 0};                               \
     A                 a;                                                       \
-    while (scope_iter(&iter, &a) > 0) dofree;                                  \
+    while (scope_iter(&iter, &a)) dofree;                                      \
     free_scope(gwion->mp, n->info->b);                                         \
   }
 

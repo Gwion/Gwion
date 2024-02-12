@@ -104,4 +104,6 @@ ANN static inline void union_addref(const Type t, const m_bit *ptr) {
 ANN static inline void anytype_addref(const Type t, const m_bit *ptr) {
   if(tflag(t, tflag_release)) compound_addref(t, ptr);
 }
+
+ANN bool not_from_owner_class(const Env, const Type, const Value, const loc_t);
 #endif

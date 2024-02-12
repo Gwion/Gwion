@@ -31,7 +31,7 @@ ANN static bool push(struct EnvSet *es, const Type t) {
   env_push_type((void *)es->env, t); // do not push if is a function?
   if (tflag(t, tflag_tmpl)) {
     const Tmpl *tmpl = get_tmpl(t);
-    CHECK_b(template_push_types(es->env, tmpl));
+    CHECK_B(template_push_types(es->env, tmpl));
   }
   return true;
 }

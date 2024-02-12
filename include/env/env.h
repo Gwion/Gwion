@@ -58,7 +58,6 @@ ANN bool   env_access(const Env env, const ae_flag flag, const loc_t);
 ANN bool   env_storage(const Env env, ae_flag flag, const loc_t);
 ANN void   env_add_type(const Env, const Type, const loc_t);
 ANN Type   find_type(const Env, Type_Decl *);
-ANN m_bool traverse_func_template(const Env, const Func_Def);
 ANN void   env_err(const Env, const loc_t, const m_str fmt, ...);
 ANN void   env_warn(const Env, const loc_t, const m_str fmt, ...);
 ANN void   env_error_footer(const Env env);

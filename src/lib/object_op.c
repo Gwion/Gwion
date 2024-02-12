@@ -170,9 +170,6 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
   if (!emit_addr) emit_regmove(emit, v->type->size - SZ_INT);
 }
 
-ANN bool not_from_owner_class(const Env env, const Type t, const Value v,
-                                const loc_t loc);
-
 ANN static inline Value get_value(const Env env, const Exp_Dot *member,
                                   const Type t) {
   const Value value = find_value(t, member->xid);

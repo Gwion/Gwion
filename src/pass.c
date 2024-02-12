@@ -20,11 +20,7 @@ static m_bool typecheck_ast(const Env env, Ast *ast) {
 }
 
 static const m_str            default_passes_name[2] = {"check", "emit"};
-static const compilation_pass default_passes[4]      = {typecheck_ast, emit_ast};
-static const m_str            scan_passes_name[4] = {"scan0", "scan1", "scan2",
-                                          "type_check"};
-static const compilation_pass scan_passes[4] = {scan0_ast, scan1_ast, scan2_ast,
-                                                check_ast};
+static const compilation_pass default_passes[2]      = {typecheck_ast, emit_ast};
 
 ANN void pass_register(const Gwion gwion, const m_str name,
                        const compilation_pass pass) {
@@ -70,8 +66,6 @@ ANEW ANN struct Passes_ *new_passes(const Gwion gwion) {
   map_init(&a->map);
   for (m_uint i = 0; i < N_PASS; ++i)
     pass_register(gwion, default_passes_name[i], default_passes[i]);
-  for (m_uint i = 0; i < N_SCANPASS; ++i)
-    pass_register(gwion, scan_passes_name[i], scan_passes[i]);
   vector_init(&a->vec);
   return a;
 }

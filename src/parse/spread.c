@@ -23,7 +23,7 @@ ANN bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) {
       Specialized *spec = mp_vector_at(tmpl->list, Specialized, tmpl->list->len - 1);
       gwerr_secondary("spread starts here", env->name, spec->tag.loc);
       env_set_error(env, true);
-      return GW_ERROR;
+      return false;
     }
     DECL_B(const Type, t, = known_type(env, targ.d.td));
     struct AstGetter_ arg =  {env->name, f, env->gwion->st, .ppa = env->gwion->ppa};
@@ -45,7 +45,7 @@ ANN bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) {
       pparg_rem(env->gwion->ppa, name);
     }
     if(!ast) return false;
-    CHECK_b(scan0_ast(env, &ast));
+    CHECK_B(scan0_ast(env, &ast));
     for(uint32_t i = 0; i < ast->len; i++) {
       const Section section = *mp_vector_at(ast, Section, i);
       mp_vector_add(env->gwion->mp, &env->context->extend, Section, section);

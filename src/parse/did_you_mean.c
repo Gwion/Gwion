@@ -33,7 +33,7 @@ ANN static void ressembles(const Scope scope, const char *name,
                            bool *const done) {
   struct scope_iter iter = { scope, 0, 0 };
   Value             value;
-  while (scope_iter(&iter, &value) > 0) {
+  while (scope_iter(&iter, &value)) {
     if (wagner_fisher(name, value->name)) {
       if (!*done) {
         *done = true;
@@ -48,7 +48,7 @@ ANN static void trait_ressembles(const Scope scope, const char *name,
                            bool *const done) {
   struct scope_iter iter = { scope, 0, 0 };
   Trait trait;
-  while (scope_iter(&iter, &trait) > 0) {
+  while (scope_iter(&iter, &trait)) {
     if (wagner_fisher(name, trait->name)) {
       if (!*done) {
         *done = true;
