@@ -104,12 +104,13 @@ static inline bool scan1_defined(const Env env, const Var_Decl *var) {
 
 ANN bool abstract_array(const Env env, const Array_Sub array) {
   Exp* e = array->exp;
+  bool ok = true;
   while(e) {
     if(!exp_is_zero(e))
-      ERR_B(e->loc, _("arrays of abstract type should use `0` size"));
+      ERR_OK(ok, e->loc, _("arrays of abstract type should use `0` size"));
     e = e->next;
   }
-  return true;
+  return ok;
 }
 
 ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
