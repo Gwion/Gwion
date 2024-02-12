@@ -51,8 +51,8 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
   GwText text;
   text_init(&text, env->gwion->mp);
   text_add(&text, "(");
-  DECL_OO(const Type, t, = known_type(env, base->td));
-  DECL_OO(const m_str, name, = type2str(env->gwion, t, base->td->tag.loc));
+  DECL_O(const Type, t, = known_type(env, base->td));
+  DECL_O(const m_str, name, = type2str(env->gwion, t, base->td->tag.loc));
   text_add(&text, name);
   free_mstr(env->gwion->mp, name);
 	text_add(&text, "(");
@@ -61,8 +61,8 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
     for(uint32_t i = 0; i < base->args->len; i++) {
       if(i) text_add(&text, ",");
       Arg *arg = mp_vector_at(base->args, Arg, i);
-      DECL_OO(const Type, t, = known_type(env, arg->var.td));
-      DECL_OO(const m_str, name, = type2str(env->gwion, t, arg->var.td->tag.loc));
+      DECL_O(const Type, t, = known_type(env, arg->var.td));
+      DECL_O(const m_str, name, = type2str(env->gwion, t, arg->var.td->tag.loc));
       text_add(&text, name);
       free_mstr(env->gwion->mp, name);
       if(*global)
@@ -79,7 +79,7 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
 ANN static inline Type find(const Env env, Type_Decl *td) {
   if (!td->fptr) return find_type(env, td);
   bool global = false;
-  CHECK_OO((td->tag.sym = symname(env, td->fptr->base, &global)));
+  CHECK_O((td->tag.sym = symname(env, td->fptr->base, &global)));
   const Fptr_Def fptr = td->fptr;
   td->fptr = NULL;
   const Type exists = find_type(env, td);
@@ -106,12 +106,12 @@ ANN static inline Type find1(const Env env, const Type base, Type_Decl *td) {
 ANN static Type resolve(const Env env, Type_Decl *td) {
   Type_Decl *last = td;
   while (last->next) last = last->next;
-  DECL_OO(const Type, base, = find(env, td));
+  DECL_O(const Type, base, = find(env, td));
   const Context ctx = base->info->value->from->ctx;
   if (ctx && ctx->error) ERR_O(td->tag.loc, _("type '%s' is invalid"), base->name)
-  DECL_OO(const Type, type, = find1(env, base, td));
-  DECL_OO(const Type, t,    = !td->ref ? type : ref(env, td));
-  DECL_OO(const Type, ret,  = !td->option ? t : option(env, td));
+  DECL_O(const Type, type, = find1(env, base, td));
+  DECL_O(const Type, t,    = !td->ref ? type : ref(env, td));
+  DECL_O(const Type, ret,  = !td->option ? t : option(env, td));
   const Array_Sub array = last->array;
   return !array ? ret : array_type(env, ret, array->depth, td->tag.loc);
 }

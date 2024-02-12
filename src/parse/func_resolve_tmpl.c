@@ -98,7 +98,7 @@ ANN static Func tmpl_exists(const Env env, struct ResolverArgs *ra,
 
 ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
                             const m_uint i) {
-  DECL_OO(const Value, value, = template_get_ready(env, ra->v, "template", i));
+  DECL_O(const Value, value, = template_get_ready(env, ra->v, "template", i));
   if (value->d.func_ref->def->builtin) set_vflag(value, vflag_builtin);
   const Func_Def fdef = cpy_func_def(env->gwion->mp, value->d.func_ref->def);
   fdef->base->tmpl->call = cpy_tmplarg_list(env->gwion->mp, ra->types);
@@ -175,7 +175,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
 
 ANN static Func __find_template_match(const Env env, const Value v,
                                       Exp_Call *const exp) {
-  DECL_OO(const m_str, tmpl_name,
+  DECL_O(const m_str, tmpl_name,
           = tl2str(env->gwion, exp->tmpl->call, exp->func->loc));
   const Func f = find_tmpl(env, v, exp, tmpl_name);
   free_mstr(env->gwion->mp, tmpl_name);
@@ -184,7 +184,7 @@ ANN static Func __find_template_match(const Env env, const Value v,
 
 ANN static Func _find_template_match(const Env env, const Value v,
                                      Exp_Call *const exp) {
-  DECL_OO(const Func, f, = __find_template_match(env, v, exp));
+  DECL_O(const Func, f, = __find_template_match(env, v, exp));
   TmplArg_List        tl = exp->tmpl->call;
   Specialized_List sl = f->def->base->tmpl->list;
   for(uint32_t i = 0; i < tl->len; i++) {
@@ -202,7 +202,7 @@ ANN static Func _find_template_match(const Env env, const Value v,
         // check argument in call exp?
         continue;
       }
-      DECL_OO(const Type, t, = known_type(env, arg.d.td));
+      DECL_O(const Type, t, = known_type(env, arg.d.td));
       if(t->info->traits && miss_traits(t, spec))
         return NULL;
     }

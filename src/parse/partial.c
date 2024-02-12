@@ -92,9 +92,9 @@ ANN Func find_match(const Env env, Func func, Exp* exp, const bool implicit,
           e->next = NULL;
           const Type ret = check_exp(env, e);
           e->next = next;
-          CHECK_OO(ret);
+          CHECK_O(ret);
       } else
-          CHECK_OO((e->type = known_type(env, e->d.exp_cast.td)));
+          CHECK_O((e->type = known_type(env, e->d.exp_cast.td)));
         if (!func_match_inner(env, e, arg->type, implicit, specific)) break;
       }
       e = e->next;

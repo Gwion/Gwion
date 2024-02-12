@@ -130,7 +130,7 @@ ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const TmplArg_List types) {
 }
 
 static ANN Type scan_func(const Env env, const Type t, const Type_Decl *td) {
-  DECL_OO(const m_str, tl_name, = tl2str(env->gwion, td->types, td->tag.loc));
+  DECL_O(const m_str, tl_name, = tl2str(env->gwion, td->types, td->tag.loc));
   const Symbol sym = func_symbol(env, t->info->value->from->owner->name,
                                  t->info->func->name, tl_name, 0);
   free_mstr(env->gwion->mp, tl_name);
@@ -281,10 +281,10 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
   if (td->next) {
     Type_Decl *next        = td->next;
     td->next               = NULL;
-    DECL_OO(const Type, maybe_array, = known_type(env, td));
+    DECL_O(const Type, maybe_array, = known_type(env, td));
     const Type owner       = array_base_simple(maybe_array);
     td->next               = next;
-    CHECK_OO(owner);
+    CHECK_O(owner);
     if (!owner->nspc) ERR_O(td->tag.loc, "type '%s' has no namespace", owner->name)
     struct EnvSet es = {.env   = env,
                         .data  = env,
