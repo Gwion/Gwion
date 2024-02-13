@@ -400,7 +400,7 @@ ANN static Type prim_owned(const Env env, const Symbol *data) {
 ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
   const Symbol sym = *data;
   const Value  v   = check_non_res_value(env, data);
-  if (!v || !vflag(v, vflag_valid) || (v->from->ctx && v->from->ctx->error)) {
+  if (!safe_vflag(v, vflag_valid)) {
     const m_str name = s_name(*data);
     if (!isalpha(*name) && *name != '_') {
       prim_self(data)->value = env->gwion->type[et_op]->info->value;
