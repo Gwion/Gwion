@@ -96,17 +96,17 @@ static inline ANN bool env_body(const Env env, const Class_Def cdef,
 ANN bool scanx_cdef(const Env, void *, const Type, const _envset_func f_cdef,
                       const _envset_func f_union);
 
-#define xxx_cdef_b(prefix)                                                        \
+#define xxx_cdef(prefix)                                                          \
   static inline bool prefix##_cdef(const Env env, const Type t) {                 \
     return scanx_cdef(env, env, t, (_envset_func)prefix##_class_def,              \
                       (_envset_func)prefix##_union_def);                          \
   }
 
-xxx_cdef_b(scan0);
-xxx_cdef_b(scan1);
-xxx_cdef_b(scan2);
-xxx_cdef_b(check);
-xxx_cdef_b(traverse);
+xxx_cdef(scan0);
+xxx_cdef(scan1);
+xxx_cdef(scan2);
+xxx_cdef(check);
+xxx_cdef(traverse);
 
 ANN bool
 scanx_fdef(const Env, void *, const Func_Def, const _envset_func);
