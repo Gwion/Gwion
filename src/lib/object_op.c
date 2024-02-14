@@ -273,9 +273,9 @@ OP_EMIT(opem_object_dot) {
 ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def c    = info->base->info->cdef;
   const Class_Def cdef = new_class_def(
-      env->gwion->mp, c->flag, info->name,
+      env->gwion->mp, c->flag, MK_TAG(info->name,c->base.tag.loc),
       c->base.ext ? cpy_type_decl(env->gwion->mp, c->base.ext) : NULL,
-      NULL, c->base.tag.loc);
+      NULL);
   if(c->body) cdef->body = cpy_ast(env->gwion->mp, c->body);
   cdef->cflag      = c->cflag;
   cdef->base.tmpl  = mk_tmpl(env, c->base.tmpl, info->td->types);

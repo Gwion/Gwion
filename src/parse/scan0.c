@@ -73,7 +73,7 @@ ANN bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   Ast body = new_mp_vector(env->gwion->mp, Section, 1);
   mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
   Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
-  const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->tag.sym, td, body, loc);
+  const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->tag, td, body);
   if(global) SET_FLAG(cdef, global);
   if(fptr->base->tmpl) {
     fbase->tmpl = cpy_tmpl(env->gwion->mp, fptr->base->tmpl);
@@ -153,9 +153,9 @@ ANN static void typedef_simple(const Env env, const Type_Def tdef,
 ANN static bool typedef_complex(const Env env, const Type_Def tdef,
                                   const Type base) {
   const ae_flag   flag = base->info->cdef ? base->info->cdef->flag : 0;
-  const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->tag.sym,
+  const Class_Def cdef = new_class_def(env->gwion->mp, flag, tdef->tag,
                                        cpy_type_decl(env->gwion->mp, tdef->ext),
-                                       NULL, tdef->ext->tag.loc);
+                                       NULL);
   const bool final = GET_FLAG(base, final);
   if(final) UNSET_FLAG(base, final);
   CHECK_B(scan0_class_def(env, cdef));

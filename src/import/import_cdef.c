@@ -92,7 +92,7 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   if (tmpl) nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
   CHECK_OO(p);
   const Type t  = new_type(gwi->gwion->mp, s_name(ck.sym), p);
-  t->info->cdef = new_class_def(gwi->gwion->mp, 0, ck.sym, td, NULL, gwi->loc);
+  t->info->cdef = new_class_def(gwi->gwion->mp, 0, MK_TAG(ck.sym, gwi->loc), td, NULL);
   t->info->cdef->base.tmpl = tmpl;
   t->info->cdef->base.type = t;
   t->info->tuple           = new_tupleform(gwi->gwion->mp, p);
@@ -115,7 +115,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
     gwi_type_flag(t);
   else {
     t->info->cdef =
-        new_class_def(gwi->gwion->mp, 0, ck.sym, NULL, NULL, gwi->loc);
+        new_class_def(gwi->gwion->mp, 0, MK_TAG(ck.sym, gwi->loc), NULL, NULL);
     t->info->cdef->base.type = t;
     t->info->cdef->base.tmpl = new_tmpl(gwi->gwion->mp, ck.sl);
     t->info->tuple           = new_tupleform(gwi->gwion->mp, NULL);
