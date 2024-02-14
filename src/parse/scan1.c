@@ -450,7 +450,6 @@ ANN static bool scan1_args(const Env env, Arg_List args) {
         POISON(ok, env);
       if (GET_FLAG(env->func->def->base, global) && !type_global(env, arg->type))
         ERR_OK(ok, arg->var.td->tag.loc, "is not global");
-      UNSET_FLAG(arg->var.td, late); // ???
     }
     vd->value = arg_value(env, arg);
     if (ok && vd->tag.sym) nspc_add_value(env->curr, vd->tag.sym, vd->value);
