@@ -72,7 +72,7 @@ ANN static Type scan1_type(const Env env, Type_Decl *td) {
 ANN static Type void_type(const Env env, Type_Decl *td) {
   DECL_O(const Type, type, = scan1_type(env, td));
   if (type->size) return type;
-  ERR_O(td->tag.loc, _("cannot declare variables of size '0' (i.e. 'void')..."))
+  ERR_O(td->tag.loc, _("cannot declare variables of size '0' (i.e. 'void')..."));
 }
 
 ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
@@ -82,9 +82,9 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
       return NULL;
   if (decl->var.td->tag.sym == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
-    ERR_O(exp_self(decl)->loc, _("can't use private type %s"), t->name)
+    ERR_O(exp_self(decl)->loc, _("can't use private type %s"), t->name);
   if (GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
-    ERR_O(exp_self(decl)->loc, _("can't use protected type %s"), t->name)
+    ERR_O(exp_self(decl)->loc, _("can't use protected type %s"), t->name);
   return t;
 }
 
@@ -107,7 +107,7 @@ ANN bool abstract_array(const Env env, const Array_Sub array) {
   bool ok = true;
   while(e) {
     if(!exp_is_zero(e))
-      ERR_OK(ok, e->loc, _("arrays of abstract type should use `0` size"));
+      ERR_OK_NODE(ok, e, e->loc, _("arrays of abstract type should use `0` size"));
     e = e->next;
   }
   return ok;
@@ -277,9 +277,9 @@ ANN static inline bool
   Stmt_List l = stmt->list;
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, Stmt, i);
-    if(!scan1_stmt_match_case(env, &s->d.stmt_match))
-      ok = false;
+    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(!scan1_stmt_match_case(env, &stmt->d.stmt_match))
+      POISON_NODE(ok, env, stmt);
   }
   return ok;
 }
@@ -301,7 +301,7 @@ ANN static inline bool scan1_handler_list(const restrict Env env,
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler * handler = mp_vector_at(handlers, Handler, i);
     if(!scan1_handler(env, handler))
-      ok = false;
+      POISON(ok, env);
   }
   return ok;
 }
@@ -316,11 +316,11 @@ ANN static inline bool stmt_each_defined(const restrict Env env,
                                            const Stmt_Each    stmt) {
   bool ok = true;
   if (nspc_lookup_value1(env->curr, stmt->tag.sym))
-    ERR_OK(ok, stmt_self(stmt)->loc, _("foreach value '%s' is already defined"),
-          s_name(stmt->tag.sym))
+    ERR_OK_NODE(ok, stmt_self(stmt), stmt_self(stmt)->loc, _("foreach value '%s' is already defined"),
+          s_name(stmt->tag.sym));
   if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->var.tag.sym))
-    ERR_OK(ok, stmt->idx->var.tag.loc, _("foreach index '%s' is already defined"),
-          s_name(stmt->idx->var.tag.sym))
+    ERR_OK_NODE(ok, stmt_self(stmt), stmt->idx->var.tag.loc, _("foreach index '%s' is already defined"),
+          s_name(stmt->idx->var.tag.sym));
   return ok;
 }
 
@@ -442,12 +442,12 @@ ANN static bool scan1_args(const Env env, Arg_List args) {
     Var_Decl *const vd = &arg->var.vd;
     if (vd->tag.sym) {
       if(!not_reserved(env, vd->tag))
-        ok = false;
+        POISON(ok, env);
     }
     if (arg->var.td) {
       SET_FLAG(arg->var.td, late);
       if(!(arg->type = void_type(env, arg->var.td)))
-        ok = false;
+        POISON(ok, env);
       if (GET_FLAG(env->func->def->base, global) && !type_global(env, arg->type))
         ERR_OK(ok, arg->var.td->tag.loc, "is not global");
       UNSET_FLAG(arg->var.td, late); // ???
@@ -555,7 +555,7 @@ ANN static inline bool scan1_union_def_inner_loop(const Env env,
   for(uint32_t i = 0; i < l->len; i++) {
     Variable *um = mp_vector_at(l, Variable, i);
     if (nspc_lookup_value0(env->curr, um->vd.tag.sym))
-      ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym))
+      ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym));
     const Type t = known_type(env, um->td);
     if(t) {
       if(tflag(t, tflag_ref))
@@ -565,7 +565,7 @@ ANN static inline bool scan1_union_def_inner_loop(const Env env,
       valuefrom(env, v->from);
       nspc_add_value_front(env->curr, um->vd.tag.sym, v);
       if (t->size > sz) sz = t->size;
-    } else ok = false;
+    } else POISON(ok, env);
   }
   udef->type->nspc->offset = SZ_INT + sz;
   udef->type->size = SZ_INT + sz;
@@ -646,9 +646,10 @@ ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
   uint32_t i;
   bool ok = true;
   for(i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, Stmt, i);
-    if(!scan1_stmt(env, s)) ok = false;
-    if(end_flow(s)) break;
+    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(!scan1_stmt(env, stmt))
+      POISON_NODE(ok, env, stmt);
+    if(end_flow(stmt)) break;
   }
   if(++i < l->len) dead_code(env, l, i);
   return ok;
@@ -709,7 +710,7 @@ ANN static bool scan1_fdef_args(const Env env, Arg_List args) {
   for(uint32_t i = 0; i < args->len; i++) {
     Arg *arg = mp_vector_at(args, Arg, i);
     if(!shadow_arg(env, arg->var.vd.tag))
-      ok = false;
+      POISON(ok, env);
   }
   return ok;
 }
@@ -720,8 +721,12 @@ ANN bool scan1_fbody(const Env env, const Func_Def fdef) {
     CHECK_B(scan1_args(env, fdef->base->args));
   }
   if (!fdef->builtin && fdef->d.code)
-    CHECK_B(scan1_stmt_list(env, fdef->d.code));
+    (void)scan1_stmt_list(env, fdef->d.code);
   return true;
+}
+
+ANN bool scan1_fdef_body(const Env env, const Func_Def fdef) {
+  RET_NSPC(scan1_fbody(env, fdef))
 }
 
 ANN bool scan1_fdef(const Env env, const Func_Def fdef) {
@@ -731,10 +736,9 @@ ANN bool scan1_fdef(const Env env, const Func_Def fdef) {
     CHECK_B(scan_internal(env, fdef->base));
   else if (fbflag(fdef->base, fbflag_op) && env->class_def)
     SET_FLAG(fdef->base, static);
-  if(!is_ctor(fdef)) {
-    RET_NSPC(scan1_fbody(env, fdef))
-  } else if(!fdef->builtin)
-      CHECK_B(scan1_stmt_list(env, fdef->d.code));
+  if(!is_ctor(fdef)) CHECK_B(scan1_fdef_body(env, fdef));
+  else if(!fdef->builtin)
+      (void)scan1_stmt_list(env, fdef->d.code);
   return true;
 }
 
@@ -799,7 +803,7 @@ ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   do
     if (tdef->type == t)
       ERR_O(tdef->ext->tag.loc, _("recursive (%s <= %s) class declaration."),
-            tdef->type->name, t->name)
+            tdef->type->name, t->name);
   while ((t = t->info->parent));
   return parent;
 }
@@ -857,7 +861,9 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
     free_mp_vector(mp, Section, base);
     cdef->body = body;
   }
-  return env_body(env, cdef, scan1_section);
+//  return 
+env_body(env, cdef, scan1_section);
+return true;
 }
 
 ANN static bool scan1_class_tmpl(const Env env, const Class_Def c) {
@@ -904,14 +910,9 @@ ANN bool scan1_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
-    if(section->poison) {
-      ok = false;
-      continue;
-    }
-    if(!scan1_section(env, section)) {
-      section->poison = true;
-      ok = false;
-    }
+    if(section->poison) continue;
+    if(!scan1_section(env, section))
+      POISON_NODE(ok, env, section);
   }
   return ok;
 }

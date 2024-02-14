@@ -235,7 +235,7 @@ ANN static bool fptr_check(const Env env, struct FptrInfo *info) {
   //    return GW_ERROR;
   if(!info->lhs)
      ERR_b(info->exp->loc,
-          _("can't resolve operator"))
+          _("can't resolve operator"));
   return true;
 }
 
@@ -277,26 +277,19 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
   return NULL;
 }
 
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
 ANN static bool _check_lambda(const Env env, Exp_Lambda *l,
                                 const Func_Def fdef) {
   Arg_List bases = fdef->base->args;
   Arg_List args = l->def->base->args;
   if (mp_vector_len(bases) != mp_vector_len(args))
-    ERR_B(exp_self(l)->loc, _("argument number does not match for lambda"))
+    ERR_b(exp_self(l)->loc, _("argument number does not match for lambda"));
 
   if(l->def->captures) {
     // here move to arguments
     for(uint32_t i = 0; i < l->def->captures->len; i++) {
       Capture *cap = mp_vector_at(l->def->captures, Capture, i);
       const Value v = nspc_lookup_value1(env->curr, cap->var.tag.sym);
-      if(!v) ERR_B(cap->var.tag.loc, _("unknown value in capture"));
+      if(!v) ERR_b(cap->var.tag.loc, _("unknown value in capture"));
       DECL_B(const Type, t, = upvalue_type(env, cap));
       cap->temp = new_value(env, t, cap->var.tag);
       cap->var.value = v;
@@ -378,7 +371,7 @@ ANN static bool fptr_do(const Env env, struct FptrInfo *info) {
   if(info->exp->type->info->func) {
     CHECK_B(fptr_check(env, info));
     if (!(info->exp->type = fptr_type(env, info)))
-      ERR_b(info->exp->loc, _("no match found"))
+      ERR_b(info->exp->loc, _("no match found"));
     return true;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;

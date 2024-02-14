@@ -4,33 +4,51 @@
 #include "gwion.h"
 #define insert_symbol(a) insert_symbol(env->gwion->st, (a))
 
+#define POISON(ok, env)                                                        \
+  do {                                                                         \
+   /*if((env)->context)*/(env)->context->error = true;                         \
+    ok = false;                                                                \
+  } while(false)
+
+#define POISON_NODE(ok, env, node)                                             \
+  do {                                                                         \
+    POISON(ok, env);                                                           \
+    (node)-> poison = true;                                                    \
+  } while(false)
+
 #undef ERR_b
 #define ERR_b(a, b, ...)                                                       \
-  {                                                                            \
+  do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
     return false;                                                              \
-  }
+  } while(false)
 
 
-#define ERR_OK(ok, a, b, ...)                                                  \
-  {                                                                            \
+#define ERR_OK_NODE(ok, a, b, c, ...)                                               \
+  do {                                                                         \
+    env_err(env, (b), (c), ##__VA_ARGS__);                                     \
+    POISON_NODE(ok, env, a);                                                   \
+  } while(false)
+
+#define ERR_OK(ok, a, b, ...)                                                 \
+  do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    ok = false;                                                                \
-  }
+    POISON(ok, env);                                                           \
+  } while(false)
 
 #undef ERR_B
 #define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
+  do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
     return GW_ERROR;                                                           \
-  }
+  } while(false)
 
 #undef ERR_O
 #define ERR_O(a, b, ...)                                                       \
-  {                                                                            \
+  do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
     return NULL;                                                               \
-  }
+  } while(false)
 
 #define RET_NSPC(exp)                                                          \
   ++env->scope->depth;                                                         \
@@ -69,8 +87,7 @@
     do {                                                                       \
       if(!exp->poison) {                                                       \
         if(!prefix##_exp_func[exp->exp_type](arg, &exp->d)) {                  \
-          exp->poison = true;                                                  \
-          ok = false;                                                          \
+          POISON_NODE(ok, arg, exp);                                           \
         }                                                                      \
       }                                                                        \
     } while ((exp = exp->next));                                               \

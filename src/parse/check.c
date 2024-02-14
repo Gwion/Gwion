@@ -56,7 +56,7 @@ ANN bool check_subscripts(Env env, const Array_Sub array,
   do {
     if (is_decl) {
       if(!check_implicit(env, e, env->gwion->type[et_int]))
-        ERR_OK(ok, array->exp->loc, _("invalid array declaration index type."))
+        ERR_OK_NODE(ok, e, array->exp->loc, _("invalid array declaration index type."));
     }
   } while (++depth && (e = e->next));
   if (depth != array->depth)
@@ -199,7 +199,7 @@ ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
     set_vflag(decl->var.vd.value, vflag_direct);
   }
   env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]) > 0);
-  return ret > 0 ? decl->var.vd.value->type : NULL;
+  return ret ? decl->var.vd.value->type : NULL;
 }
 
 ANN static bool check_collection(const Env env, Type type, Exp* e,
@@ -235,7 +235,7 @@ ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
   const Array_Sub array = *data;
   Exp*       e     = array->exp;
   if (!e)
-    ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"))
+    ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"));
   CHECK_O(check_exp(env, e));
   env_weight(env, 1);
   return array->type = prim_array_match(env, e);
@@ -345,7 +345,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
           vflag(v, vflag_member))
         ERR_O(prim_pos(data),
               _("non-static member '%s' used from static function."),
-              s_name(var))
+              s_name(var));
     }
     return v;
   } else if (SAFE_FLAG(env->class_def, global) ||
@@ -353,7 +353,7 @@ ANN static Value check_non_res_value(const Env env, const Symbol *data) {
     if (!value || !(is_value_global(env, value) || vflag(value, vflag_arg)))
       ERR_O(prim_pos(data),
             _("non-global variable '%s' used from global function/class."),
-            s_name(var))
+            s_name(var));
   } else if(env->func && fbflag(env->func->def->base, fbflag_locale)) {
     if(!is_func(env->gwion, value->type) && value->from->owner && !from_global_nspc(env, value->from->owner)) // is_callable
       ERR_O(prim_pos(data), _("invalid variable access from locale definition"));
@@ -685,7 +685,7 @@ ANN static bool check_func_args(const Env env, Arg_List args) {
     const Var_Decl *decl = &arg->var.vd;
     const Value    v    = decl->value;
     if(decl->tag.sym && !can_define(env, decl->tag.sym, decl->tag.loc))
-      ok = false;
+      POISON(ok, env);
     valid_value(env, decl->tag.sym, v);
   }
   return ok;
@@ -784,7 +784,7 @@ ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
       Specialized *spec = mp_vector_at(sl, Specialized, i);
       if (tmplarg_match(env, spec->tag.sym, fdef->base->td->tag.sym, fdef->base->ret_type)) {
          if(!check_exp(env, exp->other))
-           ok = false;
+           POISON_NODE(ok, env, exp->other);
          if(!is_func(env->gwion, exp->other->type)) {
            TmplArg targ = {
              .type = tmplarg_td,
@@ -833,7 +833,7 @@ ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
     }
   }
   if (args_number < len) //TODO: free tmplarg_list
-    ERR_O(exp->func->loc, _("not able to infer types for template call."))
+    ERR_O(exp->func->loc, _("not able to infer types for template call."));
 
   if(spread) {
     Exp* e = exp->args;
@@ -928,7 +928,7 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
   Exp*         e   = exp->args;
   for(uint32_t i = 0; i < (args ? args->len : 0); i++) {
     if(!e)
-      ERR_O(exp_self(exp)->loc, _("argument number does not match for lambda"))
+      ERR_O(exp_self(exp)->loc, _("argument number does not match for lambda"));
     Arg *arg = mp_vector_at(args, Arg, i);
     arg->type = e->type;
     if(is_class(env->gwion, arg->type))
@@ -936,7 +936,7 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
     e = e->next;
   }
   if(e)
-     ERR_O(exp_self(exp)->loc, _("argument number does not match for lambda"))
+     ERR_O(exp_self(exp)->loc, _("argument number does not match for lambda"));
   Upvalues upvalues = { .values = env->curr->info->value};
   if(env->func && env->func->def->base->values)
     upvalues.parent = env->func->def->base->values;
@@ -950,7 +950,7 @@ ANN static Type check_lambda_call(const Env env, Exp_Call *const exp) {
     if (!l->def->base->ret_type)
       l->def->base->ret_type = env->gwion->type[et_void];
   }
-  return ret > 0 ? l->def->base->ret_type : NULL;
+  return ret ? l->def->base->ret_type : NULL;
 }
 
 ANN bool func_check(const Env env, Exp_Call *const exp, bool *mod) {
@@ -1180,7 +1180,7 @@ ANN static bool tl_match(const Env env, const TmplArg_List tl0, const TmplArg_Li
     TmplArg targ1 = *mp_vector_at(tl1, TmplArg, i);
     if (targ0.type != targ1.type) return false;
     if(targ0.type == tmplarg_td && known_type(env, targ0.d.td) != known_type(env, targ1.d.td))
-      ok = false;
+      POISON(ok, env);
     // how do we check exps???
   }
   return ok;
@@ -1189,7 +1189,7 @@ ANN static bool tl_match(const Env env, const TmplArg_List tl0, const TmplArg_Li
 ANN static Type check_exp_call_tmpl(const Env env, Exp_Call *exp, const Type t) {
   if (exp->args) CHECK_O(check_exp(env, exp->args));
   if (!t->info->func->def->base->tmpl)
-    ERR_O(exp_self(exp)->loc, _("template call of non-template function."))
+    ERR_O(exp_self(exp)->loc, _("template call of non-template function."));
   if (t->info->func->def->base->tmpl->call) {
     if (env->func == t->info->func) {
       exp->func->type = env->func->value_ref->type;
@@ -1275,10 +1275,10 @@ ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
   if (!ret)
     ERR_O(exp_self(exp_if)->loc,
           _("incompatible types '%s' and '%s' in if expression..."),
-          if_exp->name, else_exp->name)
+          if_exp->name, else_exp->name);
   if (isa(if_exp, else_exp) < 0)
     ERR_O(exp_self(exp_if)->loc, _("condition type '%s' does not match '%s'"),
-          cond->name, ret->name)
+          cond->name, ret->name);
   exp_setuse(exp_if->cond, true);
   exp_setuse(exp_if->if_exp, true);
   exp_setuse(exp_if->else_exp, true);
@@ -1360,8 +1360,7 @@ ANN Type check_exp(const Env env, Exp* exp) {
     if(curr->type) continue;
     if(curr->poison) continue;
     if(!(curr->type = check_exp_func[curr->exp_type](env, &curr->d))) {
-      curr->poison = true;
-      ok = false;
+      POISON_NODE(ok, env, curr);
       continue;
     }
     if (env->func && !is_class(env->gwion, curr->type) &&
@@ -1641,12 +1640,12 @@ ANN static bool _check_stmt_case(const Env env, const Stmt_Match stmt) {
 ANN static bool check_stmt_case(const Env env, const Stmt_Match stmt) {
     RET_NSPC(_check_stmt_case(env, stmt))}
 
-ANN static bool case_loop(const Env env, const Stmt_Match stmt) {
+ANN static bool case_loop(const Env env, const Stmt_Match match) {
   bool ok = true;
-  for(m_uint i = 0; i < stmt->list->len; i++) {
-    Stmt* s = mp_vector_at(stmt->list, Stmt, i);
-    if(!check_stmt_case(env, &s->d.stmt_match))
-      ok = false;
+  for(m_uint i = 0; i < match->list->len; i++) {
+    Stmt* stmt = mp_vector_at(match->list, Stmt, i);
+    if(!check_stmt_case(env, &stmt->d.stmt_match))
+      POISON_NODE(ok, env, stmt);
   }
   return ok;
 }
@@ -1664,7 +1663,7 @@ ANN static inline bool check_handler_list(const restrict Env env,
   for(uint32_t i = 0; i < handlers->len; i++) {
     Handler *handler = mp_vector_at(handlers, Handler, i);
     if(!check_handler(env, handler))
-      ok = false;
+      POISON(ok ,env);
   }
   env->scope->in_try  = in_try;
   return ok;
@@ -1754,9 +1753,9 @@ ANN bool check_stmt(const Env env, Stmt* stmt) {
 ANN bool check_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, Stmt, i);
-    if(!check_stmt(env, s))
-      ok = false;
+    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(!check_stmt(env, stmt))
+      POISON_NODE(ok, env, stmt);
   }
   return ok;
 }
@@ -1918,7 +1917,7 @@ ANN static bool check_fdef_const_generic(const Env env, const Func_Def fdef) {
     const Specialized *spec = mp_vector_at(fdef->base->tmpl->list, Specialized, i);
     if(!spec) break;
     if(!const_generic_typecheck(env, spec, targ))
-      ok = false;
+      POISON(ok, env);
     fdef_const_generic_value(env, t, targ->d.exp->type, spec->tag);
   }
   return ok;
@@ -1930,13 +1929,12 @@ ANN static bool check_fdef_code(const Env env, const Func_Def fdef) {
     nspc_push_value(env->gwion->mp, env->curr);
     env->scope->depth++;
   }
-  const bool ret = check_stmt_list(env, fdef->d.code);
+  (void)check_stmt_list(env, fdef->d.code);
   if(!ctor) {
     env->scope->depth--;
     nspc_pop_value(env->gwion->mp, env->curr);
   }
-  CHECK_B(check_fdef_effects(env, fdef));
-  return ret;
+  return check_fdef_effects(env, fdef);
 }
 
 ANN bool check_fdef(const Env env, const Func_Def fdef) {
@@ -2002,7 +2000,7 @@ ANN bool _check_func_def(const Env env, const Func_Def f) {
   nspc_pop_value(env->gwion->mp, env->curr);
 //  env->scope->depth--;
   env->func = former;
-  if (ret > 0) {
+  if (ret) {
     if (env->class_def && fdef->base->effects.ptr &&
         (override &&
          !check_effect_overload(&fdef->base->effects, override->d.func_ref)))
@@ -2066,7 +2064,7 @@ ANN static bool _check_trait_def(const Env env, const Trait_Def pdef) {
     const Stmt* stmt = mp_vector_at(l, Stmt, i);
         if (stmt->stmt_type == ae_stmt_exp) {
           if(!traverse_exp(env, stmt->d.stmt_exp.val))
-            ok = false;
+            POISON_NODE(ok, env, stmt->d.stmt_exp.val);
           Var_Decl vd = stmt->d.stmt_exp.val->d.exp_decl.var.vd;
           const Value value = vd.value;
           valuefrom(env, value->from);
@@ -2142,6 +2140,7 @@ ANN static bool class_def_has_body(Ast ast) {
   Stmt_List l = f->d.code;
   for(m_uint i = 0; i < l->len; i++) {
     const Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(stmt->poison)continue;
     if (stmt->stmt_type == ae_stmt_pp) continue;
     if (stmt->stmt_type == ae_stmt_exp) {
       Exp* exp = stmt->d.stmt_exp.val;
@@ -2241,7 +2240,7 @@ ANN static bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nsp
       const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
       if(likely(targ.type == tmplarg_td)) continue;
       if(!check_exp(env, targ.d.exp))
-        ok = false;
+        POISON_NODE(ok, env, targ.d.exp);
       const Specialized spec = *mp_vector_at(tmpl->list, Specialized, i);
       const Value v = new_value(env, targ.d.exp->type, MK_TAG(spec.tag.sym, targ.d.exp->loc));
       valuefrom(env, v->from);
@@ -2260,10 +2259,10 @@ ANN static bool _check_class_def(const Env env, const Class_Def cdef) {
   if (!tflag(t, tflag_struct)) inherit(t);
   if(cdef->base.tmpl) CHECK_B(check_class_tmpl(env, cdef->base.tmpl, cdef->base.type->nspc));
   if (cdef->body) {
-    CHECK_B(env_body(env, cdef, check_section));
-    if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
-//    if (class_def_has_body(cdef->body))
-      set_tflag(t, tflag_ctor);
+    if(env_body(env, cdef, check_section)) {
+      if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
+        set_tflag(t, tflag_ctor);
+    }
   }
   if (!GET_FLAG(cdef, abstract)) CHECK_B(check_abstract(env, cdef));
   if (cdef->traits) {
@@ -2322,14 +2321,9 @@ ANN bool check_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
-    if(section->poison) {
-      ok = false;
-      continue;
-    }
-    if(!check_section(env, section)) {
-      section->poison = true;
-      ok = false;
-    }
+    if(section->poison) continue;
+    if(!check_section(env, section))
+      POISON_NODE(ok, env, section);
   }
   if(env->context->extend) check_extend(env, env->context->extend);
   if(ok && vector_size(&env->scope->effects)) check_unhandled(env);

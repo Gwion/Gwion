@@ -220,7 +220,7 @@ ANN static Func _find_template_match(const Env env, const Value v,
 ANN static inline bool check_call(const Env env, const Exp_Call *exp) {
   const ae_exp_t et = exp->func->exp_type;
   if (et != ae_exp_primary && et != ae_exp_dot && et != ae_exp_cast)
-    ERR_B(exp->func->loc, _("invalid expression for function call."))
+    ERR_B(exp->func->loc, _("invalid expression for function call."));
   return true;
 }
 
@@ -240,5 +240,5 @@ ANN Func find_template_match(const Env env, const Value value,
     }
     t = t->info->parent;
   }
-  ERR_O(exp_self(exp)->loc, _("arguments do not match for template call"))
+  ERR_O(exp_self(exp)->loc, _("arguments do not match for template call"));
 }

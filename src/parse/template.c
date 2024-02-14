@@ -172,7 +172,7 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
     return scan_func(env, t, td);
   ERR_O(td->tag.loc,
         _("type '%s' is not template. You should not provide template types"),
-        t->name)
+        t->name);
 }
 
 static ANN bool is_single_variadic(const MP_Vector *v) {
@@ -285,7 +285,7 @@ ANN Type scan_type(const Env env, const Type t, Type_Decl *td) {
     const Type owner       = array_base_simple(maybe_array);
     td->next               = next;
     CHECK_O(owner);
-    if (!owner->nspc) ERR_O(td->tag.loc, "type '%s' has no namespace", owner->name)
+    if (!owner->nspc) ERR_O(td->tag.loc, "type '%s' has no namespace", owner->name);
     struct EnvSet es = {.env   = env,
                         .data  = env,
                         .scope = env->scope->depth,

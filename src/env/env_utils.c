@@ -10,12 +10,12 @@ ANN bool env_access(const Env env, const ae_flag flag, const loc_t loc) {
   if (env->scope->depth) {
     if (GET(flag, ae_flag_global))
       ERR_b(loc, _("`{G}global{0}` can only be used at %s scope."),
-            GET(flag, ae_flag_global) && !env->class_def ? "file" : "class")
+            GET(flag, ae_flag_global) && !env->class_def ? "file" : "class");
   }
   if ((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
        GET(flag, ae_flag_protect)) &&
       (!env->class_def || env->scope->depth))
-    ERR_b(loc, _("`{G}static/private/protect{0}` can only be used at class scope."))
+    ERR_b(loc, _("`{G}static/private/protect{0}` can only be used at class scope."));
   return true;
 }
 
@@ -60,7 +60,7 @@ ANN Type find_type(const Env env, Type_Decl *td) {
     const Nspc nspc  = type->nspc;
     if(!(type = find_in_parent(type, td->tag.sym)))
       ERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
-            s_name(td->tag.sym), nspc->name)
+            s_name(td->tag.sym), nspc->name);
   }
   return type;
 }

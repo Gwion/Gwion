@@ -75,7 +75,7 @@ static OP_CHECK(opck_spork) {
     return env->gwion
         ->type[unary->op == insert_symbol("spork") ? et_shred : et_fork];
   }
-  ERR_O(exp_self(unary)->loc, _("only function calls can be sporked..."))
+  ERR_O(exp_self(unary)->loc, _("only function calls can be sporked..."));
 }
 
 static OP_EMIT(opem_spork) {

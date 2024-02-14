@@ -327,7 +327,7 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   Exp* e = cdef->base.ext->array ? cdef->base.ext->array->exp : NULL;
   while(e) {
     if(!is_prim_int(e))
-      ERR_OK(ok, e->loc, "non null array type extension must be literal");
+      ERR_OK_NODE(ok, e, e->loc, "non null array type extension must be literal");
     e = e->next;
   }
   if (tmpl_base(cdef->base.tmpl)) return get_parent_base(env, cdef->base.ext);
@@ -346,7 +346,7 @@ ANN static bool find_traits(const Env env, ID_List traits, const loc_t loc) {
       gwerr_basic(_("can't find trait"), NULL, NULL, env->name, loc, 0);
       did_you_mean_trait(env->curr, s_name(xid));
       env_set_error(env, true);
-      ok = false;
+      POISON(ok, env);
     }
   }
   return ok;
@@ -421,15 +421,18 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
         env->name = stmt->d.stmt_pp.data;
       else if (stmt->d.stmt_pp.pp_type == ae_pp_import) {
         if(!plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->loc))
-          ok = false;
+          POISON_NODE(ok, env, stmt);
       }
     } else if (stmt->stmt_type == ae_stmt_spread) {
-      if(!spreadable(env))
-        ERR_OK(ok, stmt->loc, "spread statement outside of variadic environment");
+      if(!spreadable(env)) {
+        ERR_OK_NODE(ok, stmt, stmt->loc, "spread statement outside of variadic environment");
+        stmt->poison = true;
+        env->context->error = true;
+      }
       if(!env->context->extend)
          env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
       if(!spread_tmpl(env, &stmt->d.stmt_spread))
-        ok = false;
+          POISON_NODE(ok, env, stmt);
     }
   }
   return ok;
@@ -465,7 +468,7 @@ ANN static bool scan0_extend_def(const Env env, const Extend_Def xdef) {
         gwerr_basic("trait should be declared global", NULL, NULL, trait->filename, trait->loc, 0);
         gwerr_secondary("from the request ", env->name, xdef->td->tag.loc);
         env_set_error(env, true);
-        ok = false;
+        POISON(ok, env);
       }
     }
   }
@@ -574,10 +577,8 @@ ANN bool scan0_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
-    if(!scan0_section(env, section)) {
-      ok = false;
-      section->poison = true;
-    }
+    if(!scan0_section(env, section))
+      POISON_NODE(ok, env, section);
   }
   return ok;
 }

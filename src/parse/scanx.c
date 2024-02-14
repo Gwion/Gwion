@@ -6,15 +6,13 @@
 #include "traverse.h"
 #include "parse.h"
 
-ANN static inline bool _body(const Env e, Ast b, const _envset_func f) {
+ANN static inline bool _body(const Env env, Ast ast, const _envset_func f) {
   bool ok = true;
-  for(m_uint i = 0; i < b->len; i++) {
-    Section *section = mp_vector_at(b, Section, i);
+  for(m_uint i = 0; i < ast->len; i++) {
+    Section *section = mp_vector_at(ast, Section, i);
     if(section->poison) continue;
-    if(!f(e, section)) {
-      section->poison = e->context->error = true;
-      ok = false;
-    }
+    if(!f(env, section))
+      POISON_NODE(ok, env, section);
   }
   return ok;
 }
@@ -27,18 +25,18 @@ ANN static inline bool tmpl_push(const Env env, const Tmpl *tmpl) {
   return actual(tmpl) ? template_push_types(env, tmpl) : true;
 }
 
-ANN static inline void _pop(const Env e, const Class_Def c, const m_uint s) {
+ANN static inline void _pop(const Env env, const Class_Def c, const m_uint s) {
   if (c->base.tmpl && actual(c->base.tmpl))
-    nspc_pop_type(e->gwion->mp, e->curr);
-  env_pop(e, s);
+    nspc_pop_type(env->gwion->mp, env->curr);
+  env_pop(env, s);
 }
 
-ANN bool scanx_body(const Env e, const Class_Def c, const _envset_func f,
+ANN bool scanx_body(const Env env, const Class_Def c, const _envset_func f,
                       void *d) {
-  const m_int scope = env_push_type(e, c->base.type);
-  if(c->base.tmpl) CHECK_B(tmpl_push(e, c->base.tmpl));
+  const m_int scope = env_push_type(env, c->base.type);
+  if(c->base.tmpl) CHECK_B(tmpl_push(env, c->base.tmpl));
   const bool ret = _body(d, c->body, f);
-  _pop(e, c, scope);
+  _pop(env, c, scope);
   return ret;
 }
 

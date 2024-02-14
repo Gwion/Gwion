@@ -105,14 +105,14 @@ ANN Stmt_List spread_func(const Env env, const Stmt_List body) {
   uint32_t offset = 0;
   bool ok = true;
   for(uint32_t i = 0; i < body->len; i++) {
-    const Stmt stmt = *mp_vector_at(body, Stmt, i);
+    Stmt stmt = *mp_vector_at(body, Stmt, i);
     if(stmt.stmt_type == ae_stmt_spread) {
       for(; offset < extend->len; offset++) {
         const Section section = *mp_vector_at(extend, Section, offset);
         if(section.section_type == ae_section_stmt && !section.d.stmt_list)
           break;
         if(section.section_type != ae_section_stmt)
-          ERR_OK(ok, stmt.loc, "invalid section in variadic func");
+          ERR_OK_NODE(ok, &stmt, stmt.loc, "invalid section in variadic func");
         const Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
           const Stmt stmt = *mp_vector_at(list, Stmt, j);
