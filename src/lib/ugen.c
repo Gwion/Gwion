@@ -168,9 +168,9 @@ ANN static void release_connect(const VM_Shred shred) {
 }
 
 typedef ANN void (*f_connect)(const UGen lhs, const UGen rhs);
-ANN /* static */ void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
-  const m_bool l_multi = lhs->multi;
-  const m_bool r_multi = rhs->multi;
+ANN static void _do_(const f_connect f, const UGen lhs, const UGen rhs) {
+  const bool l_multi = lhs->multi;
+  const bool r_multi = rhs->multi;
   const uint   l_max   = l_multi ? lhs->connect.multi->n_out : 1;
   const uint   r_max   = r_multi ? rhs->connect.multi->n_in : 1;
   const uint   max     = l_max > r_max ? l_max : r_max;

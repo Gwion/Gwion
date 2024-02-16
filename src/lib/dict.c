@@ -431,7 +431,7 @@ static OP_EMIT(opem_dict_remove) {
   return GW_OK;
 }
 
-ANN static m_bool emit_next_access(const Emitter emit, struct ArrayAccessInfo *const info) {
+ANN static bool emit_next_access(const Emitter emit, struct ArrayAccessInfo *const info) {
   const struct Array_Sub_ array = info->array;
   HMapInfo *const hinfo = (HMapInfo*)info->array.type->nspc->class_data;
   info->array = (struct Array_Sub_){
@@ -450,7 +450,7 @@ static OP_EMIT(opem_dict_access) {
   const m_bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
   CHECK_BB(ret);
-  return !enext ? GW_OK : emit_next_access(emit, info);
+  return !enext ? GW_OK : (emit_next_access(emit, info) ? GW_OK : GW_ERROR);
 }
 
 static OP_CHECK(opck_dict_access) {

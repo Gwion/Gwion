@@ -674,7 +674,7 @@ ANN static m_bool emit_prim_dict(const Emitter emit, Exp* *data) {
   return GW_OK;
 }
 
-ANN m_bool emit_array_access(const Emitter                 emit,
+ANN bool emit_array_access(const Emitter                 emit,
                              struct ArrayAccessInfo *const info) {
   if (tflag(info->array.type, tflag_typedef))
     info->array.type = typedef_base(info->array.type);
@@ -683,7 +683,7 @@ ANN m_bool emit_array_access(const Emitter                 emit,
                           .lhs  = info->array.exp->type,
                           .rhs  = info->array.type,
                           .data = (uintptr_t)info};
-  return op_emit(emit, &opi);
+  return op_emit(emit, &opi) > 0;
 }
 
 ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array *array) {
@@ -694,7 +694,7 @@ ANN static m_bool emit_exp_array(const Emitter emit, const Exp_Array *array) {
     .array = *array->array,
     .type = e->type,
     .is_var = exp_getvar(e)};
-  return emit_array_access(emit, &info);
+  return emit_array_access(emit, &info) ? GW_OK : GW_ERROR;
 }
 
 ANN static m_bool emit_exp_slice(const Emitter emit, const Exp_Slice *range) {

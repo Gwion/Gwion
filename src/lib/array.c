@@ -182,11 +182,11 @@ static OP_CHECK(opck_array_sr) {
   return check_array_shift(env, bin->rhs, bin->lhs, ">>", exp_self(bin)->loc);
 }
 
-ANN static inline m_bool emit_array_shift(const Emitter emit,
+ANN static inline bool emit_array_shift(const Emitter emit,
                                           const f_instr exec) {
   emit_regmove(emit, -SZ_INT);
   (void)emit_add_instr(emit, exec);
-  return GW_OK;
+  return true;
 }
 
 static INSTR(ArrayAppendFront) {
@@ -233,7 +233,7 @@ static INSTR(ArrayConcatRight) {
 static OP_EMIT(opem_array_sr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->lhs->type, bin->rhs->type))
-    return emit_array_shift(emit, ArrayConcatRight);
+    return emit_array_shift(emit, ArrayConcatRight) ? GW_OK : GW_ERROR;
   emit_regmove(emit, -SZ_INT);
   if (tflag(bin->lhs->type, tflag_compound))
     emit_compound_addref(emit, bin->lhs->type, -SZ_INT - bin->lhs->type->size, false);
@@ -244,7 +244,7 @@ static OP_EMIT(opem_array_sr) {
 static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
-    return emit_array_shift(emit, ArrayConcatLeft);
+    return emit_array_shift(emit, ArrayConcatLeft) ? GW_OK : GW_ERROR;
   if (tflag(bin->rhs->type, tflag_compound))
     emit_compound_addref(emit, bin->rhs->type, -bin->rhs->type->size, false);
   emit_regmove(emit, -bin->rhs->type->size);
@@ -329,9 +329,9 @@ static OP_CHECK(opck_array_slice) {
   return e->d.exp_slice.base->type;
 }
 
-static inline m_bool bounds(const M_Vector v, const m_int i) {
-  CHECK_BB(i);
-  return (m_uint)i < ARRAY_LEN(v) ? GW_OK : GW_ERROR;
+static inline bool bounds(const M_Vector v, const m_int i) {
+  CHECK_B(i);
+  return (m_uint)i < ARRAY_LEN(v);
 }
 
 static INSTR(ArraySlice) {
@@ -343,7 +343,7 @@ static INSTR(ArraySlice) {
   if (end < 0) end = ARRAY_LEN(in) + end;
   const m_int  op = start < end ? 1 : -1;
   const m_uint sz = op > 0 ? end - start : start - end;
-  if (bounds(in, start) < 0 || bounds(in, end) < 0) {
+  if (!bounds(in, start) || !bounds(in, end)) {
     handle(shred, "OutOfBoundsArraySliceException");
     return;
   }
@@ -462,7 +462,9 @@ static OP_EMIT(opem_array_access) {
   Exp* exp             = emit_n_exp(emit, info);
   next.exp                  = exp;
   info->array               = next;
-  return exp ? emit_array_access(emit, info) : GW_ERROR;
+  if(exp)
+    return emit_array_access(emit, info) ? GW_OK : GW_ERROR;
+  return GW_ERROR;
 }
 
 static m_bit                 map_byte[BYTECODE_SZ * 5];
