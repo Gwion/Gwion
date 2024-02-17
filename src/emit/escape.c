@@ -48,7 +48,7 @@ bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
           } else {
             env_err(emit->env, loc,
                     _("malformed octal escape sequence '\\%c%c%c'"), c, c2, c3);
-            return GW_ERROR;
+            return false;
           }
         }
       } else if (c == 'x' || c == 'X' || c == 'u' || c == 'U') {
@@ -61,7 +61,7 @@ bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
         } else {
           env_err(emit->env, loc, _("malformed hex escape sequence '\\%c%c'"),
                   c1, c3);
-          return GW_ERROR;
+          return false;
         }
       } else {
         char out;

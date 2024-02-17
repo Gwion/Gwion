@@ -33,7 +33,7 @@ ANN Type upvalue_type(const Env env, Capture *cap);
 static OP_CHECK(opck_spork) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   if (unary->unary_type == unary_exp && unary->exp->exp_type == ae_exp_call) {
-    const m_bool is_spork = unary->op == insert_symbol("spork");
+    const bool is_spork = unary->op == insert_symbol("spork");
     return is_spork ? env->gwion->type[et_shred] : fork_type(env, unary);
   }
   if (unary->unary_type == unary_code) {

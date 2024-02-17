@@ -58,7 +58,7 @@ static OP_EMIT(opem_ref_implicit_similar) {
   emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  return emit_exp(emit, imp->e);
+  return emit_exp(emit, imp->e) > 0 ? GW_OK : GW_ERROR;
 }
 
 static OP_CHECK(opck_implicit_ref) {
@@ -93,7 +93,7 @@ static OP_EMIT(opem_ref_contract_similar) {
   emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  return emit_exp(emit, imp->e);
+  return emit_exp(emit, imp->e) > 0 ? GW_OK : GW_ERROR;
 }
 
 ANN static void base2ref(Env env, const Type lhs, const Type rhs) {

@@ -134,7 +134,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
         e->d.prim.value = cap->var.value;
         e->type = cap->var.value->type;
         exp_setvar(e, cap->is_ref);
-        CHECK_BB(emit_exp(emit, e));
+        CHECK_b(emit_exp(emit, e));
         if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
           emit_compound_addref(emit, cap->temp->type, cap->temp->type->size, 0);
         offset += cap->temp->type->size;

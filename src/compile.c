@@ -99,7 +99,7 @@ ANN static inline bool _passes(struct Gwion_ *gwion, struct Compiler *c) {
   for (m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass pass =
         (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    if(pass(gwion->env, &c->ast) < 0) {
+    if(!pass(gwion->env, &c->ast)) {
       gwion->data->errored = true;
       return false;
     }

@@ -304,11 +304,11 @@ static OP_CHECK(opck_dict_remove_toop) {
 ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
                           const struct Op_Import *opi, Exp* call, Exp* exp) {
   emit_pushimm(emit, -1); // room for tombstone
-  CHECK_BB(emit_exp(emit, call));
+  CHECK_b(emit_exp(emit, call));
   const m_uint pc = emit_code_size(emit);
   const Instr iter = emit_add_instr(emit, hmap_iter);
   iter->m_val = hinfo->key->size + SZ_INT;
-  CHECK_BB(emit_exp(emit, exp));
+  CHECK_b(emit_exp(emit, exp));
   op_emit(emit, opi);
   const Instr ok = emit_add_instr(emit, BranchNeqInt);
   emit_add_instr(emit, hmap_iter_inc);
@@ -358,7 +358,7 @@ if(info->is_var) {
   const m_uint grow_pc = emit_code_size(emit);
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
-  CHECK_BB(emit_exp(emit, call.d.exp_call.func));
+  CHECK_b(emit_exp(emit, call.d.exp_call.func));
   CHECK_b(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
     call.d.exp_call.func->type->info->func->def->base->ret_type->size, true));
   emit_add_instr(emit, hmap_find);
@@ -366,8 +366,8 @@ if(info->is_var) {
   regrow->m_val = grow_pc;
   nogrow->m_val = emit_code_size(emit);
   endgrow->m_val = emit_code_size(emit);
-  CHECK_BB(emit_exp(emit, &call));
-  CHECK_BB(emit_exp(emit, array->exp));
+  CHECK_b(emit_exp(emit, &call));
+  CHECK_b(emit_exp(emit, array->exp));
   const m_uint top_pc = emit_code_size(emit);
   const Instr idx = emit_add_instr(emit, hmap_iter_set_ini);
   idx->m_val = key->size;
@@ -376,7 +376,7 @@ if(info->is_var) {
   const Instr iter = emit_add_instr(emit, hmap_iter_set);
   iter->m_val = key->size;
   const Instr fast = emit_add_instr(emit, BranchNeqInt);
-  CHECK_BB(emit_exp(emit, array->exp));
+  CHECK_b(emit_exp(emit, array->exp));
   op_emit(emit, &opi);
 
   const Instr ok = emit_add_instr(emit, BranchNeqInt);

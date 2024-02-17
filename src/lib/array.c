@@ -392,7 +392,7 @@ static OP_CHECK(opck_array) {
 
 ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
                                   const bool is_var) {
-  CHECK_BB(emit_exp(emit, array->exp));
+  CHECK_b(emit_exp(emit, array->exp));
   const m_uint depth = array->depth;
   const m_uint offset = is_var ? SZ_INT : array->type->size;
   emit_regmove(emit, -(depth+1) * SZ_INT + offset);

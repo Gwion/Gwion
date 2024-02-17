@@ -112,11 +112,11 @@ static ID_EMIT(opem_this) {
       tflag(exp_self(prim)->type, tflag_struct)) {
     const Instr instr = emit_add_instr(emit, RegPushMemDeref);
     instr->m_val2     = emit->env->class_def->size;
-    return GW_OK;
+    return true;
   }
   const Instr instr = emit_add_instr(emit, RegPushMem);
   instr->m_val      = emit->status.this_offset;
-  return GW_OK;
+  return true;
 }
 
 static ID_CHECK(opck_super) {
@@ -133,10 +133,10 @@ static ID_EMIT(opem_super) {
   const Env env = emit->env;
   Exp* self = exp_self(prim);
   if(!self->is_call)
-    ERR_B(self->loc, "can only use 'super' as a function call");
+    ERR_b(self->loc, "can only use 'super' as a function call");
   emit_regpushmem(emit, 0, SZ_INT, false);
   emit_pushimm(emit, (m_uint)exp_self(prim)->type);
-  return GW_OK;
+  return true;
 }
 
 GWION_IMPORT(object) {

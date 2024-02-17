@@ -467,7 +467,7 @@ static OP_EMIT(opem_string_access) {
   struct ArrayAccessInfo *info = (struct ArrayAccessInfo*)data;
   Exp* exp = info->array.exp;
   Exp* next = exp->next;
-  CHECK_BB(emit_exp(emit, exp));
+  CHECK_b(emit_exp(emit, exp));
   exp->next = next;
   emit_add_instr(emit, !info->is_var ? string_at : string_at_set);
   return GW_OK;

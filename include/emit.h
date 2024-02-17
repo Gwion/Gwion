@@ -64,9 +64,9 @@ struct Emitter_ {
 
 ANEW ANN Emitter new_emitter(MemPool);
 ANN void         free_emitter(MemPool, Emitter);
-ANN m_bool       emit_ast(const Env env, Ast *ast);
-ANN m_bool       emit_func_def(const Emitter emit, const Func_Def fdef);
-ANN m_bool emit_exp(const Emitter, Exp*);
+ANN bool       emit_ast(const Env env, Ast *ast);
+ANN bool       emit_func_def(const Emitter emit, const Func_Def fdef);
+ANN bool emit_exp(const Emitter, Exp*);
 ANN bool emit_exp_call1(const Emitter, const Func, const m_uint size, const bool is_static);
 ANN2(1)
 Instr emit_add_instr(const Emitter, const f_instr)

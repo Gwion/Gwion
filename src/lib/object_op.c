@@ -243,13 +243,13 @@ OP_EMIT(opem_object_dot) {
   }
   if (tflag(t_base, tflag_struct) && !GET_FLAG(value, static)) {
     exp_setvar(member->base, true);
-    CHECK_BB(emit_exp(emit, member->base));
+    CHECK_b(emit_exp(emit, member->base));
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
        (is_func(emit->gwion, exp_self(member)->type)))) {
     if (!tflag(t_base, tflag_struct))
-      CHECK_BB(emit_exp(emit, member->base));
+      CHECK_b(emit_exp(emit, member->base));
   }
   if (is_func(emit->gwion, exp_self(member)->type) &&
       !fflag(exp_self(member)->type->info->func, fflag_fptr))

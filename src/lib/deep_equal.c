@@ -211,7 +211,7 @@ ANN static bool deep_emit(const Emitter emit, struct DeepEmits *ds) {
     Exp rexp = MK_DOT(emit, ds->rhs->tmp, rhs);
     Exp temp = MK_BIN(lexp, rexp, ds->bin);
     temp.type=emit->gwion->type[et_bool];
-    if(emit_exp(emit, &temp) < 0) return false;
+    if(!emit_exp(emit, &temp)) return false;
     vector_add(&ds->acc, (m_uint)emit_add_instr(emit, BranchEqInt));
   }
   const Instr jmp = emit_add_instr(emit, Goto);

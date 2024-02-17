@@ -623,7 +623,7 @@ ANN static GWION_IMPORT(ux) {
   for(uint i = 1; i <= SZ_INT; i *= 2) {
     sprintf(c+1, "%u", i * CHAR_BIT);
     const Symbol s = insert_symbol(c);
-    GWI_OB(gwi_primitive(gwi, s_name(s), i, ae_flag_none));
+    if(!gwi_primitive(gwi, s_name(s), i, ae_flag_none)) return false;
   }
   return GW_OK;
 }
