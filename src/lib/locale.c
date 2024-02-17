@@ -47,5 +47,5 @@ GWION_IMPORT(locale) {
   GWI_B(gwi_func_ini(gwi, "float", "BasicLocale"));
   GWI_B(gwi_func_arg(gwi, "string", "str"));
   GWI_B(gwi_func_end(gwi, BasicLocale, ae_flag_none));
-  return GW_OK;
+  return true;
 }

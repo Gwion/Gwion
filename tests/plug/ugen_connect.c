@@ -15,5 +15,5 @@ GWION_IMPORT(ugen_connect) {
   const UGen ug1 = (UGen)vector_at(&gwi->gwion->vm->ugen, 1);
   ugen_connect(ug0, ug1);
   ugen_disconnect(ug0, ug1);
-  return GW_OK;
+  return true;
 }

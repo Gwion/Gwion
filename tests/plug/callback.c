@@ -66,12 +66,12 @@ static SFUN(cb_func) {
 
 GWION_IMPORT(callback) {
   GWI_B(gwi_fptr_ini(gwi, "Vec4", "PtrType"))
-  GWI_OB(gwi_fptr_end(gwi, 0))
+  GWI_B(gwi_fptr_end(gwi, 0))
 
-  GWI_OB(gwi_class_ini(gwi, "Callback", NULL))
+  GWI_B(gwi_class_ini(gwi, "Callback", NULL))
   GWI_B(gwi_func_ini(gwi, "int", "callback"))
   GWI_B(gwi_func_arg(gwi, "PtrType", "func"))
   GWI_B(gwi_func_end(gwi, cb_func, ae_flag_static))
   GWI_B(gwi_class_end(gwi))
-  return GW_OK;
+  return true;
 }

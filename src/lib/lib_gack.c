@@ -42,8 +42,8 @@ GWION_IMPORT(gack) {
 
   gwidoc(gwi, "a type for *pretty print*.");
   const Type t_gack = gwi_mk_type(gwi, "@Gack", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_gack, gack_gack))
-  GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack));
+  GWI_B(gwi_gack(gwi, t_gack, gack_gack))
+  GWI_B(gwi_set_global_type(gwi, t_gack, et_gack));
 
   gwidoc(gwi, "@Gack implicit cast");
    GWI_B(gwi_oper_ini(gwi, "@Gack", (m_str)OP_ANY_TYPE, NULL))
@@ -51,5 +51,5 @@ GWION_IMPORT(gack) {
    GWI_B(gwi_oper_emi(gwi, opem_gack_implicit))
    GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
 
-  return GW_OK;
+  return true;
 }

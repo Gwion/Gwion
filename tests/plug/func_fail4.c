@@ -12,6 +12,6 @@
 GWION_IMPORT(func_fail4) {
   GWI_B(gwi_func_ini(gwi, "Ptr:[int]", "test:[A]"))
   GWI_B(gwi_func_arg(gwi, "int", "i[][]"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, num, 0))
-  return GW_OK;
+  GWI_B(gwi_item_end(gwi, ae_flag_none, num, 0))
+  return true;
 }

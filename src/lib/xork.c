@@ -41,7 +41,7 @@ static OP_CHECK(opck_spork) {
       uint32_t offset = !env->class_def ? 0 : SZ_INT;
       for(uint32_t i = 0; i < unary->captures->len; i++) {
         Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        DECL_OO(const Type, t, = upvalue_type(env, cap));
+        DECL_O(const Type, t, = upvalue_type(env, cap));
         cap->temp = new_value(env, t, cap->var.tag);
         cap->temp->from->offset = offset;
         offset += cap->temp->type->size;
@@ -100,5 +100,5 @@ GWION_IMPORT(xork) {
    GWI_B(gwi_oper_end(gwi, "fork", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, fast_except, clean_fast_except);
-  return GW_OK;
+  return true;
 }

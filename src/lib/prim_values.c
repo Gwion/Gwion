@@ -37,5 +37,5 @@ GWION_IMPORT(values) {
   gwi_item_end(gwi, ae_flag_const, fnum, sr * 60 * 60);
   gwi_item_ini(gwi, "time", "t_zero");
   gwi_item_end(gwi, ae_flag_const, fnum, 0.0);
-  return GW_OK;
+  return true;
 }

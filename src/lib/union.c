@@ -158,8 +158,8 @@ static OP_CHECK(opck_union_new) {
 
 ANN GWION_IMPORT(union) {
   const Type t_none = gwi_mk_type(gwi, "None", 0, NULL);
-  GWI_BB(gwi_set_global_type(gwi, t_none, et_none))
-  GWI_BB(gwi_gack(gwi, t_none, gack_none))
+  GWI_B(gwi_set_global_type(gwi, t_none, et_none))
+  GWI_B(gwi_gack(gwi, t_none, gack_none))
   gwi_add_type(gwi, t_none);
   struct SpecialId_ spid = {
       .type = gwi->gwion->type[et_none], .exec = NoOp, .is_const = 1};
@@ -174,8 +174,8 @@ ANN GWION_IMPORT(union) {
   //gwi_class_xtor(gwi, NULL, UnionDtor);
   gwi->gwion->type[et_union] = t_union;
 
-  GWI_BB(gwi_item_ini(gwi, "int", "index"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
+  GWI_B(gwi_item_ini(gwi, "int", "index"))
+  GWI_B(gwi_item_end(gwi, ae_flag_const, num, 0))
   /*
   GWI_B(gwi_func_ini(gwi, "void", "@ctor"))
   GWI_B(gwi_func_end(gwi, union_ctor, ae_flag_none))
@@ -206,5 +206,5 @@ ANN GWION_IMPORT(union) {
   GWI_B(gwi_union_add(gwi, "A", "val"))
   GWI_B(gwi_union_end(gwi, ae_flag_none))
 
-  return GW_OK;
+  return true;
 }

@@ -13,5 +13,5 @@ ANN static bool pass(Env nv NUSED, Ast *ast NUSED) { return true; }
 
 GWION_IMPORT(pass) {
   gwi_register_pass(gwi, "dummy", pass);
-  return GW_OK;
+  return true;
 }

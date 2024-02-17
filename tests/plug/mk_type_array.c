@@ -12,7 +12,7 @@
 MFUN(test_mfun) {}
 GWION_IMPORT(mk_type_array) {
   Type t_invalid_var_name;
-  GWI_OB((t_invalid_var_name =
+  GWI_B((t_invalid_var_name =
               gwi_mk_type(gwi, "invalid_var_name", SZ_INT, "Object[]")))
-  return GW_OK;
+  return true;
 }

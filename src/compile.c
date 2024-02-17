@@ -115,7 +115,7 @@ ANN static inline bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   for(uint32_t i = 0; i < mp_vector_len(c->values); i++) {
     const Value v = *mp_vector_at(c->values, Value, i);
     set_vflag(v, vflag_builtin);
-    if(isa(v->type, gwion->type[et_class]) > 0) {
+    if(isa(v->type, gwion->type[et_class])) {
       const Type t = (Type)v->d.ptr;
       type_addref(t);
       mk_class(gwion->env, t, (loc_t) {});
@@ -157,7 +157,7 @@ ANN static m_uint _compile(struct Gwion_ *gwion, struct Compiler *c) {
     gwion->emit->info->code = NULL;
     return c->shred->tick->xid;
   }
-  return GW_OK;
+  return true;
 }
 
 ANN static m_uint compile(struct Gwion_ *gwion, struct Compiler *c) {

@@ -10,5 +10,5 @@
 
 GWION_IMPORT(non_driver) {
   (void)gwi;
-  return GW_OK;
+  return true;
 }

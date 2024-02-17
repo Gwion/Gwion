@@ -7,7 +7,7 @@ ANN void print_signature(const Func f);
 ANN static inline bool func_match_inner(const Env env, Exp* e,
                                         const Type t, const bool implicit,
                                         const bool specific) {
-  if (specific ? e->type == t : isa(e->type, t) > 0) // match
+  if (specific ? e->type == t : isa(e->type, t)) // match
     return true;
   return !implicit ? false : check_implicit(env, e, t);
 }

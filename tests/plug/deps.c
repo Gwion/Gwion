@@ -11,7 +11,7 @@
 
 GWION_IMPORT(deps) {
   (void)gwi;
-  return GW_OK;
+  return true;
 }
 
 static const m_str deps[] = {"array", NULL};

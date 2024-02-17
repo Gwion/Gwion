@@ -10,13 +10,6 @@
 #include "instr.h"
 #include "import.h"
 
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
 ANN static bool scan1_stmt_list(const Env env, Stmt_List list);
 ANN static bool scan1_stmt(const Env env, Stmt* stmt);
 
@@ -47,7 +40,7 @@ ANN static inline bool ensure_scan1(const Env env, const Type t) {
 
 ANN static bool check_global(const Env env, const Type t, const loc_t loc) {
   const ValueFrom *from = t->info->value->from;
-  if(from->owner_class && isa(from->owner_class, env->class_def) > 0)
+  if(from->owner_class && isa(from->owner_class, env->class_def))
     return true;
   if(from_global_nspc(env, from->owner) ||
     (from->owner_class && type_global(env, from->owner_class)))
@@ -83,7 +76,7 @@ ANN static Type scan1_exp_decl_type(const Env env, Exp_Decl *decl) {
   if (decl->var.td->tag.sym == insert_symbol("auto") && decl->type) return decl->type;
   if (GET_FLAG(t, private) && t->info->value->from->owner != env->curr)
     ERR_O(exp_self(decl)->loc, _("can't use private type %s"), t->name);
-  if (GET_FLAG(t, protect) && (!env->class_def || isa(t, env->class_def) < 0))
+  if (GET_FLAG(t, protect) && (!env->class_def || !isa(t, env->class_def)))
     ERR_O(exp_self(decl)->loc, _("can't use protected type %s"), t->name);
   return t;
 }
@@ -95,10 +88,10 @@ static inline bool scan1_defined(const Env env, const Var_Decl *var) {
         env->scope->depth)
            ? nspc_lookup_value1
            : nspc_lookup_value2)(env->curr, var->tag.sym);
-  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class) > 0))
+  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class)))
     ERR_B(var->tag.loc,
           _("variable %s has already been defined in the same scope..."),
-          s_name(var->tag.sym))
+          s_name(var->tag.sym));
   return true;
 }
 
@@ -141,7 +134,7 @@ ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
         set_vflag(v, vflag_member);
         if(tflag(t, tflag_release))
           set_tflag(env->class_def, tflag_release);
-        if(isa(t, env->gwion->type[et_object]) > 0)
+        if(isa(t, env->gwion->type[et_object]))
           set_vflag(v, vflag_release);
         if (tflag(env->class_def, tflag_struct)) {
           v->from->offset = env->class_def->size;
@@ -168,7 +161,7 @@ ANN bool scan1_exp_decl(const Env env, Exp_Decl *const decl) {
   if (global) {
     if (env->context) env->context->global = true;
     if (!type_global(env, decl->type))
-      ERR_B(exp_self(decl)->loc, _("type '%s' is not global"), decl->type->name)
+      ERR_B(exp_self(decl)->loc, _("type '%s' is not global"), decl->type->name);
   }
   const m_uint scope = !global ? env->scope->depth : env_push_global(env);
   const bool ret   = scan1_decl(env, decl);
@@ -340,7 +333,7 @@ ANN static inline bool shadow_arg(const Env env, const Tag tag) {
     const Value v = nspc_lookup_value0(nspc, tag.sym);
     if (v && !env->func->def->builtin) {
       const Type owner = v->from->owner_class;
-      if (owner && env->class_def && isa(env->class_def, owner) < 0)
+      if (owner && env->class_def && !isa(env->class_def, owner))
         continue;
       return shadow_err(env, v, tag.loc);
     }
@@ -597,7 +590,7 @@ ANN bool scan1_union_def(const Env env, const Union_Def udef) {
 ANN static bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
     ERR_B(stmt_self(stmt)->loc,
-          _("'return' statement found outside function definition"))
+          _("'return' statement found outside function definition"));
   if (env->scope->depth == 1) env->func->memoize = 1;
   if(stmt->val) CHECK_B(scan1_exp(env, stmt->val));
   return true;
@@ -657,11 +650,11 @@ ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
 ANN static bool class_internal(const Env env, const Func_Base *base) {
   assert(base->td);
   if (!env->class_def)
-    ERR_B(base->td->tag.loc, _("'%s' must be in class def!!"), s_name(base->tag.sym))
+    ERR_B(base->td->tag.loc, _("'%s' must be in class def!!"), s_name(base->tag.sym));
   if (base->args)
-    ERR_B(base->td->tag.loc, _("'%s' must not have args"), s_name(base->tag.sym))
+    ERR_B(base->td->tag.loc, _("'%s' must not have args"), s_name(base->tag.sym));
   if (base->ret_type != env->gwion->type[et_void])
-    ERR_B(base->td->tag.loc, _("'%s' must return 'void'"), s_name(base->tag.sym))
+    ERR_B(base->td->tag.loc, _("'%s' must return 'void'"), s_name(base->tag.sym));
   return true;
 }
 
@@ -670,15 +663,15 @@ ANN static inline bool scan_internal_arg(const Env        env,
   if (mp_vector_len(base->args) == 1) return true;
   assert(base->td);
   ERR_B(base->td->tag.loc, _("'%s' must have one (and only one) argument"),
-        s_name(base->tag.sym))
+        s_name(base->tag.sym));
 }
 
 ANN static inline bool scan_internal_int(const Env        env,
                                            const Func_Base *base) {
   assert(base->td);
   CHECK_B(scan_internal_arg(env, base));
-  if (isa(base->ret_type, env->gwion->type[et_int]) > 0) return true;
-  ERR_B(base->td->tag.loc, _("'%s' must return 'int'"), s_name(base->tag.sym))
+  if (isa(base->ret_type, env->gwion->type[et_int])) return true;
+  ERR_B(base->td->tag.loc, _("'%s' must return 'int'"), s_name(base->tag.sym));
 }
 
 ANN static bool scan_internal(const Env env, const Func_Base *base) {
@@ -812,11 +805,11 @@ ANN static bool scan1_parent(const Env env, const Class_Def cdef) {
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_B(scan1_exp(env, cdef->base.ext->array->exp));
   DECL_B(const Type, parent, = scan1_get_parent(env, &cdef->base));
-  if (isa(parent, env->gwion->type[et_object]) < 0 &&
+  if (!isa(parent, env->gwion->type[et_object]) &&
 //      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
       !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_union)))
-    ERR_B(loc, _("cannot extend primitive type '%s'"), parent->name)
-  if (type_ref(parent)) ERR_B(loc, _("can't use ref type in class extend"))
+    ERR_B(loc, _("cannot extend primitive type '%s'"), parent->name);
+  if (type_ref(parent)) ERR_B(loc, _("can't use ref type in class extend"));
   return true;
 }
 
@@ -836,8 +829,8 @@ ANN static bool cdef_parent(const Env env, const Class_Def cdef) {
 }
 
 ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
-  if(!tmpl_base(cdef->base.tmpl) && isa(cdef->base.type, env->gwion->type[et_closure]) < 0 &&
-   isa(cdef->base.type, env->gwion->type[et_dict]) < 0) {
+  if(!tmpl_base(cdef->base.tmpl) && !isa(cdef->base.type, env->gwion->type[et_closure]) &&
+   !isa(cdef->base.type, env->gwion->type[et_dict])) {
     MemPool mp = env->gwion->mp;
     Ast base = cdef->body;
     Stmt_List ctor = new_mp_vector(mp, Stmt, 0);

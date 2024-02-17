@@ -17,7 +17,7 @@
     POP_REG(shred, SZ_INT);                                                    \
     const Type l                     = *(Type *)(shred->reg - SZ_INT);         \
     const Type r                     = *(Type *)(shred->reg);                  \
-    *(m_uint *)(shred->reg - SZ_INT) = isa(arg0, arg1) > 0 __VA_ARGS__;        \
+    *(m_uint *)(shred->reg - SZ_INT) = isa(arg0, arg1) __VA_ARGS__;            \
   }
 mk_class_instr(ge, l, r) mk_class_instr(gt, l, r, &&l != r)
 mk_class_instr(le, r, l) mk_class_instr(lt, r, l, &&l != r)
@@ -48,7 +48,7 @@ static OP_EMIT(opem_implicit_class) {
 static OP_CHECK(opck_implicit_class) {
   struct Implicit *imp = (struct Implicit*)data;
   const Type t = actual_type(env->gwion, imp->e->type);
-  if(isa(t, env->gwion->type[et_enum]) > 0) return imp->e->type;
+  if(isa(t, env->gwion->type[et_enum])) return imp->e->type;
   return env->gwion->type[et_error];
 }
 */
@@ -79,5 +79,5 @@ GWION_IMPORT(class) {
    GWI_B(gwi_oper_emi(gwi, opem_implicit_class))
    GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
 */
-  return GW_OK;
+  return true;
 }

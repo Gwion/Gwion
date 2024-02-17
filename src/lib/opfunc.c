@@ -14,7 +14,7 @@
 
 OP_CHECK(opck_basic_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
-  return isa(cast->exp->type, exp_self(cast)->type) > 0
+  return isa(cast->exp->type, exp_self(cast)->type)
              ? exp_self(cast)->type
              : env->gwion->type[et_error];
 }
@@ -152,7 +152,7 @@ OP_CHECK(opck_new) {
      (!array || (array->exp && exp_is_zero(array->exp))))
     ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on abstract type '%s'\n"),
           t->name);
-  if (isa(t, env->gwion->type[et_object]) < 0)
+  if (!isa(t, env->gwion->type[et_object]))
     ERR_N(exp_self(unary)->loc, _("can't use 'new' on non-object types...\n"));
   return t;
 }

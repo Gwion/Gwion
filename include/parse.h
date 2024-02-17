@@ -16,34 +16,24 @@
     (node)-> poison = true;                                                    \
   } while(false)
 
-#undef ERR_b
-#define ERR_b(a, b, ...)                                                       \
-  do {                                                                         \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  } while(false)
-
-
-#define ERR_OK_NODE(ok, a, b, c, ...)                                               \
+#define ERR_OK_NODE(ok, a, b, c, ...)                                          \
   do {                                                                         \
     env_err(env, (b), (c), ##__VA_ARGS__);                                     \
     POISON_NODE(ok, env, a);                                                   \
   } while(false)
 
-#define ERR_OK(ok, a, b, ...)                                                 \
+#define ERR_OK(ok, a, b, ...)                                                  \
   do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
     POISON(ok, env);                                                           \
   } while(false)
 
-#undef ERR_B
 #define ERR_B(a, b, ...)                                                       \
   do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return GW_ERROR;                                                           \
+    return false;                                                              \
   } while(false)
 
-#undef ERR_O
 #define ERR_O(a, b, ...)                                                       \
   do {                                                                         \
     env_err(env, (a), (b), ##__VA_ARGS__);                                     \
@@ -157,7 +147,7 @@ static inline bool exp_is_zero(Exp* exp) {
 ANN static inline bool not_upvalue(const Env env, const Value v) {
   if (unlikely(is_class(env->gwion, v->type))) return true;
   return GET_FLAG(v, global) || vflag(v, vflag_fglobal) ||
-      (v->from->owner_class && isa(v->from->owner_class, env->class_def) > 0) ||
+      (v->from->owner_class && isa(v->from->owner_class, env->class_def)) ||
       nspc_lookup_value1(env->curr, insert_symbol(v->name));
 }
 

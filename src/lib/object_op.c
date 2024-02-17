@@ -35,7 +35,7 @@ static OP_CHECK(opck_object_at) {
     SET_FLAG(vd.value, late);
   }
   exp_setvar(bin->rhs, 1);
-  CHECK_BO(isa(bin->lhs->type, bin->rhs->type));
+  CHECK_O(isa(bin->lhs->type, bin->rhs->type));
   bin->rhs->ref = bin->lhs;
   return bin->rhs->type;
 }
@@ -78,8 +78,8 @@ static OP_EMIT(opem_object_at) {
 static OP_CHECK(opck_object_cast) {
   const Exp_Cast *cast = (Exp_Cast *)data;
   const Type      to   = known_type(env, cast->td);
-  if (isa(cast->exp->type, to) < 0) {
-    if (isa(to, cast->exp->type) > 0)
+  if (!isa(cast->exp->type, to)) {
+    if (isa(to, cast->exp->type))
       ERR_N(exp_self(cast)->loc, _("can't upcast '%s' to '%s'"),
             cast->exp->type->name, to->name);
     ERR_N(exp_self(cast)->loc, _("can't cast '%s' to '%s'"),
@@ -183,7 +183,7 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
 }
 
 ANN static bool member_access(const Env env, Exp* exp, const Value value) {
-  if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
+  if (!env->class_def || !isa(env->class_def, value->from->owner_class)) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
                   exp->loc, 0);
@@ -209,7 +209,7 @@ OP_CHECK(opck_object_dot) {
     const Value v = nspc_lookup_value1(env->curr, member->xid);
     if(v) {
       if (self->is_call) {
-        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class) > 0)) // is_callable needs type
+        if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class))) // is_callable needs type
           return v->type;
       }
     }
@@ -221,7 +221,7 @@ OP_CHECK(opck_object_dot) {
   CHECK_ON(not_from_owner_class(env, the_base, value, self->loc));
   CHECK_ON(member_access(env, self, value));
   if ((base_static && vflag(value, vflag_member)) ||
-      (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
+      (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def)))
     ERR_N(self->loc,
           _("cannot access member '%s.%s' without object instance..."),
           the_base->name, str);
@@ -264,7 +264,7 @@ OP_EMIT(opem_object_dot) {
     assert(GET_FLAG(value, static));
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
   }
-  if(isa(value->type, emit->gwion->type[et_object]) > 0 &&
+  if(isa(value->type, emit->gwion->type[et_object]) &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
     emit_fast_except(emit, value->from, exp_self(member)->loc);
@@ -379,7 +379,7 @@ static OP_EMIT(opem_cond_object) {
 GWION_IMPORT(object_op) {
   const Type t_error         = gwi_mk_type(gwi, "@error", 0, NULL);
   gwi->gwion->type[et_error] = t_error;
-  GWI_BB(gwi_set_global_type(gwi, t_error, et_error))
+  GWI_B(gwi_set_global_type(gwi, t_error, et_error))
    GWI_B(gwi_oper_ini(gwi, "Object", "Object", NULL))
    GWI_B(gwi_oper_add(gwi, opck_object_at))
    GWI_B(gwi_oper_emi(gwi, opem_object_at))
@@ -403,5 +403,5 @@ GWION_IMPORT(object_op) {
    GWI_B(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
    GWI_B(gwi_oper_add(gwi, opck_struct_scan))
    GWI_B(gwi_oper_end(gwi, "class", NULL))
-  return GW_OK;
+  return true;
 }

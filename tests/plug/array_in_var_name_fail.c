@@ -12,5 +12,5 @@
 GWION_IMPORT(array_in_var_name_fail) {
   GWI_B(gwi_union_ini(gwi, "U"))
   GWI_B(gwi_union_add(gwi, "int", "i"))
-  return GW_OK;
+  return true;
 }

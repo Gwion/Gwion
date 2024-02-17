@@ -17,29 +17,29 @@
 //! start an enum definition
 //! \arg the importer
 //! \arg string defining a primitive type
-ANN m_int gwi_enum_ini(const Gwi gwi, const m_str type) {
-  CHECK_b(ck_ini(gwi, ck_edef));
-  CHECK_OB((gwi->ck->xid = gwi_str2sym(gwi, type)));
+ANN bool gwi_enum_ini(const Gwi gwi, const m_str type) {
+  CHECK_B(ck_ini(gwi, ck_edef));
+  CHECK_B((gwi->ck->xid = gwi_str2sym(gwi, type)));
   gwi->ck->tmpl = new_mp_vector(gwi->gwion->mp, EnumValue, 0);
-  return GW_OK;
+  return true;
 }
 
 //! add an enum entry
 //! \arg the importer
 //! \arg name of the entry
-ANN m_int gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
+ANN bool gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_B(ck_ok(gwi, ck_edef));
-  DECL_OB(const Symbol, xid, = gwi_str2sym(gwi, name));
+  DECL_B(const Symbol, xid, = gwi_str2sym(gwi, name));
   const EnumValue ev = { .tag = MK_TAG(xid, gwi->loc), .gwint = { .num = i }, .set = true};
   mp_vector_add(gwi->gwion->mp, &gwi->ck->tmpl, EnumValue, ev);
-  return GW_OK;
+  return true;
 }
 
 //! finish enum import
 //! \arg the importer
-ANN Type gwi_enum_end(const Gwi gwi) {
-  CHECK_O(ck_ok(gwi, ck_edef));
-  if (!gwi->ck->tmpl->len) GWI_ERR_O("Enum is empty");
+ANN bool gwi_enum_end(const Gwi gwi) {
+  CHECK_B(ck_ok(gwi, ck_edef));
+  if (!gwi->ck->tmpl->len) GWI_ERR_B("Enum is empty");
   const Gwion    gwion = gwi->gwion;
   const Enum_Def edef =
       new_enum_def(gwion->mp, gwi->ck->tmpl, gwi->ck->xid, gwi->loc);
@@ -47,8 +47,7 @@ ANN Type gwi_enum_end(const Gwi gwi) {
   gwi->ck->tmpl    = NULL;
   const bool ret = traverse_enum_def(gwion->env, edef);
   if (gwi->gwion->data->cdoc) gwfmt_enum_def(gwi->gwfmt, edef);
-  const Type t = ret ? edef->type : NULL;
   free_enum_def(gwion->mp, edef);
   ck_end(gwi);
-  return t;
+  return ret;
 }

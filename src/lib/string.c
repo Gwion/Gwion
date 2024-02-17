@@ -477,7 +477,7 @@ GWION_IMPORT(string) {
   const Type t_string         = gwi_class_ini(gwi, "string", NULL);
   gwi->gwion->type[et_string] = t_string; // use func
   gwi_class_xtor(gwi, string_ctor, string_dtor);
-  GWI_BB(gwi_gack(gwi, t_string, gack_string))
+  GWI_B(gwi_gack(gwi, t_string, gack_string))
   t_string->nspc->offset += SZ_INT;
 
   gwi_func_ini(gwi, "int", "size");
@@ -598,5 +598,5 @@ GWION_IMPORT(string) {
   struct SpecialId_ line_spid = {
       .ck = check_linepp, .is_const = 1};
   gwi_specialid(gwi, "__line__", &line_spid);
-  return GW_OK;
+  return true;
 }

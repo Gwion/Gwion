@@ -36,7 +36,7 @@ has_func() {
 }
 plugin() {
   has_func "gwimport" "$1" "$2" && {
-    header "extern m_bool gwimport_${2}(const Gwi);"
+    header "extern bool gwimport_${2}(const Gwi);"
     echo "  plug->plugin = gwimport_${2};"
   }
 }

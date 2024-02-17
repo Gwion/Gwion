@@ -23,11 +23,11 @@ static CTOR(trig2_ctor) {
 }
 
 GWION_IMPORT(trig) {
-  GWI_OB(gwi_class_ini(gwi, "Trig", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "Trig", "UGen"))
   gwi_class_xtor(gwi, trig_ctor, NULL);
   gwi_class_end(gwi);
 
-  GWI_OB(gwi_class_ini(gwi, "Trig2", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "Trig2", "UGen"))
   gwi_class_xtor(gwi, trig2_ctor, NULL);
   return gwi_class_end(gwi);
 }

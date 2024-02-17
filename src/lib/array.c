@@ -133,7 +133,7 @@ static MFUN(vm_vector_random) {
 #define ARRAY_OPCK(a, b, loc)                                    \
   const Type l = array_base(a->type);                            \
   const Type r = array_base(b->type);                            \
-  if (isa(r, l) < 0) ERR_N(loc, _("array types do not match."));
+  if (!isa(r, l)) ERR_N(loc, _("array types do not match."));
 
 static OP_CHECK(opck_array_at) {
   const Exp_Binary *bin = (Exp_Binary *)data;
@@ -260,7 +260,7 @@ static OP_CHECK(opck_array_cast) {
   const Type      r    = array_base(t);
   if (get_depth(cast->exp->type) != get_depth(t))
     return NULL;
-  if(isa(l, r) > 0) return l;
+  if(isa(l, r)) return l;
   Type parent = t;
   while(parent) {
     if (tflag(parent, tflag_cdef) && parent->info->cdef->base.ext && parent->info->cdef->base.ext->array) {
@@ -305,7 +305,7 @@ static OP_EMIT(opem_array_cast) {
   const Type l = array_base(cast->exp->type);
   const Type t = known_type(env, cast->td);
   const Type r = array_base(t);
-  if(isa(l, r) < 0) {
+  if(!isa(l, r)) {
     const m_uint depth = get_depth(t);
     const m_uint start = emit_code_size(emit);
     cast_start(emit, depth);
@@ -403,7 +403,7 @@ ANN static inline bool array_do(const Emitter emit, const Array_Sub array,
     access = emit_add_instr(emit, ArrayAccess);
     access->m_val      = (i+1) * SZ_INT - offset;
     access->udata.one  = offset;
-    if(i < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object]) > 0) {
+    if(i < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object])) {
       const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
       ex->m_val          = -SZ_INT;
     }
@@ -873,7 +873,7 @@ static OP_CHECK(opck_array_implicit) {
   const struct Implicit *imp = (struct Implicit *)data;
   if (imp->t->array_depth != imp->e->type->array_depth)
     return env->gwion->type[et_error];
-  if (isa(array_base(imp->e->type), array_base(imp->t)) < 0)
+  if (!isa(array_base(imp->e->type), array_base(imp->t)))
     return env->gwion->type[et_error];
   return imp->t;
 }
@@ -888,8 +888,8 @@ static OP_EMIT(opem_array_each_init) {
 
 ANN static inline Type foreach_type(const Env env, Exp* exp) {
   const Type et = exp->type;
-  DECL_OO(Type, base, = typedef_base(et));
-  DECL_OO(const Type, t, = array_base_simple(base));
+  DECL_O(Type, base, = typedef_base(et));
+  DECL_O(const Type, t, = array_base_simple(base));
   if(!tflag(base, tflag_ref)) {
     const m_uint depth = base->array_depth - 1;
     return depth ? array_type(env, t, depth, exp->loc) : t;
@@ -1077,7 +1077,7 @@ GWION_IMPORT(array) {
    GWI_B(gwi_oper_end(gwi, "@array_init", NoOp))
 
   gwi_register_freearg(gwi, ArrayAlloc, freearg_array);
-  return GW_OK;
+  return true;
 }
 
 INSTR(ArrayStruct) {
@@ -1194,13 +1194,6 @@ ANN static bool last_is_zero(Exp* e) {
   while(e->next) e = e->next;
   return exp_is_zero(e);
 }
-
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
 
 ANN2(1,2) bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
   if (!last_is_zero(td->array->exp)) {

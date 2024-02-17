@@ -30,5 +30,5 @@ GWION_IMPORT(func_too_many_arg) {
   GWI_B(gwi_func_arg(gwi, "int", "y"))
   GWI_B(gwi_func_arg(gwi, "int", "z"))
   GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
-  return GW_OK;
+  return true;
 }

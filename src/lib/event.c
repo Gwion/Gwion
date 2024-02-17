@@ -61,5 +61,5 @@ GWION_IMPORT(event) {
   GWI_B(gwi_class_end(gwi))
    GWI_B(gwi_oper_ini(gwi, "Event", "@now", "int"))
    GWI_B(gwi_oper_end(gwi, "=>", EventWait))
-  return GW_OK;
+  return true;
 }

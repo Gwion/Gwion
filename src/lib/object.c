@@ -124,7 +124,7 @@ static ID_CHECK(opck_super) {
   if(!env->func || is_ctor(env->func->def))
     ERR_O(self->loc, "can't use 'super' outside of constructor");
   const Type parent = env->class_def->info->parent;
-  DECL_OO(const Value, v, = find_value(parent, insert_symbol("new")));
+  DECL_O(const Value, v, = find_value(parent, insert_symbol("new")));
   SET_FLAG(env->func, const);
   return v->type;
 }
@@ -133,7 +133,7 @@ static ID_EMIT(opem_super) {
   const Env env = emit->env;
   Exp* self = exp_self(prim);
   if(!self->is_call)
-    ERR_b(self->loc, "can only use 'super' as a function call");
+    ERR_B(self->loc, "can only use 'super' as a function call");
   emit_regpushmem(emit, 0, SZ_INT, false);
   emit_pushimm(emit, (m_uint)exp_self(prim)->type);
   return true;
@@ -148,5 +148,5 @@ GWION_IMPORT(object) {
   gwi_specialid(gwi, "this", &spid_this);
   struct SpecialId_ spid_super = {.ck = opck_super, .em = opem_super, .is_const = 1};
   gwi_specialid(gwi, "super", &spid_super);
-  return GW_OK;
+  return true;
 }

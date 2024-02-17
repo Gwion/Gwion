@@ -9,11 +9,11 @@
 #include "import.h"
 
 GWION_IMPORT(union_member) {
-  GWI_OB(gwi_class_ini(gwi, "UnionMember", NULL))
+  GWI_B(gwi_class_ini(gwi, "UnionMember", NULL))
   GWI_B(gwi_union_ini(gwi, "U"))
   GWI_B(gwi_union_add(gwi, "float", "f"))
   GWI_B(gwi_union_add(gwi, "int[]", "array"))
   GWI_B(gwi_union_end(gwi, ae_flag_none))
   GWI_B(gwi_class_end(gwi))
-  return GW_OK;
+  return true;
 }

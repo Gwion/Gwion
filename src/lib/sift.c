@@ -100,5 +100,5 @@ GWION_IMPORT(sift) {
    GWI_B(gwi_oper_ini(gwi, "Sift", "funptr", "Sift"));
    GWI_B(gwi_oper_add(gwi, opck_sift));
    GWI_B(gwi_oper_end(gwi, "|>", NULL));
-  return GW_OK;
+  return true;
 }

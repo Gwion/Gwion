@@ -11,10 +11,10 @@
 #include "gwi.h"
 
 GWION_IMPORT(str2decl) {
-  GWI_OB(gwi_class_ini(gwi, "Test", NULL))
-  GWI_OB(gwi_class_ini(gwi, "Child", NULL))
+  GWI_B(gwi_class_ini(gwi, "Test", NULL))
+  GWI_B(gwi_class_ini(gwi, "Child", NULL))
   GWI_B(gwi_class_end(gwi))
   GWI_B(gwi_class_end(gwi))
-  GWI_OB(gwi_class_ini(gwi, "Test2", "Test.Child"))
+  GWI_B(gwi_class_ini(gwi, "Test2", "Test.Child"))
   return gwi_class_end(gwi);
 }

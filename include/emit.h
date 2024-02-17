@@ -82,12 +82,12 @@ ANN void* emit_localx(const Emitter emit, const Type t);
 ANN m_uint emit_local_exp(const Emitter emit, Exp*);
 ANN bool emit_exp_spork(const Emitter, const Exp_Unary *);
 
-ANN void emit_object_addref(const Emitter emit, const m_int size,
+ANN void emit_object_addref(const Emitter emit, const m_uint size,
                              const bool emit_var);
-ANN void emit_struct_addref(const Emitter emit, const Type t, const m_int size,
+ANN void emit_struct_addref(const Emitter emit, const Type t, const m_uint size,
                              const bool emit_var);
 ANN static inline void emit_compound_addref(const Emitter emit, const Type t,
-                                             const m_int  size,
+                                             const m_uint  size,
                                              const bool emit_var) {
   return !tflag(t, tflag_struct) ? emit_object_addref(emit, size, emit_var)
                                  : emit_struct_addref(emit, t, size, emit_var);

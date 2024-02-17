@@ -259,5 +259,5 @@ GWION_IMPORT(deep_equal) {
      GWI_B(gwi_oper_emi(gwi, opem_deep_equal))
      GWI_B(gwi_oper_end(gwi, "<>", NULL))
 
-  return GW_OK;
+  return true;
 }

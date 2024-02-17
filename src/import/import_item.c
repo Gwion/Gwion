@@ -10,27 +10,27 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN m_int gwi_item_ini(const Gwi gwi, const restrict m_str type,
+ANN bool gwi_item_ini(const Gwi gwi, const restrict m_str type,
                        const restrict m_str name) {
-  CHECK_b(ck_ini(gwi, ck_item));
-  if ((gwi->ck->exp = make_exp(gwi, type, name))) return GW_OK;
+  CHECK_B(ck_ini(gwi, ck_item));
+  if ((gwi->ck->exp = make_exp(gwi, type, name))) return true;
   GWI_ERR_B(_("  ...  during var import '%s.%s'."), gwi->gwion->env->name, name)
 }
 
-ANN static m_int gwi_item_tmpl(const Gwi gwi) {
+ANN static bool gwi_item_tmpl(const Gwi gwi) {
   Stmt_List slist = new_mp_vector(gwi->gwion->mp, Stmt, 1);
   mp_vector_set(slist, Stmt, 0, MK_STMT_EXP(gwi->loc, gwi->ck->exp));
   Section section = MK_SECTION(stmt, stmt_list, slist);
   gwi_body(gwi, &section);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;
-  return GW_OK;
+  return true;
 }
 
 #undef gwi_item_end
 ANN2(1)
-m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
-  CHECK_b(ck_ok(gwi, ck_item));
+bool gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
+  CHECK_B(ck_ok(gwi, ck_item));
   const Env env                     = gwi->gwion->env;
   gwi->ck->exp->d.exp_decl.var.td->flag = flag;
   if (gwi->gwion->data->cdoc) {
@@ -41,15 +41,14 @@ m_int gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
   }
   if (env->class_def && tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
-  CHECK_b(traverse_exp(env, gwi->ck->exp));
+  CHECK_B(traverse_exp(env, gwi->ck->exp));
   const Value value = gwi->ck->exp->d.exp_decl.var.vd.value;
   value->d          = addr;
   set_vflag(value, vflag_builtin);
   if (!env->class_def) SET_FLAG(value, global);
-  const m_uint offset = value->from->offset;
   free_exp(gwi->gwion->mp, gwi->ck->exp);
   ck_end(gwi);
-  return offset;
+  return true;
 }
 
 ANN void ck_clean_item(MemPool mp, ImportCK *ck) {

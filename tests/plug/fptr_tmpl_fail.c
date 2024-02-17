@@ -10,6 +10,6 @@
 
 GWION_IMPORT(fptr_tmpl_fail) {
   GWI_B(gwi_fptr_ini(gwi, "int~", "test:[A]"))
-  GWI_OB(gwi_fptr_end(gwi, 0))
-  return GW_OK;
+  GWI_B(gwi_fptr_end(gwi, 0))
+  return true;
 }

@@ -18,9 +18,9 @@
 ANN2(1, 2, 3)
 static bool dl_func_init(const Gwi gwi, const restrict m_str t,
                            const restrict m_str n) {
-  CHECK_b(ck_ini(gwi, ck_fdef));
+  CHECK_B(ck_ini(gwi, ck_fdef));
   gwi->ck->name = n;
-  CHECK_b(check_typename_def(gwi, gwi->ck));
+  CHECK_B(check_typename_def(gwi, gwi->ck));
   CHECK_B((gwi->ck->td = gwi_str2td(gwi, t)));
   gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
   return true;
@@ -84,7 +84,7 @@ ANN bool gwi_func_valid(const Gwi gwi, ImportCK *ck) {
 }
 
 ANN bool gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
-  CHECK_b(ck_ok(gwi, ck_fdef));
+  CHECK_B(ck_ok(gwi, ck_fdef));
   gwi->ck->addr    = addr;
   gwi->ck->flag    = flag;
   const bool ret = gwi_func_valid(gwi, gwi->ck);
@@ -94,13 +94,13 @@ ANN bool gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
 
 ANN bool gwi_func_arg(const Gwi gwi, const restrict m_str t,
                        const restrict m_str n) {
-  CHECK_b(ck_ok(gwi, ck_fdef));
+  CHECK_B(ck_ok(gwi, ck_fdef));
   DECL_B(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n)) {
     Arg arg = { .var = MK_VAR(td, var) };
     mp_vector_add(gwi->gwion->mp, &gwi->ck->mpv, Arg, arg);
-    return GW_OK;
+    return true;
   }
   free_type_decl(gwi->gwion->mp, td);
   return false;
@@ -124,7 +124,7 @@ ANN static bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
   CHECK_O(ck_ok(gwi, ck_fdef));
-  DECL_OO(const Fptr_Def, fptr, = import_fptr(gwi));
+  DECL_O(const Fptr_Def, fptr, = import_fptr(gwi));
   fptr->base->flag |= flag;
   if (gwi->gwion->data->cdoc) {
     gwfmt_indent(gwi->gwfmt);
@@ -134,7 +134,7 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
                  tflag_tmpl) /*&& !fptr->base->tmpl*/) {
     section_fptr(gwi, fptr);
     ck_end(gwi);
-    return (Type)GW_OK;
+    return (Type)true;
   }
   const bool ret = traverse_fptr_def(gwi->gwion->env, fptr);
 //  if (fptr->base->func) // is it needed ?

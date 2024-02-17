@@ -9,20 +9,20 @@
 ANN bool env_access(const Env env, const ae_flag flag, const loc_t loc) {
   if (env->scope->depth) {
     if (GET(flag, ae_flag_global))
-      ERR_b(loc, _("`{G}global{0}` can only be used at %s scope."),
+      ERR_B(loc, _("`{G}global{0}` can only be used at %s scope."),
             GET(flag, ae_flag_global) && !env->class_def ? "file" : "class");
   }
   if ((GET(flag, ae_flag_static) || GET(flag, ae_flag_private) ||
        GET(flag, ae_flag_protect)) &&
       (!env->class_def || env->scope->depth))
-    ERR_b(loc, _("`{G}static/private/protect{0}` can only be used at class scope."));
+    ERR_B(loc, _("`{G}static/private/protect{0}` can only be used at class scope."));
   return true;
 }
 
 ANN bool env_storage(const Env env, ae_flag flag, const loc_t loc) {
   CHECK_B(env_access(env, flag, loc));
   if(env->class_def && GET(flag, ae_flag_global))
-    ERR_b(loc, _("`{G}global{0}` at class scope only valid for function pointers"));
+    ERR_B(loc, _("`{G}global{0}` at class scope only valid for function pointers"));
   return true;
 }
 #undef GET
@@ -55,7 +55,7 @@ ANN Type find_initial(const Env env, const Symbol xid) {
 #undef RETURN_TYPE
 
 ANN Type find_type(const Env env, Type_Decl *td) {
-  DECL_OO(Type, type, = find_initial(env, td->tag.sym));
+  DECL_O(Type, type, = find_initial(env, td->tag.sym));
   while ((td = td->next) && type && type->nspc) {
     const Nspc nspc  = type->nspc;
     if(!(type = find_in_parent(type, td->tag.sym)))
@@ -111,7 +111,7 @@ ANN bool not_reserved(const Env env, const Tag tag) {
   const Map map = &env->gwion->data->id;
   for (m_uint i = 0; i < map_size(map); i++) {
     if (tag.sym == (Symbol)VKEY(map, i))
-      ERR_b(tag.loc, _("%s is reserved."), s_name(tag.sym));
+      ERR_B(tag.loc, _("%s is reserved."), s_name(tag.sym));
   }
   return true;
 }

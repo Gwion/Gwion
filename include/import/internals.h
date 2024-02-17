@@ -6,7 +6,7 @@
 #define GWI_ERR_B(a, ...)                                                      \
   {                                                                            \
     GWI_ERR((a), ##__VA_ARGS__);                                               \
-    return GW_ERROR;                                                           \
+    return false;                                                              \
   }
 #define GWI_ERR_O(a, ...)                                                      \
   {                                                                            \
@@ -29,7 +29,7 @@
 #define ENV_ERR_B(pos, a, ...)                                                 \
   {                                                                            \
     env_err(env, pos, (a), ##__VA_ARGS__);                                     \
-    return GW_ERROR;                                                           \
+    return false;                                                              \
   }
 #define ENV_ERR_O(pos, a, ...)                                                 \
   {                                                                            \

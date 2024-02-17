@@ -393,7 +393,7 @@ static GWION_IMPORT(global_ugens) {
   struct ugen_importer imp_adc  = {vm, adc_tick, "adc", vm->bbq->si->in};
   (void)add_ugen(gwi, &imp_adc);
   SET_FLAG(gwi->gwion->type[et_ugen], abstract);
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_chuck_ugen) {

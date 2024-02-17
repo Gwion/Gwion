@@ -14,5 +14,5 @@ GWION_IMPORT(union_tmpl_fail) {
   GWI_B(gwi_union_add(gwi, "int", "i"))
   GWI_B(gwi_union_add(gwi, "A", "a"))
   GWI_B(gwi_union_end(gwi, 0))
-  return GW_OK;
+  return true;
 }

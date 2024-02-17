@@ -27,7 +27,7 @@ typedef struct Gwi_ *Gwi;
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void *data NUSED)
 #define OP_EMIT(a)  ANN bool a(const Emitter emit NUSED, void *data NUSED)
 #ifdef GWION_BUILTIN
-#define GWI_BB(a)                                                              \
+#define GWI_B(a)                                                              \
   {                                                                            \
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
@@ -37,28 +37,19 @@ typedef struct Gwi_ *Gwi;
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
-#define GWI_OB(a)                                                              \
+#define GWI_B(a)                                                              \
   {                                                                            \
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
 #define GWION_IMPORT(a) ANN bool gwimport_##a(const Gwi gwi)
 #else
-#define GWI_BB(a)                                                              \
-  {                                                                            \
-    gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
-    CHECK_B(a);                                                                \
-  }
 #define GWI_B(a)                                                               \
   {                                                                            \
     gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
     CHECK_B(a);                                                                \
   }
-#define GWI_OB(a)                                                              \
-  {                                                                            \
-    gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
-    CHECK_B(a);                                                                \
-  }
+
 #define GWION_IMPORT(a) ANN bool gwimport_##a(const Gwi gwi)
 #endif
 #define ALLOC_PTR(p, a, b, c)                                                  \
@@ -96,7 +87,7 @@ OP_EMIT(opem_new);
 ANN
 static inline M_Object new_object_str(const Gwion gwion, const m_str str) {
   loc_t loc = {};
-  DECL_OO(const Type, t, = str2type(gwion, str, loc));
+  DECL_O(const Type, t, = str2type(gwion, str, loc));
   return new_object(gwion->mp, t);
 }
 

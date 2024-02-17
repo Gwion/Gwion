@@ -105,7 +105,7 @@ ANN bool const_generic_typecheck(const Env env, const Specialized *spec, const T
   CHECK_B(check_exp(env, targ->d.exp));
   // check implicits?
   const Type target = known_type(env, spec->td);
-  if(isa(targ->d.exp->type, target) < 0) {
+  if(!isa(targ->d.exp->type, target)) {
     char msg[256];
     tcol_snprintf(msg, 255, "expected {G+}%s{0}", target->name);
     gwerr_basic("invalid type for const generic argument", msg, NULL, env->name, spec->tag.loc, 0);
@@ -180,14 +180,6 @@ static ANN bool is_single_variadic(const MP_Vector *v) {
   const Specialized *spec = mp_vector_at(v, Specialized, 0);
   return !strcmp(s_name(spec->tag.sym), "...");
 }
-
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
 
 ANN2(1,2) bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))

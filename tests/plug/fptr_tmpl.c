@@ -10,8 +10,8 @@
 
 GWION_IMPORT(fptr_tmpl) {
   Type t_func_typedef;
-  GWI_OB((t_func_typedef = gwi_mk_type(gwi, "FuncTypedef", SZ_INT, NULL)))
+  GWI_B((t_func_typedef = gwi_mk_type(gwi, "FuncTypedef", SZ_INT, NULL)))
   GWI_B(gwi_fptr_ini(gwi, "int", "test:[test]"))
-  GWI_OB(gwi_fptr_end(gwi, 0))
-  return GW_OK;
+  GWI_B(gwi_fptr_end(gwi, 0))
+  return true;
 }

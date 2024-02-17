@@ -11,5 +11,5 @@
 GWION_IMPORT(empty_union) {
   GWI_B(gwi_union_ini(gwi, "U"))
   GWI_B(gwi_union_end(gwi, 0))
-  return GW_OK;
+  return true;
 }

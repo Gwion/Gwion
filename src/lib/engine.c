@@ -49,50 +49,50 @@ ANN static bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "one type to rule them all.");
   const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
-  GWI_BB(gwi_set_global_type(gwi, t_class, et_class))
-  GWI_BB(gwi_gack(gwi, t_class, gack_class))
+  GWI_B(gwi_set_global_type(gwi, t_class, et_class))
+  GWI_B(gwi_gack(gwi, t_class, gack_class))
 
   gwidoc(gwi, "this type is infered.");
   const Type t_auto = gwi_mk_type(gwi, "auto", SZ_INT, NULL);
   set_tflag(t_auto, tflag_infer);
-  GWI_BB(gwi_set_global_type(gwi, t_auto, et_auto))
+  GWI_B(gwi_set_global_type(gwi, t_auto, et_auto))
 
   gwidoc(gwi, "a void type.");
   const Type t_void = gwi_mk_type(gwi, "void", 0, NULL);
-  GWI_BB(gwi_gack(gwi, t_void, gack_void))
-  GWI_BB(gwi_set_global_type(gwi, t_void, et_void))
+  GWI_B(gwi_gack(gwi, t_void, gack_void))
+  GWI_B(gwi_set_global_type(gwi, t_void, et_void))
 
   gwidoc(gwi, "integer type.");
   const Type t_int = gwi_mk_type(gwi, "int", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_int, gack_int))
-  GWI_BB(gwi_set_global_type(gwi, t_int, et_int))
+  GWI_B(gwi_gack(gwi, t_int, gack_int))
+  GWI_B(gwi_set_global_type(gwi, t_int, et_int))
 
   gwidoc(gwi, "character type.");
   const Type t_char = gwi_mk_type(gwi, "char", SZ_INT, "int");
-  GWI_BB(gwi_gack(gwi, t_char, gack_char))
-  GWI_BB(gwi_set_global_type(gwi, t_char, et_char))
+  GWI_B(gwi_gack(gwi, t_char, gack_char))
+  GWI_B(gwi_set_global_type(gwi, t_char, et_char))
 
   gwidoc(gwi, "float type.");
   const Type t_float = gwi_mk_type(gwi, "float", SZ_FLOAT, NULL);
-  GWI_BB(gwi_gack(gwi, t_float, gack_float))
-  GWI_BB(gwi_set_global_type(gwi, t_float, et_float))
+  GWI_B(gwi_gack(gwi, t_float, gack_float))
+  GWI_B(gwi_set_global_type(gwi, t_float, et_float))
   set_tflag(t_float, tflag_float);
 
   gwidoc(gwi, "represent duration.");
   const Type t_dur = gwi_mk_type(gwi, "dur", SZ_FLOAT, NULL);
-  GWI_BB(gwi_gack(gwi, t_dur, gack_float))
-  GWI_BB(gwi_add_type(gwi, t_dur))
+  GWI_B(gwi_gack(gwi, t_dur, gack_float))
+  GWI_B(gwi_add_type(gwi, t_dur))
   set_tflag(t_dur, tflag_float);
 
   gwidoc(gwi, "represent time.");
   const Type t_time = gwi_mk_type(gwi, "time", SZ_FLOAT, NULL);
-  GWI_BB(gwi_gack(gwi, t_time, gack_float))
-  GWI_BB(gwi_add_type(gwi, t_time))
+  GWI_B(gwi_gack(gwi, t_time, gack_float))
+  GWI_B(gwi_add_type(gwi, t_time))
   set_tflag(t_time, tflag_float);
 
   gwidoc(gwi, "internal time for `{/}now{0}{-}`.");
   const Type t_now = gwi_mk_type(gwi, "@now", SZ_FLOAT, "time");
-  GWI_BB(gwi_add_type(gwi, t_now))
+  GWI_B(gwi_add_type(gwi, t_now))
   struct SpecialId_ spid = {.type = t_now, .exec = RegPushNow, .is_const = 1};
   gwi_specialid(gwi, "now", &spid);
 
@@ -105,32 +105,32 @@ ANN static bool import_core_libs(const Gwi gwi) {
 
   gwidoc(gwi, "internal base of all objects and structures.");
 
-  GWI_BB(gwimport_enum(gwi));
+  GWI_B(gwimport_enum(gwi));
 
   const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_compound, gack_compound))
-  GWI_BB(gwi_set_global_type(gwi, t_compound, et_compound))
+  GWI_B(gwi_gack(gwi, t_compound, gack_compound))
+  GWI_B(gwi_set_global_type(gwi, t_compound, et_compound))
 
-  GWI_BB(gwimport_object(gwi))
+  GWI_B(gwimport_object(gwi))
 
-  GWI_BB(gwimport_prim(gwi))
-  GWI_BB(gwimport_func(gwi))
-  GWI_BB(gwimport_object_op(gwi))
-  GWI_BB(gwimport_values(gwi))
-  GWI_BB(gwimport_union(gwi))
+  GWI_B(gwimport_prim(gwi))
+  GWI_B(gwimport_func(gwi))
+  GWI_B(gwimport_object_op(gwi))
+  GWI_B(gwimport_values(gwi))
+  GWI_B(gwimport_union(gwi))
 
-  GWI_BB(gwimport_array(gwi))
-  GWI_BB(gwimport_event(gwi))
-  GWI_BB(gwimport_ugen(gwi))
-  GWI_BB(gwimport_xork(gwi))
+  GWI_B(gwimport_array(gwi))
+  GWI_B(gwimport_event(gwi))
+  GWI_B(gwimport_ugen(gwi))
+  GWI_B(gwimport_xork(gwi))
    GWI_B(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
    GWI_B(gwi_oper_add(gwi, opck_new))
    GWI_B(gwi_oper_emi(gwi, opem_new))
    GWI_B(gwi_oper_end(gwi, "new", NULL))
-  GWI_BB(gwimport_ref(gwi))
-  GWI_BB(gwimport_string(gwi))
-  GWI_BB(gwimport_shred(gwi))
-  GWI_BB(gwimport_modules(gwi))
+  GWI_B(gwimport_ref(gwi))
+  GWI_B(gwimport_string(gwi))
+  GWI_B(gwimport_shred(gwi))
+  GWI_B(gwimport_modules(gwi))
 
   gwidoc(gwi, "allow member access.");
    GWI_B(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
@@ -144,19 +144,19 @@ ANN static bool import_core_libs(const Gwi gwi) {
    GWI_B(gwi_oper_emi(gwi, opem_object_dot))
    GWI_B(gwi_oper_end(gwi, ".", NULL))
 
-  GWI_BB(gwimport_class(gwi))
+  GWI_B(gwimport_class(gwi))
 
   gwidoc(gwi, "allow static access.");
    GWI_B(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
    GWI_B(gwi_oper_add(gwi, opck_object_dot))
    GWI_B(gwi_oper_emi(gwi, opem_object_dot))
    GWI_B(gwi_oper_end(gwi, ".", NULL))
-  GWI_BB(gwimport_deep_equal(gwi));
+  GWI_B(gwimport_deep_equal(gwi));
 
-  GWI_BB(gwimport_dict(gwi));
-  GWI_BB(gwimport_gack(gwi));
-  GWI_BB(gwimport_sift(gwi));
-  GWI_BB(gwimport_locale(gwi));
+  GWI_B(gwimport_dict(gwi));
+  GWI_B(gwimport_gack(gwi));
+  GWI_B(gwimport_sift(gwi));
+  GWI_B(gwimport_locale(gwi));
 
 
   // seemed need at a point to ease liking

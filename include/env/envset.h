@@ -19,7 +19,7 @@ ANN static inline bool envset_pushv(struct EnvSet *es, const Value v) {
   es->_ctx         = es->env->context;
   es->_filename    = es->env->name;
   CHECK_B(envset_push(es, v->from->owner_class, v->from->owner));
-  return GW_OK;
+  return true;
 }
 ANN2(1) void envset_pop(struct EnvSet *, const Type);
 #endif

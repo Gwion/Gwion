@@ -14,7 +14,7 @@
 
 ANN static bool var_match(const Value a, const Value b) {
   bool error = true;
-  if (isa(a->type, a->type) < 0) {
+  if (!isa(a->type, a->type)) {
     gwerr_basic_from("invalid variable type", NULL, NULL, a->from, 0);
     error = false;
   }

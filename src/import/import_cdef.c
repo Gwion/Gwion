@@ -26,7 +26,7 @@ ANN static void mk_dtor(MemPool p, const Type t, const m_uint d) {
 ANN2(1, 2) static void import_class_ini(const Env env, const Type t) {
   t->nspc         = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
-  if (isa(t, env->gwion->type[et_object]) > 0) inherit(t);
+  if (isa(t, env->gwion->type[et_object])) inherit(t);
   env_push_type(env, t);
 }
 
@@ -80,16 +80,16 @@ ANN2(1, 2)
 Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   struct ImportCK ck = {.name = name};
   CHECK_O(check_typename_def(gwi, &ck));
-  DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, parent ?: "Object"));
+  DECL_O(Type_Decl *, td, = gwi_str2td(gwi, parent ?: "Object"));
   Tmpl *tmpl = ck.sl ? new_tmpl(gwi->gwion->mp, ck.sl) : NULL;
   if (tmpl) CHECK_O(template_push_types(gwi->gwion->env, tmpl));
-  DECL_OO(const Type, base, = known_type(gwi->gwion->env, td));
+  DECL_O(const Type, base, = known_type(gwi->gwion->env, td));
   const TmplArg_List tl   = td->types;
   if (tflag(base, tflag_ntmpl)) td->types = NULL;
   const Type p = !td->types ? known_type(gwi->gwion->env, td) : NULL;
   td->types    = tl;
   if (tmpl) nspc_pop_type(gwi->gwion->mp, gwi->gwion->env->curr);
-  CHECK_OO(p);
+  CHECK_O(p);
   const Type t  = new_type(gwi->gwion->mp, s_name(ck.sym), p);
   t->info->cdef = new_class_def(gwi->gwion->mp, 0, MK_TAG(ck.sym, gwi->loc), td, NULL);
   t->info->cdef->base.tmpl = tmpl;

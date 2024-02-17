@@ -48,14 +48,14 @@ ANN Type type_copy(MemPool p, const Type type) {
   return a;
 }
 
-ANN m_bool isa(const restrict Type var, const restrict Type parent) {
-  return (var == parent)     ? GW_OK
+ANN bool isa(const restrict Type var, const restrict Type parent) {
+  return (var == parent)     ? true
          : var->info->parent ? isa(var->info->parent, parent)
-                             : GW_ERROR;
+                             : false;
 }
 
 ANN Type find_common_anc(const restrict Type lhs, const restrict Type rhs) {
-  return isa(lhs, rhs) > 0 ? rhs : isa(rhs, lhs) > 0 ? lhs : NULL;
+  return isa(lhs, rhs) ? rhs : isa(rhs, lhs) ? lhs : NULL;
 }
 
 #define describe_find(name, t)                                                 \
@@ -136,11 +136,11 @@ ANN m_uint get_depth(const Type type) {
 }
 
 ANN bool is_func(const struct Gwion_ *gwion, const Type t) {
-  return isa(actual_type(gwion, t), gwion->type[et_function]) > 0;
+  return isa(actual_type(gwion, t), gwion->type[et_function]);
 }
 
 ANN inline bool is_class(const struct Gwion_ *gwion, const Type t) {
-//  return isa(t, gwion->type[et_class]) > 0;
+//  return isa(t, gwion->type[et_class]);
   return t->info->parent ==  gwion->type[et_class];
 }
 

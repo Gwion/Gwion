@@ -12,7 +12,7 @@
 #include "import.h"
 #include "gack.h"
 
-ANN2(1) static int fmtlen(const char *fmt, va_list args) {
+ANN2(1) static ssize_t fmtlen(const char *fmt, va_list args) {
   va_list tmpa;
   va_copy(tmpa, args);
   const int size = vsnprintf(NULL, 0, fmt, tmpa);
@@ -24,7 +24,8 @@ ANN2(2)
 static int gw_vasprintf(MemPool mp, char **str, const char *fmt, va_list args) {
   char *       base     = *str;
   const size_t base_len = base ? strlen(base) : 0;
-  DECL_BB(const int, size, = fmtlen(fmt, args));
+  const int size = fmtlen(fmt, args);
+  if(size < 0) return -1;
   char *ret = mp_malloc2(mp, base_len + size + 1);
   if (base) strcpy(ret, base);
   const int final_len = vsprintf(ret + base_len, fmt, args);

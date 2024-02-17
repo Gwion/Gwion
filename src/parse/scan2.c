@@ -14,14 +14,6 @@
 #include "spread.h"
 #include "closure.h"
 
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
-
 ANN static bool scan2_stmt(const Env, Stmt*);
 ANN static bool scan2_stmt_list(const Env, Stmt_List);
 
@@ -294,7 +286,7 @@ ANN static bool scan2_func_def_overload(const Env env, const Func_Def f,
     if (!fbflag(f->base, fbflag_internal))
       ERR_B(f->base->tag.loc,
             _("function name '%s' is already used by another value"),
-            overload->name)
+            overload->name);
   }
   const Func obase = overload->d.func_ref;
   if (GET_FLAG(obase->def->base, final) && (!env->class_def || (obase->value_ref->from->owner_class != env->class_def))) {
@@ -305,9 +297,9 @@ ANN static bool scan2_func_def_overload(const Env env, const Func_Def f,
   const bool base = tmpl_base(f->base->tmpl);
   const bool tmpl = fflag(obase, fflag_tmpl);
   if ((!tmpl && base) || (tmpl && !base && !f->base->tmpl))
-    ERR_B(f->base->tag.loc, _("must overload template function with template"))
+    ERR_B(f->base->tag.loc, _("must overload template function with template"));
   if (GET_FLAG(f->base, global) != GET_FLAG(obase->def->base, global))
-    ERR_B(f->base->tag.loc, _("function is declared global")) // improve me
+    ERR_B(f->base->tag.loc, _("function is declared global")); // improve me
   return true;
 }
 
@@ -391,7 +383,7 @@ static bool scan2_fdef_tmpl(const Env env, const Func_Def f,
             ERR_B(f->base->tag.loc,
                   "template function '%s' already defined with those arguments "
                   "in this namespace",
-                  name)
+                  name);
           const Symbol sym =
               func_symbol(env, env->curr->name, name, "template", ff->def->vt_index);
           nspc_add_value(env->curr, sym, value);

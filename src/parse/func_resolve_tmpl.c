@@ -162,7 +162,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
       get_tmpl(v->from->owner_class) : NULL;
   if(tmpl)
     (void)template_push_types(env, tmpl);
-  const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]) > 0;
+  const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]);
   const Func m_func = !is_clos ? func_match(env, &ra)
                                : fptr_match(env, &ra);
   if(tmpl)
@@ -209,13 +209,6 @@ ANN static Func _find_template_match(const Env env, const Value v,
   }
   return f;
 }
-
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
 
 ANN static inline bool check_call(const Env env, const Exp_Call *exp) {
   const ae_exp_t et = exp->func->exp_type;

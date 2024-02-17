@@ -92,7 +92,7 @@ ANN static bool _tmpl_list(const Gwion        gwion,
     mp_vector_add(gwion->mp, sl, Specialized, spec);
     return true;
   }
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
+  DECL_O(const Symbol, sym, = __str2sym(gwion, tdc));
   // TODO: handle traits?
   Specialized spec = { .tag = MK_TAG(sym, tdc->loc) };
   mp_vector_add(gwion->mp, sl, Specialized, spec);
@@ -239,7 +239,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
     td->ref = ref;
     return td;
   }
-  DECL_OO(const Symbol, sym, = __str2sym(gwion, tdc));
+  DECL_O(const Symbol, sym, = __str2sym(gwion, tdc));
   TmplArg_List tl = td_tmpl(gwion, tdc);
   struct AC ac = {.str = tdc->str, .loc = tdc->loc};
   CHECK_O(ac_run(gwion, &ac));
@@ -266,7 +266,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
 
 ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t loc) {
   struct td_checker tdc = {.str = str, .loc = loc};
-  DECL_OO(Type_Decl *, td, = _str2td(gwion, &tdc));
+  DECL_O(Type_Decl *, td, = _str2td(gwion, &tdc));
   if(*tdc.str) {
     free_type_decl(gwion->mp, td);
     GWION_ERR_O(loc, "excedental character '%c' in '%s'", *tdc.str, str);
@@ -275,7 +275,7 @@ ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t loc) {
 }
 
 ANN Type str2type(const Gwion gwion, const m_str str, const loc_t loc) {
-  DECL_OO(Type_Decl *, td, = str2td(gwion, str, loc));
+  DECL_O(Type_Decl *, td, = str2td(gwion, str, loc));
   const Type t = known_type(gwion->env, td);
   free_type_decl(gwion->mp, td);
   return t;
@@ -337,7 +337,7 @@ ANN static bool td_info_run(const Env env, struct td_info *info) {
       }
     }
   }
-  return GW_OK;
+  return true;
 }
 
 ANEW ANN m_str type2str(const Gwion gwion, const Type t,

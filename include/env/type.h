@@ -66,7 +66,7 @@ FLAG_FUNC(Type, t)
 ANN2(1, 2) ANEW Type new_type(MemPool, const m_str name, const Type);
 ANEW ANN Type type_copy(MemPool, const Type type);
 ANN Value     find_value(const Type, const Symbol);
-ANN m_bool    isa(const Type, const Type) __attribute__((pure));
+ANN bool      isa(const Type, const Type) __attribute__((pure));
 ANN bool      not_reserved(const Env, const Tag); // move me
 ANN Type      array_type(const Env, const Type, const m_uint, const loc_t);
 ANN Type      find_common_anc(const Type, const Type) __attribute__((pure));

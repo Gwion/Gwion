@@ -11,5 +11,5 @@
 
 GWION_IMPORT(array_invalid_in_var_name) {
   gwi_item_ini(gwi, "int", "array[.]");
-  return GW_OK;
+  return true;
 }

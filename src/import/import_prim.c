@@ -146,7 +146,7 @@ static INSTR(bitset) {
 static OP_EMIT(opem_bitset) {
   Exp_Binary *bin = data;
   const Instr instr = emit_add_instr(emit, bitset);
-  const Type t = isa(bin->rhs->type, emit->gwion->type[et_int]) > 0
+  const Type t = isa(bin->rhs->type, emit->gwion->type[et_int])
      ? bin->lhs->type
      : bin->rhs->type;
   instr->m_val = t->actual_size;
@@ -159,7 +159,7 @@ static INSTR(bitcast) {
 
 static OP_EMIT(opem_bitcast) {
   Exp_Cast *cast = data;
-  const Type t = isa(cast->exp->type, emit->gwion->type[et_int]) > 0
+  const Type t = isa(cast->exp->type, emit->gwion->type[et_int])
      ? known_type(emit->env, cast->td)
      : cast->exp->type;
   const Instr instr = emit_add_instr(emit, bitcast);

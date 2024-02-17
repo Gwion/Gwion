@@ -11,7 +11,7 @@
 #include "gwi.h"
 
 GWION_IMPORT(invalid_names) {
-  DECL_OB(const Type, t0, = gwi_mk_type(gwi, "T~", SZ_INT, NULL));
+  DECL_B(const Type, t0, = gwi_mk_type(gwi, "T~", SZ_INT, NULL));
   gwi_add_type(gwi, t0);
 
   const Type t1 = gwi_mk_type(gwi, "T,", SZ_INT, NULL);
@@ -23,5 +23,5 @@ GWION_IMPORT(invalid_names) {
   const Type t3 = gwi_mk_type(gwi, "T:[a]", SZ_INT, NULL);
   gwi_add_type(gwi, t3);
 
-  return GW_OK;
+  return true;
 }

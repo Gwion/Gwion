@@ -38,7 +38,7 @@ Type gwi_mk_type(const Gwi gwi, const m_str name, const m_uint size,
     gwfmt_sc(gwi->gwfmt);
     gwfmt_nl(gwi->gwfmt);
   }
-  CHECK_OO(gwi_str2sym(gwi, name));
+  CHECK_O(gwi_str2sym(gwi, name));
   const Type parent = get_parent(gwi, parent_name);
   const Type t      = new_type(gwi->gwion->mp, name, parent);
   t->size           = size;

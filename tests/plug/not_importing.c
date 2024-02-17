@@ -10,5 +10,5 @@
 
 GWION_IMPORT(not_importing) {
   GWI_B(gwi_enum_add(gwi, "adc", 0))
-  return GW_OK;
+  return true;
 }

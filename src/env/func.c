@@ -30,8 +30,9 @@ Symbol func_symbol(const Env env, const m_str nspc, const m_str base,
   const size_t idx_len  = num_digit(i);
   const size_t len      = base_len + tmpl_len + nspc_len + idx_len + 2;
   char         name[len + 1];
-  CHECK_BO(sprintf(name, "%s%s%s%s@%" UINT_F "@%s", base, !tmpl ? "" : ":[",
-                   !tmpl ? "" : tmpl, !tmpl ? "" : "]", i, nspc));
+  if(sprintf(name, "%s%s%s%s@%" UINT_F "@%s", base, !tmpl ? "" : ":[",
+                   !tmpl ? "" : tmpl, !tmpl ? "" : "]", i, nspc) < 1)
+    return NULL;
   return insert_symbol(env->gwion->st, name);
 }
 

@@ -13,13 +13,6 @@
 #include "spread.h"
 #include "emit.h"
 
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
   nspc_add_type_front(nspc, insert_symbol(t->name), t);
 }
@@ -57,7 +50,7 @@ ANN static inline bool scan0_global(const Env env, const ae_flag flag,
     *global = true;
     return true;
   }
-  ERR_B(loc, _("can't declare as global in class def"))
+  ERR_B(loc, _("can't declare as global in class def"));
 }
 
 ANN bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
@@ -355,7 +348,7 @@ ANN static bool find_traits(const Env env, ID_List traits, const loc_t loc) {
 ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_O(scan0_defined(env, cdef->base.tag));
   DECL_O(const Type, parent, = cdef_parent(env, cdef));
-  if(GET_FLAG(cdef, global) && isa(parent, env->gwion->type[et_closure]) < 0 && !type_global(env, parent)) {
+  if(GET_FLAG(cdef, global) && !isa(parent, env->gwion->type[et_closure]) && !type_global(env, parent)) {
     gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->tag.loc : cdef->base.tag.loc, 0);
     declared_here(parent->info->value);
     env_set_error(env,  true);

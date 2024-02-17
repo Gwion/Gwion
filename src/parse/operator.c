@@ -205,7 +205,7 @@ ANN2(1,2,3) bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
   if (!td->next && !td->types && op_template_type(td->tag.sym, sl))
     return true;
   const Type base = known_type(env, td);
-  return base ? isa(t, base) > 0 : false;
+  return base ? isa(t, base) : false;
 }
 
 //! check Func_Base matches for template operator

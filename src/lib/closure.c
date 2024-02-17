@@ -186,7 +186,7 @@ ANN static bool fptr_tmpl_push(const Env env, struct FptrInfo *info) {
 static bool td_match(const Env env, Type_Decl *id[2]) {
   DECL_B(const Type, t0, = known_type(env, id[0]));
   DECL_B(const Type, t1, = known_type(env, id[1]));
-  if (isa(t0, t1) > 0) return true;
+  if (isa(t0, t1)) return true;
   return t1 == env->gwion->type[et_auto];
 }
 
@@ -234,7 +234,7 @@ ANN static bool fptr_check(const Env env, struct FptrInfo *info) {
   //  if(!info->lhs->def->base->tmpl != !info->rhs->def->base->tmpl)
   //    return false;
   if(!info->lhs)
-     ERR_b(info->exp->loc,
+     ERR_B(info->exp->loc,
           _("can't resolve operator"));
   return true;
 }
@@ -260,7 +260,7 @@ ANN static Type fptr_type(const Env env, struct FptrInfo *info) {
         info->lhs = v->type->info->func;
       }
     } else {
-      DECL_OO(const Type, t,
+      DECL_O(const Type, t,
               = nspc_lookup_type1(nspc, info->lhs->def->base->tag.sym));
       info->lhs = actual_type(env->gwion, t)->info->func;
     }
@@ -282,14 +282,14 @@ ANN static bool _check_lambda(const Env env, Exp_Lambda *l,
   Arg_List bases = fdef->base->args;
   Arg_List args = l->def->base->args;
   if (mp_vector_len(bases) != mp_vector_len(args))
-    ERR_b(exp_self(l)->loc, _("argument number does not match for lambda"));
+    ERR_B(exp_self(l)->loc, _("argument number does not match for lambda"));
 
   if(l->def->captures) {
     // here move to arguments
     for(uint32_t i = 0; i < l->def->captures->len; i++) {
       Capture *cap = mp_vector_at(l->def->captures, Capture, i);
       const Value v = nspc_lookup_value1(env->curr, cap->var.tag.sym);
-      if(!v) ERR_b(cap->var.tag.loc, _("unknown value in capture"));
+      if(!v) ERR_B(cap->var.tag.loc, _("unknown value in capture"));
       DECL_B(const Type, t, = upvalue_type(env, cap));
       cap->temp = new_value(env, t, cap->var.tag);
       cap->var.value = v;
@@ -371,7 +371,7 @@ ANN static bool fptr_do(const Env env, struct FptrInfo *info) {
   if(info->exp->type->info->func) {
     CHECK_B(fptr_check(env, info));
     if (!(info->exp->type = fptr_type(env, info)))
-      ERR_b(info->exp->loc, _("no match found"));
+      ERR_B(info->exp->loc, _("no match found"));
     return true;
   }
   Exp_Lambda *l = &info->exp->d.exp_lambda;
@@ -565,7 +565,7 @@ static OP_CHECK(opck_op_impl) {
                           .loc  = impl->e->loc};
   vector_add(&env->scope->effects, 0);
   DECL_ON(const Type, t, = op_check(env, &opi));
-  CHECK_BN(isa(t, func->def->base->ret_type)); // error message?
+  CHECK_ON(isa(t, func->def->base->ret_type)); // error message?
   MP_Vector *const eff = (MP_Vector*)vector_back(&env->scope->effects);
 //  if (eff && !check_effect_overload(eff, func))
 //    ERR_N(impl->loc, _("`{+Y}%s{0}` has effects not present in `{+G}%s{0}`\n"),
@@ -725,18 +725,18 @@ static GACK(gack_function) { INTERP_PRINTF("%s", t->name); }
 GWION_IMPORT(func) {
   gwidoc(gwi, "the base of all functions.");
   const Type t_function = gwi_mk_type(gwi, "function", SZ_INT, NULL);
-  GWI_BB(gwi_gack(gwi, t_function, gack_function))
-  GWI_BB(gwi_set_global_type(gwi, t_function, et_function))
+  GWI_B(gwi_gack(gwi, t_function, gack_function))
+  GWI_B(gwi_set_global_type(gwi, t_function, et_function))
 
   gwidoc(gwi, "the base of decayed operators.");
   const Type t_op = gwi_mk_type(gwi, "operator", SZ_INT, "function");
-  GWI_BB(gwi_set_global_type(gwi, t_op, et_op))
+  GWI_B(gwi_set_global_type(gwi, t_op, et_op))
 
   gwidoc(gwi, "the base of function pointers.");
   const Type t_closure = gwi_class_ini(gwi, "funptr", "Object");
   t_closure->nspc->offset = SZ_INT*3;
   gwi_class_xtor(gwi, fptr_ctor, fptr_dtor);
-  GWI_BB(gwi_set_global_type(gwi, t_closure, et_closure))
+  GWI_B(gwi_set_global_type(gwi, t_closure, et_closure))
   GWI_B(gwi_func_ini(gwi, "void", "default"));
   GWI_B(gwi_func_end(gwi, fptr_default, ae_flag_none));
   gwi_class_end(gwi);
@@ -778,5 +778,5 @@ GWION_IMPORT(func) {
 
   gwi_register_freearg(gwi, GTmpl, freearg_gtmpl);
   gwi_register_freearg(gwi, DotTmpl, freearg_dottmpl);
-  return GW_OK;
+  return true;
 }

@@ -35,7 +35,7 @@ static MFUN(gain_set_gain) {
 }
 
 static GWION_IMPORT(gain) {
-  GWI_OB(gwi_class_ini(gwi, "Gain", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "Gain", "UGen"))
   gwi_class_xtor(gwi, gain_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "gain");
   GWI_B(gwi_func_end(gwi, gain_get_gain, ae_flag_none))
@@ -67,7 +67,7 @@ static MFUN(impulse_set_next) {
 }
 
 static GWION_IMPORT(impulse) {
-  GWI_OB(gwi_class_ini(gwi, "Impulse", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "Impulse", "UGen"))
   gwi_class_xtor(gwi, impulse_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "next");
   GWI_B(gwi_func_end(gwi, impulse_get_next, ae_flag_none))
@@ -87,7 +87,7 @@ static CTOR(fullrect_ctor) {
 }
 
 static GWION_IMPORT(fullrect) {
-  GWI_OB(gwi_class_ini(gwi, "FullRect", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "FullRect", "UGen"))
   gwi_class_xtor(gwi, fullrect_ctor, basic_dtor);
   return gwi_class_end(gwi);
 }
@@ -107,7 +107,7 @@ static CTOR(halfrect_ctor) {
 }
 
 static GWION_IMPORT(halfrect) {
-  GWI_OB(gwi_class_ini(gwi, "HalfRect", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "HalfRect", "UGen"))
   gwi_class_xtor(gwi, halfrect_ctor, basic_dtor);
   return gwi_class_end(gwi);
 }
@@ -131,7 +131,7 @@ static MFUN(step_set_next) {
 }
 
 static GWION_IMPORT(step) {
-  GWI_OB(gwi_class_ini(gwi, "Step", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "Step", "UGen"))
   gwi_class_xtor(gwi, step_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "next");
   GWI_B(gwi_func_end(gwi, step_get_next, ae_flag_none))
@@ -156,7 +156,7 @@ static CTOR(zerox_ctor) {
 }
 
 static GWION_IMPORT(zerox) {
-  GWI_OB(gwi_class_ini(gwi, "ZeroX", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "ZeroX", "UGen"))
   gwi_class_xtor(gwi, zerox_ctor, basic_dtor);
   return gwi_class_end(gwi);
 }
@@ -208,14 +208,14 @@ static OP_CHECK(opck_usrugen) {
   if (!arg || arg->len > 1)
     ERR_N(exp_self(bin)->loc,
           _("Tick function take one and only one argument"));
-  if (isa(((Arg*)(arg->ptr))->type, env->gwion->type[et_float]) < 0)
+  if (!isa(((Arg*)(arg->ptr))->type, env->gwion->type[et_float]))
     ERR_N(exp_self(bin)->loc,
           _("Tick functions argument must be of type float"));
-  if (isa(bin->lhs->type->info->func->def->base->ret_type,
-          env->gwion->type[et_float]) < 0)
+  if (!isa(bin->lhs->type->info->func->def->base->ret_type,
+          env->gwion->type[et_float]))
     ERR_N(exp_self(bin)->loc, _("Tick function must return float"));
   if (bin->lhs->type->info->func->value_ref->from->owner_class)
-    CHECK_BN(isa(bin->lhs->type->info->func->value_ref->from->owner_class,
+    CHECK_ON(isa(bin->lhs->type->info->func->value_ref->from->owner_class,
                  bin->rhs->type));
   return bin->rhs->type;
 }
@@ -273,7 +273,7 @@ static OP_EMIT(opem_usrugen) {
 }
 
 static GWION_IMPORT(usrugen) {
-  GWI_OB(gwi_class_ini(gwi, "UsrUGen", "UGen"))
+  GWI_B(gwi_class_ini(gwi, "UsrUGen", "UGen"))
   gwi_class_xtor(gwi, usrugen_ctor, usrugen_dtor);
   GWI_B(gwi_func_ini(gwi, "int", "default_tick"))
   GWI_B(gwi_func_end(gwi, default_tick, 0))
@@ -282,15 +282,15 @@ static GWION_IMPORT(usrugen) {
    GWI_B(gwi_oper_add(gwi, opck_usrugen))
    GWI_B(gwi_oper_emi(gwi, opem_usrugen))
    GWI_B(gwi_oper_end(gwi, "~=>", NULL))
-  return GW_OK;
+  return true;
 }
 
 GWION_IMPORT(modules) {
-  GWI_BB(gwimport_gain(gwi))
-  GWI_BB(gwimport_impulse(gwi))
-  GWI_BB(gwimport_fullrect(gwi))
-  GWI_BB(gwimport_halfrect(gwi))
-  GWI_BB(gwimport_step(gwi))
-  GWI_BB(gwimport_zerox(gwi))
+  GWI_B(gwimport_gain(gwi))
+  GWI_B(gwimport_impulse(gwi))
+  GWI_B(gwimport_fullrect(gwi))
+  GWI_B(gwimport_halfrect(gwi))
+  GWI_B(gwimport_step(gwi))
+  GWI_B(gwimport_zerox(gwi))
   return gwimport_usrugen(gwi);
 }

@@ -16,7 +16,7 @@
 
 // move me
 ANN Exp* make_exp(const Gwi gwi, const m_str type, const m_str name) {
-  DECL_OO(Type_Decl *, td, = gwi_str2td(gwi, type));
+  DECL_O(Type_Decl *, td, = gwi_str2td(gwi, type));
   struct Var_Decl_ vd;
   if(!gwi_str2var(gwi, &vd, name)) {
     free_type_decl(gwi->gwion->mp, td);
@@ -28,7 +28,7 @@ ANN Exp* make_exp(const Gwi gwi, const m_str type, const m_str name) {
 ANN bool gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_B(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
-  CHECK_b(check_typename_def(gwi, gwi->ck));
+  CHECK_B(check_typename_def(gwi, gwi->ck));
   gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Variable, 0);
   return true;
 }

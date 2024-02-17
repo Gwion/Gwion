@@ -9,10 +9,6 @@
 #include "import.h"
 #include "gwi.h"
 
-static m_int o_map_key;
-static m_int o_map_value;
-#define MAP_KEY(a) *((M_Object *)(a->data + o_map_key))
-#define MAP_VAL(a) *((M_Object *)(a->data + o_map_value))
 static CTOR(class_template_ctor) {
   /*char* name = strdup(o->type_ref->name);*/
   /*char* tmp = strsep(&name, "@");*/
@@ -27,17 +23,17 @@ static CTOR(class_template_ctor) {
 }
 
 GWION_IMPORT(class_template) {
-  GWI_OB(gwi_class_ini(gwi, ":[A,B]ClassTemplate", NULL))
+  GWI_B(gwi_class_ini(gwi, ":[A,B]ClassTemplate", NULL));
   gwi_class_xtor(gwi, class_template_ctor, NULL);
-  GWI_BB(gwi_item_ini(gwi, "A[]", "key"))
-  GWI_BB((o_map_key = gwi_item_end(gwi, ae_flag_none, obj, NULL)))
-  GWI_BB(gwi_item_ini(gwi, "B[]", "value"))
-  GWI_BB((o_map_value = gwi_item_end(gwi, ae_flag_none, obj, NULL)))
-  GWI_B(gwi_func_ini(gwi, "int", ":[C,D]test"))
-  GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
+  GWI_B(gwi_item_ini(gwi, "A[]", "key"));
+  GWI_B(gwi_item_end(gwi, ae_flag_none, obj, NULL));
+  GWI_B(gwi_item_ini(gwi, "B[]", "value"));
+  GWI_B(gwi_item_end(gwi, ae_flag_none, obj, NULL));
+  GWI_B(gwi_func_ini(gwi, "int", ":[C,D]test"));
+  GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
 
-  GWI_B(gwi_class_end(gwi))
-  GWI_BB(gwi_item_ini(gwi, ":[:[int]Ptr,int[]]ClassTemplate", "testObject"))
-  GWI_BB(gwi_item_end(gwi, ae_flag_none, obj, NULL))
-  return GW_OK;
+  GWI_B(gwi_class_end(gwi));
+  GWI_B(gwi_item_ini(gwi, ":[:[int]Ptr,int[]]ClassTemplate", "testObject"));
+  GWI_B(gwi_item_end(gwi, ae_flag_none, obj, NULL));
+  return true;
 }

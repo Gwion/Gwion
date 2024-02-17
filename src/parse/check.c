@@ -18,14 +18,6 @@
 #include "spread.h"
 #include "array.h"
 
-#undef ERR_B
-#define ERR_B(a, b, ...)                                                       \
-  {                                                                            \
-    env_err(env, (a), (b), ##__VA_ARGS__);                                     \
-    return false;                                                              \
-  }
-
-
 ANN bool check_stmt(const Env env, Stmt*);
 ANN bool check_class_def(const Env env, const Class_Def class_def);
 
@@ -42,7 +34,7 @@ ANN static Type check_internal(const Env env, const Symbol sym, Exp* e,
 
 ANN bool check_implicit(const Env env, Exp* e, const Type t) {
   if (e->type == t) return true;
-  if (isa(e->type, t) > 0) return true;
+  if (isa(e->type, t)) return true;
   const Symbol sym = insert_symbol("@implicit");
   return !!(e->cast_to = check_internal(env, sym, e, t));
 }
@@ -60,7 +52,7 @@ ANN bool check_subscripts(Env env, const Array_Sub array,
     }
   } while (++depth && (e = e->next));
   if (depth != array->depth)
-    ERR_B(array->exp->loc, _("invalid array access expression."))
+    ERR_B(array->exp->loc, _("invalid array access expression."));
   return ok;
 }
 
@@ -166,7 +158,7 @@ ANN bool ensure_traverse(const Env env, const Type t) {
 ANN static inline bool inferable(const Env env, const Type t,
                                    const loc_t loc) {
   if (!tflag(t, tflag_infer)) return true;
-  ERR_B(loc, _("can't infer type."))
+  ERR_B(loc, _("can't infer type."));
 }
 
 ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
@@ -198,7 +190,7 @@ ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
     env_pop(env, scope);
     set_vflag(decl->var.vd.value, vflag_direct);
   }
-  env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]) > 0);
+  env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]));
   return ret ? decl->var.vd.value->type : NULL;
 }
 
@@ -245,8 +237,8 @@ ANN static bool check_range(const Env env, Range *range) {
   if (range->start) CHECK_B(check_exp(env, range->start));
   if (range->end) CHECK_B(check_exp(env, range->end));
   if (range->start && range->end) {
-    if (isa(range->end->type, range->start->type) < 0)
-      ERR_B(range->start->loc, _("range types do not match"))
+    if (!isa(range->end->type, range->start->type))
+      ERR_B(range->start->loc, _("range types do not match"));
   }
   return true;
 }
@@ -285,10 +277,10 @@ ANN static Type check_prim_dict(const Env env, Exp* *data) {
 
 ANN bool not_from_owner_class(const Env env, const Type t, const Value v,
                                 const loc_t loc) {
-  if (!v->from->owner_class || isa(t, v->from->owner_class) < 0) {
+  if (!v->from->owner_class || !isa(t, v->from->owner_class)) {
     if(!is_class(env->gwion, v->type))
       ERR_B(loc, _("'%s' from owner namespace '%s' used in '%s'."), v->name,
-            v->from->owner ? v->from->owner->name : "?", t->name)
+            v->from->owner ? v->from->owner->name : "?", t->name);
   }
   return true;
 }
@@ -308,10 +300,10 @@ set_tflag(value->from->owner_class, tflag_check);
 return value;
 }
 
-    if (!value->from->owner_class || isa(env->class_def, value->from->owner_class) > 0)
+    if (!value->from->owner_class || isa(env->class_def, value->from->owner_class))
       return value;
     if(env->class_def) {
-      if (isa(env->class_def, value->from->owner_class) > 0 || value == env->class_def->info->value)
+      if (isa(env->class_def, value->from->owner_class) || value == env->class_def->info->value)
         return value;
 
     }
@@ -604,7 +596,7 @@ static Func find_func_match_actual(const Env env, const Func f, Exp* exp,
         return find_func_match_actual(env, func->next, exp, implicit,
                                       specific);
       }
-      if (tflag(e->type, tflag_ref) && isa(e->type, arg->type) > 0) {
+      if (tflag(e->type, tflag_ref) && isa(e->type, arg->type)) {
         if(!e->cast_to)e->cast_to = arg->type;
       }
 
@@ -650,7 +642,7 @@ ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
   Func      func;
   Exp* exp = call->args;
   Exp* args =
-      (exp && isa(exp->type, env->gwion->type[et_void]) < 0) ? exp : NULL;
+      (exp && !isa(exp->type, env->gwion->type[et_void])) ? exp : NULL;
   if ((func = find_func_match_actual(env, up, args, false, true)) ||
       (func = find_func_match_actual(env, up, args, true, true)) ||
       (func = find_func_match_actual(env, up, args, false, true)) ||
@@ -711,7 +703,7 @@ static void function_alternative(const Env env, const Type t, Exp* args,
     return;
   gwerr_basic("Argument type mismatch", "call site",
               "valid alternatives:", env->name, loc, 0);
-  const bool is_closure = isa(t, env->gwion->type[et_closure]) < 0;
+  const bool is_closure = !isa(t, env->gwion->type[et_closure]);
   Func up = is_closure
           ?  t->info->func : closure_def(t)->base->func;
   do print_signature(up);
@@ -853,7 +845,7 @@ ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
 
 ANN static Type check_exp_call_template(const Env env, Exp_Call *exp) {
   /*const */Type t = exp->func->type;
-  if(isa(t, env->gwion->type[et_closure]) > 0) {
+  if(isa(t, env->gwion->type[et_closure])) {
     const Func_Def fdef = closure_def(t);
     t = fdef->base->func->value_ref->type;
   }
@@ -958,7 +950,7 @@ ANN bool func_check(const Env env, Exp_Call *const exp, bool *mod) {
   CHECK_B(check_exp(env, exp->func));
   if (exp->func->exp_type == ae_exp_decl)
     ERR_B(exp->func->loc, _("Can't call late function pointer at declaration "
-                            "site. did you meant to use `:=>`?"))
+                            "site. did you meant to use `:=>`?"));
   const Type t = actual_type(env->gwion, exp->func->type);
   if (is_func(env->gwion, t) && exp->func->exp_type == ae_exp_dot && // is_callable
       !t->info->value->from->owner_class) {
@@ -990,7 +982,7 @@ ANN void call_add_effect(const Env env, const Func func, const loc_t loc) {
 ANN Type call_type(const Env env, Exp_Call *const exp) {
   const Type t = exp->func->type;
   if (is_func(env->gwion, t)) return t;
-  if(isa(exp->func->type, env->gwion->type[et_closure]) > 0)
+  if(isa(exp->func->type, env->gwion->type[et_closure]))
     return closure_def(t)->base->func->value_ref->type;
   if(is_class(env->gwion, t) && tflag(t->info->base_type, tflag_struct)) {
     const Value v = nspc_lookup_value0(t->info->base_type->nspc, insert_symbol("new"));
@@ -1063,7 +1055,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
   CHECK_O(check_static(env, exp->func));
   const Type _ret = _check_exp_call1(env, exp);
   if(_ret) return _ret;
-  if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
+  if(isa(exp->func->type, env->gwion->type[et_closure])) {
     if(exp->func->exp_type == ae_exp_dot && t->info->value->from->owner_class) {
       Exp* args = exp->args;
       Exp* this_arg = cpy_exp(env->gwion->mp, exp->func->d.exp_dot.base);
@@ -1144,7 +1136,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix *post) {
   CHECK_O(opi.lhs);
   exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
-  if (t && isa(t, env->gwion->type[et_object]) < 0)
+  if (t && !isa(t, env->gwion->type[et_object]))
     exp_setmeta(exp_self(post), 1);
   return t;
 }
@@ -1220,7 +1212,7 @@ ANN static Type check_exp_call(const Env env, Exp_Call *exp) {
     CHECK_O(func_check(env, exp, &mod));
     if (mod) return exp_self(exp)->type;
     Type t = actual_type(env->gwion, exp->func->type);
-    if(isa(exp->func->type, env->gwion->type[et_closure]) > 0) {
+    if(isa(exp->func->type, env->gwion->type[et_closure])) {
       t = typedef_base(t);
       t = mp_vector_at(t->info->cdef->body, Section , 0)->d.func_def->base->func->value_ref->type;
     }
@@ -1276,7 +1268,7 @@ ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
     ERR_O(exp_self(exp_if)->loc,
           _("incompatible types '%s' and '%s' in if expression..."),
           if_exp->name, else_exp->name);
-  if (isa(if_exp, else_exp) < 0)
+  if (!isa(if_exp, else_exp))
     ERR_O(exp_self(exp_if)->loc, _("condition type '%s' does not match '%s'"),
           cond->name, ret->name);
   exp_setuse(exp_if->cond, true);
@@ -1312,7 +1304,7 @@ ANN bool check_type_def(const Env env, const Type_Def tdef) {
     const Func_Def fdef = new_func_def(env->gwion->mp, fb, code);
     tdef->when_def           = fdef;
     CHECK_B(traverse_func_def(env, fdef));
-    if (isa(when->type, env->gwion->type[et_bool]) < 0) {
+    if (!isa(when->type, env->gwion->type[et_bool])) {
       char explain[strlen(when->type->name) + 20];
       sprintf(explain, "found `{/+}%s{0}`", when->type->name);
       gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain,
@@ -1409,7 +1401,7 @@ ANN static inline bool for_empty(const Env env, const Stmt_For stmt) {
     ERR_B(stmt_self(stmt)->loc,
           _("empty for loop condition..."
             "...(note: explicitly use 'true' if it's the intent)"
-            "...(e.g., 'for(; true;){{ /*...*/ }')"))
+            "...(e.g., 'for(; true;){{ /*...*/ }')"));
   return true;
 }
 
@@ -1500,7 +1492,7 @@ ANN static bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (is_new(env->func->def)) {
     if(stmt->val)
       ERR_B(stmt_self(stmt)->loc,
-            _("'return' statement inside constructor function should have no expression"))
+            _("'return' statement inside constructor function should have no expression"));
     return true;
   }
   DECL_B(const Type, ret_type,
@@ -1509,7 +1501,7 @@ ANN static bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
     env->func->def->base->ret_type = ret_type;
     return true;
   }
-  if (isa(ret_type, env->func->def->base->ret_type) > 0) return true;
+  if (isa(ret_type, env->func->def->base->ret_type)) return true;
   if (tflag(ret_type, tflag_noret))
     ERR_B(stmt->val->loc, _("Can't use type `{+G}%s{+G}` for return"),
           ret_type->name);
@@ -1518,22 +1510,22 @@ ANN static bool check_stmt_return(const Env env, const Stmt_Exp stmt) {
     if (env->func->def->base->tag.sym == insert_symbol("@implicit") &&
         ret_type == arg->type)
       ERR_B(stmt_self(stmt)->loc,
-            _("can't use implicit casting while defining it"))
+            _("can't use implicit casting while defining it"));
     if (check_implicit(env, stmt->val, env->func->def->base->ret_type))
       return true;
     ERR_B(stmt_self(stmt)->loc,
           _("invalid return type: got '%s', expected '%s'"), ret_type->name,
-          env->func->def->base->ret_type->name)
+          env->func->def->base->ret_type->name);
   }
-  if (isa(env->func->def->base->ret_type, env->gwion->type[et_void]) > 0)
+  if (isa(env->func->def->base->ret_type, env->gwion->type[et_void]))
     return true;
-  ERR_B(stmt_self(stmt)->loc, _("missing value for return statement"))
+  ERR_B(stmt_self(stmt)->loc, _("missing value for return statement"));
 }
 
-#define describe_check_stmt_stack(stack, name)                                 \
+#define describe_check_stmt_stack(stack, name)                                \
   ANN static bool check_stmt_##name(const Env env, const Stmt* stmt) {        \
-    if (!vector_size(&env->scope->stack))                                      \
-      ERR_B(stmt->loc, _("'" #name "' found outside of for/while/until..."))   \
+    if (!vector_size(&env->scope->stack))                                     \
+      ERR_B(stmt->loc, _("'" #name "' found outside of for/while/until...")); \
     return true;                                                              \
   }
 describe_check_stmt_stack(conts, continue);
@@ -1606,7 +1598,7 @@ ANN static Symbol case_op(const Env env, const Type base, Exp* e) {
 ANN static bool match_case_exp(const Env env, Exp* e) {
   Exp* last = e;
   for (m_uint i = 0; i < vector_size(&env->scope->match->cond); e = e->next, ++i) {
-    if (!e) ERR_B(last->loc, _("no enough to match"))
+    if (!e) ERR_B(last->loc, _("no enough to match"));
     last              = e;
     Exp*    base = (Exp*)vector_at(&env->scope->match->cond, i);
     const Symbol op   = case_op(env, base->type, e);
@@ -1627,7 +1619,7 @@ ANN static bool match_case_exp(const Env env, Exp* e) {
       CHECK_B(ret);
     }
   }
-  if (e) ERR_B(e->loc, _("too many expression to match"))
+  if (e) ERR_B(e->loc, _("too many expression to match"));
   return true;
 }
 
@@ -1764,7 +1756,7 @@ ANN static bool check_signature_match(const Env env, const Func_Def fdef,
                                         const Func parent) {
   if (GET_FLAG(parent->def->base, final))
     ERR_B(fdef->base->td->tag.loc, _("can't override final function '%s'\n"),
-          parent->name)
+          parent->name);
   if (GET_FLAG(parent->def->base, static) != GET_FLAG(fdef->base, static)) {
     const m_str c_name = fdef->base->func->value_ref->from->owner_class->name;
     const m_str p_name = parent->value_ref->from->owner_class->name;
@@ -1773,9 +1765,9 @@ ANN static bool check_signature_match(const Env env, const Func_Def fdef,
           _("function '%s.%s' ressembles '%s.%s' but cannot override...\n"
             "  ...(reason: '%s.%s' is declared as 'static')"),
           c_name, f_name, p_name, c_name,
-          GET_FLAG(fdef->base, static) ? c_name : p_name, f_name)
+          GET_FLAG(fdef->base, static) ? c_name : p_name, f_name);
   }
-  if(fdef->base->tmpl || isa(fdef->base->ret_type, parent->def->base->ret_type) > 0)
+  if(fdef->base->tmpl || isa(fdef->base->ret_type, parent->def->base->ret_type))
     return true;
   gwerr_basic_from("invalid overriding", NULL, NULL, fdef->base->func->value_ref->from, 0);
   gwerr_secondary_from("does not match", parent->value_ref->from);
@@ -1840,7 +1832,7 @@ ANN static bool check_func_overload(const Env env, const Func_Def fdef) {
         ERR_B(f2->def->base->tag.loc,
               _("global function '%s' already defined"
                 " for those arguments"),
-              s_name(fdef->base->tag.sym))
+              s_name(fdef->base->tag.sym));
     }
   }
   return true;
@@ -1867,7 +1859,7 @@ ANN static bool check_func_def_override(const Env env, const Func_Def fdef,
       ERR_B(fdef->base->tag.loc,
             _("function name '%s' conflicts with previously defined value...\n"
               "  from super class '%s'..."),
-            s_name(fdef->base->tag.sym), override->from->owner_class->name)
+            s_name(fdef->base->tag.sym), override->from->owner_class->name);
     *ov = override;
   }
   if (func->value_ref->from->offset &&
@@ -2003,9 +1995,10 @@ ANN bool _check_func_def(const Env env, const Func_Def f) {
   if (ret) {
     if (env->class_def && fdef->base->effects.ptr &&
         (override &&
-         !check_effect_overload(&fdef->base->effects, override->d.func_ref)))
+         !check_effect_overload(&fdef->base->effects, override->d.func_ref))) {
       ERR_B(fdef->base->tag.loc, _("too much effects in override."),
-            s_name(fdef->base->tag.sym))
+            s_name(fdef->base->tag.sym));
+      }
       if(is_new(f) && !tflag(env->class_def, tflag_struct))
         CHECK_B(check_ctor(env, func));
   }
@@ -2157,7 +2150,7 @@ ANN static bool class_def_has_body(Ast ast) {
 }
 
 ANN static inline bool type_is_recurs(const Type t, const Type tgt) {
-  return isa(tgt, t) > 0 || isa(t, tgt) > 0 || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
+  return isa(tgt, t) || isa(t, tgt) || (tgt->info->tuple && vector_find(&tgt->info->tuple->contains, (m_uint)t) > -1);
 }
 
 ANN static bool recursive_type_base(const Env env, const Type t);

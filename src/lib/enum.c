@@ -27,5 +27,5 @@ GWION_IMPORT(enum) {
   const Type t_enum = gwi_mk_type(gwi, "enum", SZ_INT, "int");
   gwi_set_global_type(gwi, t_enum, et_enum);
   gwi_gack(gwi, t_enum, gack_enum);
-  return GW_OK;
+  return true;
 }

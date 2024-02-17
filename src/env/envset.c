@@ -78,7 +78,7 @@ ANN bool envset_run(struct EnvSet *es, const Type t) {
   es->env->context = t->info->value->from->ctx;
   es->env->name    = t->info->value->from->filename;
   const bool ret =
-      t->info->cdef && !(t->tflag & es->flag) ? es->func(es->data, t) : GW_OK;
+      t->info->cdef && !(t->tflag & es->flag) ? es->func(es->data, t) : true;
   envset_pop(es, owner_class);
   return ret;
 }

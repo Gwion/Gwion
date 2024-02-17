@@ -47,7 +47,7 @@ ANN bool pass_set(const Gwion gwion, const Vector passes) {
 /*
 if(!strcmp(name, "none")) {
   vector_clear(v);
-  return GW_OK;
+  return true;
 }
 */
       gw_err("Failed to set compilation passes, back to default\n");

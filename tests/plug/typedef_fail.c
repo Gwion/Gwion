@@ -11,5 +11,5 @@
 GWION_IMPORT(typedef_fail) {
   GWI_B(gwi_typedef_ini(gwi, "int", "Typedef:[A]"))
   GWI_B(gwi_typedef_ini(gwi, "int", "Typedef:[A]"))
-  return GW_OK;
+  return true;
 }

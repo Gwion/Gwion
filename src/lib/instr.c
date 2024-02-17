@@ -18,7 +18,7 @@ ANN static Func_Def traverse_tmpl(const Emitter emit, Func_Def fdef, Func_Def fb
   const Env env = emit->env;
   const Symbol   sym  = func_symbol(env, nspc->name, s_name(fdef->base->tag.sym),
                                  "template", fbase->vt_index);
-  DECL_OO(const Value, v, = nspc_lookup_value0(nspc, sym)
+  DECL_O(const Value, v, = nspc_lookup_value0(nspc, sym)
                                 ?: nspc_lookup_value0(nspc, fdef->base->tag.sym));
   const f_xfun xfun = v->d.func_ref->def->d.dl_func_ptr;
   if (vflag(v, vflag_builtin))

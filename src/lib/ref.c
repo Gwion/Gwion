@@ -47,7 +47,7 @@ static inline Type ref_base(Type t) {
 
 static OP_EMIT(opem_ref_implicit_similar) {
   const struct Implicit *imp = (struct Implicit *)data;
-  if(!tflag(imp->t, tflag_contract)) return GW_OK;
+  if(!tflag(imp->t, tflag_contract)) return true;
   const Env env = emit->env;
   const Type base = ref_base(imp->t);
   struct Op_Import opi    = {.op   = insert_symbol("@implicit"),
@@ -193,5 +193,5 @@ GWION_IMPORT(ref) {
    GWI_B(gwi_oper_ini(gwi, "Ref", NULL, NULL))
    GWI_B(gwi_oper_add(gwi, opck_ref_scan))
    GWI_B(gwi_oper_end(gwi, "class", NULL))
-  return GW_OK;
+  return true;
 }

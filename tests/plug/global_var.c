@@ -13,9 +13,9 @@ GWION_IMPORT(global_var) {
   const M_Object o =
       new_object(gwi->gwion->mp, gwi->gwion->type[et_string]);
   STRING(o) = s_name(insert_symbol(gwi->gwion->st, "test"));
-  GWI_BB(gwi_item_ini(gwi, "string", "i"))
-  GWI_BB(gwi_item_end(gwi, 0, obj, o))
-  GWI_BB(gwi_item_ini(gwi, "float", "f"))
-  GWI_BB(gwi_item_end(gwi, 0, fnum, 2.1))
-  return GW_OK;
+  GWI_B(gwi_item_ini(gwi, "string", "i"))
+  GWI_B(gwi_item_end(gwi, 0, obj, o))
+  GWI_B(gwi_item_ini(gwi, "float", "f"))
+  GWI_B(gwi_item_end(gwi, 0, fnum, 2.1))
+  return true;
 }

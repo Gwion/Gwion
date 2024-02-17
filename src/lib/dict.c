@@ -290,13 +290,13 @@ static OP_CHECK(opck_dict_remove_toop) {
   Exp*       func  = call->func;
   Exp*       args  = call->args;
   e->exp_type         = ae_exp_binary;
-  CHECK_OO(check_exp(env, e->d.exp_binary.rhs = cpy_exp(env->gwion->mp, func->d.exp_dot.base)));
-  CHECK_OO(check_exp(env, e->d.exp_binary.lhs = args));
+  CHECK_O(check_exp(env, e->d.exp_binary.rhs = cpy_exp(env->gwion->mp, func->d.exp_dot.base)));
+  CHECK_O(check_exp(env, e->d.exp_binary.lhs = args));
   e->d.exp_binary.op = insert_symbol("~~");
   free_exp(env->gwion->mp, func);
   const Type t = e->d.exp_binary.rhs->type;
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
-  if(isa(args->type, hinfo->key) < 0 || args->next)
+  if(!isa(args->type, hinfo->key) || args->next)
     ERR_N(e->loc, "dict.remove must be called with one Key argument");
   return e->type = env->gwion->type[et_void];
 }
@@ -450,7 +450,7 @@ static OP_EMIT(opem_dict_access) {
   const bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
   CHECK_B(ret);
-  return !enext ? GW_OK : emit_next_access(emit, info);
+  return !enext ? true : emit_next_access(emit, info);
 }
 
 static OP_CHECK(opck_dict_access) {
@@ -611,7 +611,7 @@ static OP_CHECK(opck_dict_scan) {
 }
 
 GWION_IMPORT(dict) {
-  DECL_OB(const Type, t_dict, = gwi_class_ini(gwi, "Dict:[Key,Val]", "Object"));
+  DECL_B(const Type, t_dict, = gwi_class_ini(gwi, "Dict:[Key,Val]", "Object"));
   gwi_class_xtor(gwi, dict_ctor, dict_dtor);
   t_dict->nspc->offset += sizeof(struct HMap);
   gwi->gwion->type[et_dict] = t_dict;
@@ -666,5 +666,5 @@ GWION_IMPORT(dict) {
   GWI_B(gwi_func_arg(gwi, "string",    "key"));
   GWI_B(gwi_func_end(gwi, mfun_string_h, ae_flag_none));
 
-  return GW_OK;
+  return true;
 }

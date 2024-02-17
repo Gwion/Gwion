@@ -232,7 +232,7 @@ ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
       env_err(env, loc, "%s: no such plugin\n", iname);
     return false;
   }
-  return GW_OK;
+  return true;
 }
 
 ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {

@@ -15,5 +15,5 @@ GWION_IMPORT(vm_remove) {
   GWI_B(gwi_func_ini(gwi, "int", "test"))
   GWI_B(gwi_func_arg(gwi, "int", "i"))
   GWI_B(gwi_func_end(gwi, coverage_int, ae_flag_none))
-  return GW_OK;
+  return true;
 }

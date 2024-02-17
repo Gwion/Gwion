@@ -13,5 +13,5 @@ GWION_IMPORT(union_name) {
   GWI_B(gwi_union_add(gwi, "float", "f"))
   GWI_B(gwi_union_add(gwi, "int", "i"))
   GWI_B(gwi_union_end(gwi, 0))
-  return GW_OK;
+  return true;
 }

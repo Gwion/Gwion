@@ -20,9 +20,9 @@ GWION_IMPORT(enum) {
   GWI_B(gwi_enum_add(gwi, "TYPED_ENUM7", 7))
   GWI_B(gwi_enum_add(gwi, "TYPED_ENUM8", 8))
   GWI_B(gwi_enum_add(gwi, "TYPED_ENUM9", 9))
-  GWI_OB(gwi_enum_end(gwi))
+  GWI_B(gwi_enum_end(gwi))
 
-  GWI_OB(gwi_class_end(gwi))
+  GWI_B(gwi_class_end(gwi))
 
-  return GW_OK;
+  return true;
 }

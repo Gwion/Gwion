@@ -129,7 +129,7 @@ GWION_IMPORT(int_op) {
   IMPORT_BINARY_INT(mul, *)
   IMPORT_BINARY_INT(div, /)
   IMPORT_BINARY_INT(mod, %)
-  return GW_OK;
+  return true;
 }
 
 static GWION_IMPORT(int_logical) {
@@ -172,7 +172,7 @@ static GWION_IMPORT(int_r) {
   CHECK_OP("&=>", rassign, r_sand)
   CHECK_OP("|=>", rassign, r_sor)
   CHECK_OP("^=>", rassign, r_sxor)
-  return GW_OK;
+  return true;
 }
 
 static INSTR(IntRange) {
@@ -243,7 +243,7 @@ static GWION_IMPORT(int_unary) {
    GWI_B(gwi_oper_end(gwi, "++", int_post_inc))
    GWI_B(gwi_oper_add(gwi, opck_post))
    GWI_B(gwi_oper_end(gwi, "--", int_post_dec))
-  return GW_OK;
+  return true;
 }
 static GACK(gack_bool) {
   //  gw_out("%s", *(m_uint*)VALUE ? "true" : "false");
@@ -261,9 +261,9 @@ static OP_CHECK(bool2float) {
 }
 
 static GWION_IMPORT(int_values) {
-  DECL_OB(const Type, t_bool, = gwi_mk_type(gwi, "bool", SZ_INT, "int"));
-  GWI_BB(gwi_set_global_type(gwi, t_bool, et_bool))
-  GWI_BB(gwi_gack(gwi, t_bool, gack_bool))
+  DECL_B(const Type, t_bool, = gwi_mk_type(gwi, "bool", SZ_INT, "int"));
+  GWI_B(gwi_set_global_type(gwi, t_bool, et_bool))
+  GWI_B(gwi_gack(gwi, t_bool, gack_bool))
   gwi_item_ini(gwi, "bool", "true");
   gwi_item_end(gwi, ae_flag_const, num, 1);
   gwi_item_ini(gwi, "bool", "false");
@@ -278,18 +278,18 @@ static GWION_IMPORT(int_values) {
   struct SpecialId_ spid = {
       .type = t_bool, .exec = RegPushMaybe, .is_const = 1};
   gwi_specialid(gwi, "maybe", &spid);
-  return GW_OK;
+  return true;
 }
 
 static GWION_IMPORT(int) {
-  GWI_BB(gwimport_int_values(gwi))
+  GWI_B(gwimport_int_values(gwi))
    GWI_B(gwi_oper_cond(gwi, "int", BranchEqInt, BranchNeqInt))
    GWI_B(gwi_oper_ini(gwi, "int", "int", "int"))
-  GWI_BB(gwimport_int_op(gwi))
-  GWI_BB(gwimport_int_logical(gwi))
-  GWI_BB(gwimport_int_r(gwi))
-  GWI_BB(gwimport_int_unary(gwi))
-  return GW_OK;
+  GWI_B(gwimport_int_op(gwi))
+  GWI_B(gwimport_int_logical(gwi))
+  GWI_B(gwimport_int_r(gwi))
+  GWI_B(gwimport_int_unary(gwi))
+  return true;
 }
 
 static OP_CHECK(opck_cast_f2i) {
@@ -393,7 +393,7 @@ static GWION_IMPORT(intfloat) {
    GWI_B(gwi_oper_end(gwi, "==", int_float_eq))
    GWI_B(gwi_oper_add(gwi, opck_int_float_neq))
    GWI_B(gwi_oper_end(gwi, "!=", int_float_neq))
-  return GW_OK;
+  return true;
 }
 
 #define BINARY_FLOAT_INT_FOLD(name, TYPE, OP, pre)                       \
@@ -455,7 +455,7 @@ static GWION_IMPORT(floatint) {
    GWI_B(gwi_oper_end(gwi, "<", float_int_lt))
    GWI_B(gwi_oper_add(gwi, opck_float_int_le))
    GWI_B(gwi_oper_end(gwi, "<=", float_int_le))
-  return GW_OK;
+  return true;
 }
 
 static GWION_IMPORT(dur) {
@@ -614,7 +614,7 @@ static GWION_IMPORT(float) {
   //   GWI_B(gwi_oper_add(gwi, opck_unary_meta2))
    GWI_B(gwi_oper_add(gwi, opck_float_not))
    GWI_B(gwi_oper_end(gwi, "!", float_not))
-  return GW_OK;
+  return true;
 }
 
 ANN static GWION_IMPORT(ux) {
@@ -625,15 +625,15 @@ ANN static GWION_IMPORT(ux) {
     const Symbol s = insert_symbol(c);
     if(!gwi_primitive(gwi, s_name(s), i, ae_flag_none)) return false;
   }
-  return GW_OK;
+  return true;
 }
 
 GWION_IMPORT(prim) {
-  GWI_BB(gwimport_int(gwi))
-  GWI_BB(gwimport_ux(gwi));
-  GWI_BB(gwimport_float(gwi))    // const folded
-  GWI_BB(gwimport_intfloat(gwi)) // const folded
-  GWI_BB(gwimport_floatint(gwi)) // const folded
-  GWI_BB(gwimport_dur(gwi))
+  GWI_B(gwimport_int(gwi))
+  GWI_B(gwimport_ux(gwi));
+  GWI_B(gwimport_float(gwi))    // const folded
+  GWI_B(gwimport_intfloat(gwi)) // const folded
+  GWI_B(gwimport_floatint(gwi)) // const folded
+  GWI_B(gwimport_dur(gwi))
   return gwimport_time(gwi);
 }

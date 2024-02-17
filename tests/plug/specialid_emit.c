@@ -21,5 +21,5 @@ GWION_IMPORT(specialid_emit) {
   struct SpecialId_ spid = {
       .type = gwi->gwion->type[et_int], .em = spidem, .is_const = 1};
   gwi_specialid(gwi, "testid", &spid);
-  return GW_OK;
+  return true;
 }
