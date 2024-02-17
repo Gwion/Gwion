@@ -47,6 +47,6 @@ ANN void free_gwiondata(const Gwion gwion) {
     mp_free(gwion->mp, SpecialId, (struct SpecialId_ *)map_at(&data->id, i));
   map_release(&data->id);
   free_passes(gwion->mp, data->passes);
-  free_threadpool(data->tpool);
+  if(data->tpool) free_threadpool(data->tpool);
   free_gwiondata_cpy(gwion->mp, data);
 }
