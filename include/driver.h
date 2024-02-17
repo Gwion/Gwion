@@ -1,7 +1,7 @@
 #ifndef __DRIVER
 #define __DRIVER
 #include "soundinfo.h"
-typedef m_bool (*f_drvini)(struct VM_ *, struct BBQ_ *);
+typedef bool (*f_drvini)(struct VM_ *, struct BBQ_ *);
 typedef void (*f_drvrun)(struct VM_ *, struct BBQ_ *);
 typedef void (*f_drvdel)(struct VM_ *, struct BBQ_ *);
 
@@ -25,12 +25,12 @@ typedef struct BBQ_ {
   bool                is_running;
 } Driver;
 
-#define DRVINI(a) ANN m_bool a(struct VM_ *vm NUSED, Driver *di NUSED)
+#define DRVINI(a) ANN bool a(struct VM_ *vm NUSED, Driver *di NUSED)
 #define DRVRUN(a) ANN void a(struct VM_ *vm NUSED, Driver *di NUSED)
 #define DRVDEL(a) ANN void a(struct VM_ *vm NUSED, Driver *di NUSED)
 
-ANN void dummy_driver(DriverData *);
-ANN void driver_alloc(Driver *);
+ANN void    dummy_driver(DriverData *);
+ANN void    driver_alloc(Driver *);
 ANN Driver *new_driver(MemPool);
 ANN void    free_driver(Driver *, struct VM_ *);
 #endif

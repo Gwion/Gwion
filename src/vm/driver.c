@@ -37,7 +37,7 @@ static DRVRUN(dummy_run) {
 
 static DRVINI(dummy_ini) {
   gw_err("{-/}using dummy driver{0}\n");
-  return GW_OK;
+  return true;
 }
 
 void dummy_driver(DriverData *dd) {

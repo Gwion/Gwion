@@ -20,8 +20,7 @@ ANN static bool gwion_audio(const Gwion gwion) {
   Driver *const di = gwion->vm->bbq;
   if (di->si->arg) CHECK_B((di->func = driver_ini(gwion, di->si)));
   di->func(di->driver);
-  if(di->driver->ini(gwion->vm, di) < 0)
-    return false;
+  CHECK_B(di->driver->ini(gwion->vm, di));
   driver_alloc(di);
   return true;
 }

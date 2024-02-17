@@ -11,7 +11,7 @@ static DRVRUN(simple_driver_run) {
   }
 }
 
-static DRVINI(simple_driver_ini) { return GW_OK; }
+static DRVINI(simple_driver_ini) { return true; }
 
 static DRVDEL(simple_driver_del) {}
 
