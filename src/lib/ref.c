@@ -24,16 +24,16 @@ ANN Type ref_type(const Gwion gwion, const Type t, const loc_t loc) {
   return str2type(gwion, c, loc);
 }
 
-static m_bool ref_access(const Env env, Exp* e) {
+static bool ref_access(const Env env, Exp* e) {
   const m_str access = exp_access(e);
-  if (!access) return GW_OK;
+  if (!access) return true;
   env_err(env, e->loc, _("operand is %s"), access);
-  return GW_ERROR;
+  return false;
 }
 
 static OP_CHECK(opck_ref_implicit_similar) {
   const struct Implicit *imp = (struct Implicit *)data;
-  CHECK_BN(ref_access(env, imp->e));
+  CHECK_ON(ref_access(env, imp->e));
   exp_setvar(imp->e, 1);
   return imp->t;
 }
@@ -54,16 +54,16 @@ static OP_EMIT(opem_ref_implicit_similar) {
                              .lhs  = base,
                              .rhs  = imp->t,
                              .data = (m_uint)imp};
-  CHECK_BB(op_emit(emit, &opi));
+  CHECK_B(op_emit(emit, &opi));
   emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  return emit_exp(emit, imp->e) > 0 ? GW_OK : GW_ERROR;
+  return emit_exp(emit, imp->e);
 }
 
 static OP_CHECK(opck_implicit_ref) {
   const struct Implicit *imp = (struct Implicit *)data;
-  CHECK_BN(ref_access(env, imp->e));
+  CHECK_ON(ref_access(env, imp->e));
   exp_setvar(imp->e, 1);
   imp->e->cast_to = imp->t;
   return imp->t;
@@ -71,7 +71,7 @@ static OP_CHECK(opck_implicit_ref) {
 
 static OP_CHECK(opck_ref_contract_similar) {
   const struct Implicit *imp = (struct Implicit *)data;
-  CHECK_BN(ref_access(env, imp->e));
+  CHECK_ON(ref_access(env, imp->e));
   const Type base = (Type)vector_front(&imp->t->info->tuple->contains);
   struct Op_Import opi    = {.op   = insert_symbol("@implicit"),
                           .lhs  = imp->e->type,
@@ -89,11 +89,11 @@ static OP_EMIT(opem_ref_contract_similar) {
                           .lhs  = imp->e->type,
                           .rhs  = base,
                           .data = (m_uint)&cast};
-  CHECK_BB(op_emit(emit, &opi));
+  CHECK_B(op_emit(emit, &opi));
   emit_regmove(emit, -imp->e->type->size);
   exp_setvar(imp->e, true);
   imp->e->cast_to = NULL;
-  return emit_exp(emit, imp->e) > 0 ? GW_OK : GW_ERROR;
+  return emit_exp(emit, imp->e);
 }
 
 ANN static void base2ref(Env env, const Type lhs, const Type rhs) {

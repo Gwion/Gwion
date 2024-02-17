@@ -24,7 +24,7 @@ static OP_CHECK(opck_none) {
 
 static OP_EMIT(opem_none) {
   emit_regmove(emit, -SZ_INT);
-  return GW_OK;
+  return true;
 }
 
 static INSTR(UnionIndex) {
@@ -35,25 +35,25 @@ static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Map      map    = &member->base->type->nspc->info->value->map;
   exp_setvar(member->base, true);
-  CHECK_b(emit_exp(emit, member->base));
+  CHECK_B(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
     emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
-    return GW_OK;
+    return true;
   }
   if (!strcmp(s_name(member->xid), "index")) {
     //emit_add_instr(emit, DotMember);
     emit_add_instr(emit, UnionIndex);
-    return GW_OK;
+    return true;
   }
   for (m_uint i = 0; i < map_size(map); ++i) {
     if (VKEY(map, i) == (m_uint)member->xid) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
       emit_unionmember(emit, i, v->type->size, emit_addr);
-      return GW_OK;
+      return true;
     }
   }
-  return GW_ERROR;
+  return false;
 }
 
 ANN void union_release(const VM_Shred shred, const Type t, const m_bit *data) {
@@ -192,10 +192,10 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_class_end(gwi))
 
   const struct Op_Func   opfunc0 = {.ck = opck_union_is};
-  CHECK_b(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
+  CHECK_B(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
 
   const struct Op_Func   opfunc1 = {.ck = opck_union_new};
-  CHECK_b(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
+  CHECK_B(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
 
   GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
   GWI_BB(gwi_oper_emi(gwi, opem_union_dot))

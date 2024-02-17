@@ -301,14 +301,14 @@ static OP_CHECK(opck_dict_remove_toop) {
   return e->type = env->gwion->type[et_void];
 }
 
-ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
+ANN static bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
                           const struct Op_Import *opi, Exp* call, Exp* exp) {
   emit_pushimm(emit, -1); // room for tombstone
-  CHECK_b(emit_exp(emit, call));
+  CHECK_B(emit_exp(emit, call));
   const m_uint pc = emit_code_size(emit);
   const Instr iter = emit_add_instr(emit, hmap_iter);
   iter->m_val = hinfo->key->size + SZ_INT;
-  CHECK_b(emit_exp(emit, exp));
+  CHECK_B(emit_exp(emit, exp));
   op_emit(emit, opi);
   const Instr ok = emit_add_instr(emit, BranchNeqInt);
   emit_add_instr(emit, hmap_iter_inc);
@@ -316,7 +316,7 @@ ANN static m_bool emit_dict_iter(const Emitter emit, const HMapInfo *hinfo,
   top->m_val = pc;
   ok->m_val = emit_code_size(emit);
   emit_regmove(emit, -SZ_INT);
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(_opem_dict_access) {
@@ -358,16 +358,16 @@ if(info->is_var) {
   const m_uint grow_pc = emit_code_size(emit);
   emit_add_instr(emit, hmap_grow_dec);
   const Instr endgrow = emit_add_instr(emit, BranchNeqInt);
-  CHECK_b(emit_exp(emit, call.d.exp_call.func));
-  CHECK_b(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
+  CHECK_B(emit_exp(emit, call.d.exp_call.func));
+  CHECK_B(emit_exp_call1(emit, call.d.exp_call.func->type->info->func,
     call.d.exp_call.func->type->info->func->def->base->ret_type->size, true));
   emit_add_instr(emit, hmap_find);
   const Instr regrow = emit_add_instr(emit, BranchEqInt);
   regrow->m_val = grow_pc;
   nogrow->m_val = emit_code_size(emit);
   endgrow->m_val = emit_code_size(emit);
-  CHECK_b(emit_exp(emit, &call));
-  CHECK_b(emit_exp(emit, array->exp));
+  CHECK_B(emit_exp(emit, &call));
+  CHECK_B(emit_exp(emit, array->exp));
   const m_uint top_pc = emit_code_size(emit);
   const Instr idx = emit_add_instr(emit, hmap_iter_set_ini);
   idx->m_val = key->size;
@@ -376,7 +376,7 @@ if(info->is_var) {
   const Instr iter = emit_add_instr(emit, hmap_iter_set);
   iter->m_val = key->size;
   const Instr fast = emit_add_instr(emit, BranchNeqInt);
-  CHECK_b(emit_exp(emit, array->exp));
+  CHECK_B(emit_exp(emit, array->exp));
   op_emit(emit, &opi);
 
   const Instr ok = emit_add_instr(emit, BranchNeqInt);
@@ -389,12 +389,12 @@ if(info->is_var) {
   const Instr iseq = emit_add_instr(emit, hmap_addr);
   iseq->m_val = key->size;
   fast->m_val = emit_code_size(emit);
-  return GW_OK;
+  return true;
 }
-  CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, array->exp));
+  CHECK_B(emit_dict_iter(emit, hinfo, &opi, &call, array->exp));
   const Instr pushval = emit_add_instr(emit, hmap_val);
   pushval->m_val2 = key->size;
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_dict_remove) {
@@ -425,10 +425,10 @@ static OP_EMIT(opem_dict_remove) {
   };
 
   CHECK_B(traverse_exp(env, &call));
-  CHECK_BB(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
+  CHECK_B(emit_dict_iter(emit, hinfo, &opi, &call, bin->lhs));
   const Instr pushval = emit_add_instr(emit, hmap_remove);
   pushval->m_val2 = hinfo->key->size;
-  return GW_OK;
+  return true;
 }
 
 ANN static bool emit_next_access(const Emitter emit, struct ArrayAccessInfo *const info) {
@@ -447,10 +447,10 @@ static OP_EMIT(opem_dict_access) {
   const Array_Sub array = &info->array;
   Exp* enext = array->exp->next;
   array->exp->next = NULL;
-  const m_bool ret = _opem_dict_access(emit, data);
+  const bool ret = _opem_dict_access(emit, data);
   array->exp->next = enext;
-  CHECK_BB(ret);
-  return !enext ? GW_OK : (emit_next_access(emit, info) ? GW_OK : GW_ERROR);
+  CHECK_B(ret);
+  return !enext ? GW_OK : emit_next_access(emit, info);
 }
 
 static OP_CHECK(opck_dict_access) {
@@ -526,7 +526,7 @@ static OP_EMIT(opem_dict_each) {
   if(!loop->n) loop->instr = go;
   else vector_add(&loop->unroll_v, (m_uint)go);
   loop->init = true;
-  return GW_OK;
+  return true;
 }
 
 static INSTR(DictEachInit) {
@@ -538,7 +538,7 @@ static OP_EMIT(opem_dict_each_init) {
   const Looper *loop = (Looper *)data;
   const Instr instr = emit_add_instr(emit, DictEachInit);
   instr->m_val = loop->offset;
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_dict_each_key) {

@@ -75,7 +75,7 @@ static INSTR(bit_get_fast) {
 static OP_EMIT(opem_bit_access) {
   struct ArrayAccessInfo *const info = (struct ArrayAccessInfo *)data;
   if(!is_prim_int(info->array.exp)) {
-    CHECK_b(emit_exp(emit, info->array.exp));
+    CHECK_B(emit_exp(emit, info->array.exp));
     const Instr check = emit_add_instr(emit, bit_check);
     check->m_val = info->array.type->actual_size * CHAR_BIT;
     if(!info->is_var) {
@@ -95,13 +95,13 @@ static OP_EMIT(opem_bit_access) {
       instr->m_val = (offset / CHAR_BIT);
     }
   }
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_bit_exp) {
   bool *var = data;
   var[1] = var[0];
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_bit_access) {
@@ -150,7 +150,7 @@ static OP_EMIT(opem_bitset) {
      ? bin->lhs->type
      : bin->rhs->type;
   instr->m_val = t->actual_size;
-  return GW_OK;
+  return true;
 }
 
 static INSTR(bitcast) {
@@ -165,7 +165,7 @@ static OP_EMIT(opem_bitcast) {
   const Instr instr = emit_add_instr(emit, bitcast);
   instr->m_val  = -SZ_INT + t->actual_size;
   instr->m_val2 = SZ_INT - t->actual_size;
-  return GW_OK;
+  return true;
 }
 
 ANN2(1,2,3,5) static void prim_op(const Env env, const Type t, const m_str op, const opck ck, const opem em){
@@ -213,8 +213,8 @@ ANN Type mk_primitive(const Env env, const m_str name, const m_uint size) {
     prim_op(env, t, "$", opck_prim_cast, opem_bitcast);
     prim_implicit(env, t);
   } else if(size == SZ_INT) {
-    prim_op(env, t, ":=>", opck_rassign, (opem)dummy_func);
-    prim_op(env, t, "$", NULL, (opem)dummy_func);
+    prim_op(env, t, ":=>", opck_rassign, (opem)bdummy_func);
+    prim_op(env, t, "$", NULL, (opem)bdummy_func);
     prim_implicit(env, t);
   } // else provide function to get slices
   CHECK_O(mk_gack(env->gwion->mp, t, gack_prim));

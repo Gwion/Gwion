@@ -80,7 +80,7 @@ static OP_CHECK(opck_spork) {
 
 static OP_EMIT(opem_spork) {
   const Exp_Unary *unary = (Exp_Unary *)data;
-  return emit_exp_spork(emit, unary) ? GW_OK : GW_ERROR;
+  return emit_exp_spork(emit, unary);
 }
 
 static FREEARG(freearg_xork) { vmcode_remref((VM_Code)instr->m_val, gwion); }

@@ -392,7 +392,7 @@ ANN static bool handle_instr(const Emitter emit, const M_Operator *mo) {
   return true;
 }
 
-ANN m_bool op_emit(const Emitter emit, const struct Op_Import *opi) {
+ANN bool op_emit(const Emitter emit, const struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = emit->env->curr;
     do {
@@ -409,16 +409,16 @@ ANN m_bool op_emit(const Emitter emit, const struct Op_Import *opi) {
               !i ? operator_find2(v, l, r) : operator_find(v, l, r);
           if (mo) {
             if (mo->em) {
-              const m_bool ret = mo->em(emit, (void *)opi->data);
+              const bool ret = mo->em(emit, (void *)opi->data);
               if (ret) return ret;
             } else if (mo->func || mo->instr)
-              return handle_instr(emit, mo) ? GW_OK : GW_ERROR;
+              return handle_instr(emit, mo);
           }
         } while (r && (r = op_parent(emit->env, r)));
       } while (l && (l = op_parent(emit->env, l)));
     } while ((nspc = nspc->parent));
   }
-  return GW_ERROR;
+  return false;
 }
 
 #define CONVERT(t) t != from ? t : to

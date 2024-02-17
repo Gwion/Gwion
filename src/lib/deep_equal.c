@@ -230,7 +230,7 @@ static OP_EMIT(opem_deep_equal) {
   const bool ret  = deep_emit(emit, &ds);
   deep_emits_release(emit, &ds);
   emit_pop_scope(emit);
-  return ret ? GW_OK: GW_ERROR;
+  return ret;
 }
 
 GWION_IMPORT(deep_equal) {

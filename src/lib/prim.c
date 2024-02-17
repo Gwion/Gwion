@@ -103,7 +103,7 @@ static OP_EMIT(opem_##type##_##name) { \
     instr->opcode = e##type##_##name##_imm; \
     instr->val = bin->rhs->d.prim.d.member; \
   } \
-  return GW_OK; \
+  return true; \
 }
 
 #define BINARY_INT_EMIT(name) BINARY_OP_EMIT(name, int, gwint.num, m_val)
@@ -202,7 +202,7 @@ static OP_EMIT(opem_int_range) {
   Exp*   exp   = (Exp*)data;
   const Instr instr = emit_add_instr(emit, IntRange);
   instr->m_val      = (m_uint)exp->type;
-  return GW_OK;
+  return true;
 }
 
 #define UNARY_FOLD(ntype, name, TYPE, OP, func, ctype, exptype, member)        \

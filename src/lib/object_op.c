@@ -72,7 +72,7 @@ static OP_EMIT(opem_object_at) {
     (void)emit_add_instr(emit, ObjectAssign);
   else
     (void)emit_add_instr(emit, Assign);
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_object_cast) {
@@ -199,9 +199,9 @@ ANN static m_bool member_access(const Env env, Exp* exp, const Value value) {
 OP_CHECK(opck_object_dot) {
   Exp_Dot *const member      = (Exp_Dot *)data;
   Exp* self = exp_self(member);
-  const m_str    str         = s_name(member->xid);
-  const m_bool   base_static = is_class(env->gwion, member->base->type);
-  const Type     the_base =
+  const m_str  str         = s_name(member->xid);
+  const bool   base_static = is_class(env->gwion, member->base->type);
+  const Type   the_base =
       base_static ? _class_base(member->base->type) : member->base->type;
   const Value value = get_value(env, member, the_base);
   if (!value) {
@@ -239,17 +239,17 @@ OP_EMIT(opem_object_dot) {
   const Value    value  = find_value(t_base, member->xid);
   if (is_class(emit->gwion, value->type)) {
     emit_pushimm(emit, (m_uint)value->type);
-    return GW_OK;
+    return true;
   }
   if (tflag(t_base, tflag_struct) && !GET_FLAG(value, static)) {
     exp_setvar(member->base, true);
-    CHECK_b(emit_exp(emit, member->base));
+    CHECK_B(emit_exp(emit, member->base));
   }
   if (!is_class(emit->gwion, member->base->type) &&
       (vflag(value, vflag_member) ||
        (is_func(emit->gwion, exp_self(member)->type)))) {
     if (!tflag(t_base, tflag_struct))
-      CHECK_b(emit_exp(emit, member->base));
+      CHECK_B(emit_exp(emit, member->base));
   }
   if (is_func(emit->gwion, exp_self(member)->type) &&
       !fflag(exp_self(member)->type->info->func, fflag_fptr))
@@ -267,10 +267,10 @@ OP_EMIT(opem_object_dot) {
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
     emit_fast_except(emit, value->from, exp_self(member)->loc);
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
+ANN static bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   const Class_Def c    = info->base->info->cdef;
   const Class_Def cdef = new_class_def(
       env->gwion->mp, c->flag, MK_TAG(info->name,c->base.tag.loc),
@@ -285,10 +285,10 @@ ANN static m_bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
     set_tflag(info->ret, tflag_cdef);
   } else
     free_class_def(env->gwion->mp, cdef);
-  return ret ? GW_OK : GW_ERROR;
+  return ret;
 }
 
-ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
+ANN static bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
   const Union_Def u    = info->base->info->udef;
   const Union_Def udef = new_union_def(
       env->gwion->mp, cpy_variable_list(env->gwion->mp, u->l), u->tag.loc);
@@ -303,14 +303,14 @@ ANN static m_bool scantmpl_union_def(const Env env, struct tmpl_info *info) {
     set_tflag(info->ret, tflag_udef);
   } else
     free_union_def(env->gwion->mp, udef);
-  return ret ? GW_OK : GW_ERROR;
+  return ret;
 }
 
 ANN static Type _scan_class(const Env env, struct tmpl_info *info) {
   if (info->base->info->parent != env->gwion->type[et_union])
-    CHECK_BO(scantmpl_class_def(env, info));
+    CHECK_O(scantmpl_class_def(env, info));
   else
-    CHECK_BO(scantmpl_union_def(env, info));
+    CHECK_O(scantmpl_union_def(env, info));
   return info->ret;
 }
 
@@ -339,14 +339,14 @@ static OP_EMIT(opem_not_object) {
   const Instr  back = (Instr)vector_back(v);
   if (back->opcode == eGWOP_EXCEPT) {
     back->opcode = eIntNot;
-    return GW_OK;
+    return true;
   } else if (back->opcode == eOP_MAX && back->execute == fast_except) {
     back->opcode = eIntNot;
-    return GW_OK;
+    return true;
   }
   const Instr instr = emit_add_instr(emit, RegSetImm);
   instr->m_val2     = -SZ_INT;
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_uncond_object) {
@@ -359,7 +359,7 @@ static OP_EMIT(opem_uncond_object) {
     }
   }
   emit_add_instr(emit, BranchNeqInt);
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_cond_object) {
@@ -372,7 +372,7 @@ static OP_EMIT(opem_cond_object) {
     }
   }
   emit_add_instr(emit, BranchEqInt);
-  return GW_OK;
+  return true;
 }
 
 GWION_IMPORT(object_op) {

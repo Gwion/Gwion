@@ -160,9 +160,9 @@ OP_CHECK(opck_new) {
 OP_EMIT(opem_new) {
   const Exp_Unary *unary = (Exp_Unary *)data;
   if(!tflag(exp_self(unary)->type, tflag_struct))
-    CHECK_b(emit_instantiate_object(emit, exp_self(unary)->type,
+    CHECK_B(emit_instantiate_object(emit, exp_self(unary)->type,
                                    unary->ctor.td->array, 0));
   if(!unary->ctor.exp)
     emit_local_exp(emit, exp_self(unary));
-  return GW_OK;
+  return true;
 }

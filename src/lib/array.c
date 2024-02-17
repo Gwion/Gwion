@@ -233,23 +233,23 @@ static INSTR(ArrayConcatRight) {
 static OP_EMIT(opem_array_sr) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->lhs->type, bin->rhs->type))
-    return emit_array_shift(emit, ArrayConcatRight) ? GW_OK : GW_ERROR;
+    return emit_array_shift(emit, ArrayConcatRight);
   emit_regmove(emit, -SZ_INT);
   if (tflag(bin->lhs->type, tflag_compound))
     emit_compound_addref(emit, bin->lhs->type, -SZ_INT - bin->lhs->type->size, false);
   (void)emit_add_instr(emit, ArrayAppendFront);
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_array_sl) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (shift_match(bin->rhs->type,  bin->lhs->type))
-    return emit_array_shift(emit, ArrayConcatLeft) ? GW_OK : GW_ERROR;
+    return emit_array_shift(emit, ArrayConcatLeft);
   if (tflag(bin->rhs->type, tflag_compound))
     emit_compound_addref(emit, bin->rhs->type, -bin->rhs->type->size, false);
   emit_regmove(emit, -bin->rhs->type->size);
   emit_add_instr(emit, ArrayAppend);
-  return GW_OK;
+  return true;
 }
 
 // check me. use common ancestor maybe
@@ -320,7 +320,7 @@ static OP_EMIT(opem_array_cast) {
     const m_uint ret_offset = emit_local(emit, t);
     emit_regtomem(emit, ret_offset, -SZ_INT);
   }
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_array_slice) {
@@ -358,7 +358,7 @@ static INSTR(ArraySlice) {
 
 static OP_EMIT(opem_array_slice) {
   emit_add_instr(emit, ArraySlice);
-  return GW_OK;
+  return true;
 }
 
 static FREEARG(freearg_array) {
@@ -390,9 +390,9 @@ static OP_CHECK(opck_array) {
   return check_array_access(env, &next) ?: env->gwion->type[et_error];
 }
 
-ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
+ANN static inline bool array_do(const Emitter emit, const Array_Sub array,
                                   const bool is_var) {
-  CHECK_b(emit_exp(emit, array->exp));
+  CHECK_B(emit_exp(emit, array->exp));
   const m_uint depth = array->depth;
   const m_uint offset = is_var ? SZ_INT : array->type->size;
   emit_regmove(emit, -(depth+1) * SZ_INT + offset);
@@ -410,7 +410,7 @@ ANN static inline m_bool array_do(const Emitter emit, const Array_Sub array,
   }
   assert(access);
   access->udata.two = is_var;
-  return GW_OK;
+  return true;
 }
 
 ANN bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
@@ -419,7 +419,7 @@ ANN bool get_emit_var(const Emitter emit, const Type t, bool is_var) {
   struct Op_Import opi = {.op   = insert_symbol("@array_init"),
                           .lhs  = t,
                           .data = (uintptr_t)vars};
-  if(op_emit(emit, &opi) != GW_OK)
+  if(!op_emit(emit, &opi))
     return false;
   return vars[1];
 }
@@ -432,9 +432,9 @@ ANN static inline Exp* emit_n_exp(const Emitter                 emit,
   struct Array_Sub_ partial = {info->array.exp, info->array.type,
                                info->array.depth};
   const bool is_var = get_emit_var(emit, array_base(info->array.type), info->is_var);
-  const m_bool      ret     = array_do(emit, &partial, is_var);
-  e->next                   = next;
-  return ret > 0 ? next : NULL;
+  const bool ret    = array_do(emit, &partial, is_var);
+  e->next           = next;
+  return ret ? next : NULL;
 }
 
 ANN static Type emit_get_array_type(const Emitter emit, const Type t) {
@@ -463,8 +463,8 @@ static OP_EMIT(opem_array_access) {
   next.exp                  = exp;
   info->array               = next;
   if(exp)
-    return emit_array_access(emit, info) ? GW_OK : GW_ERROR;
-  return GW_ERROR;
+    return emit_array_access(emit, info);
+  return false;
 }
 
 static m_bit                 map_byte[BYTECODE_SZ * 5];
@@ -882,7 +882,7 @@ static OP_EMIT(opem_array_each_init) {
   Looper *loop = (Looper *)data;
   const Instr instr = emit_add_instr(emit, AutoUnrollInit);
   instr->m_val = loop->offset;
-  return GW_OK;
+  return true;
 }
 
 
@@ -918,7 +918,7 @@ static OP_EMIT(opem_array_each) {
     instr->m_val2     = loop->offset + SZ_INT*2;
     vector_add(&loop->unroll_v, (m_uint)instr);
   }
-  return GW_OK;
+  return true;
 }
 
 ANN static void prepare_run(m_bit *const byte, const f_instr ini,

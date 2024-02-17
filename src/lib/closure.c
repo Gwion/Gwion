@@ -118,7 +118,7 @@ static INSTR(fptr_assign) {
   *(M_Object*)REG(-SZ_INT) = o;
 }
 
-ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Type rhs) {
+ANN static bool emit_fptr_assign(const Emitter emit, const Type lhs, const Type rhs) {
   const Instr instr = emit_add_instr(emit, fptr_assign);
   if(rhs->info->cdef && get_tmpl(rhs))
     instr->m_val = SZ_INT * 2;
@@ -134,7 +134,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
         e->d.prim.value = cap->var.value;
         e->type = cap->var.value->type;
         exp_setvar(e, cap->is_ref);
-        CHECK_b(emit_exp(emit, e));
+        CHECK_B(emit_exp(emit, e));
         if(!cap->is_ref && tflag(cap->temp->type, tflag_compound))
           emit_compound_addref(emit, cap->temp->type, cap->temp->type->size, 0);
         offset += cap->temp->type->size;
@@ -145,7 +145,7 @@ ANN static m_bool emit_fptr_assign(const Emitter emit, const Type lhs, const Typ
       instr->m_val2 = (m_uint)fdef;
     }
   }
-  return GW_OK;
+  return true;
 }
 
 static OP_EMIT(opem_fptr_assign) {
@@ -530,7 +530,7 @@ static inline void op_impl_ensure_types(const Env env, const Func func) {
 static OP_EMIT(opem_op_impl) {
   struct Implicit *impl = (struct Implicit *)data;
   if(!impl->e->type->info->func->code)
-    CHECK_b(emit_ensure_func(emit, impl->e->type->info->func));
+    CHECK_B(emit_ensure_func(emit, impl->e->type->info->func));
   emit_pushimm(emit, (m_uint)impl->e->type->info->func->code);
   return emit_fptr_assign(emit, impl->e->type, impl->t);
 }
@@ -704,7 +704,7 @@ static CTOR(fptr_ctor) {
 ANN bool tmpl_fptr(const Env env, const Fptr_Def fptr, const Func_Def fdef) {
   fptr->cdef->base.type->nspc->offset += SZ_INT * 3;
   env_push_type(env, fptr->cdef->base.type);
-  CHECK_b(traverse_func_def(env, fdef));
+  CHECK_B(traverse_func_def(env, fdef));
   builtin_func(env->gwion, fdef->base->func, fptr_ctor);
   set_tflag(fdef->base->func->value_ref->type, tflag_ftmpl);
   env_pop(env, 0);

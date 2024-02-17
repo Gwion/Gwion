@@ -44,7 +44,7 @@
   } while (0)
 
 typedef Type (*opck)(const Env, void *);
-typedef m_bool (*opem)(const Emitter, void *);
+typedef bool (*opem)(const Emitter, void *);
 
 struct Op_Func {
   opck           ck;
@@ -76,14 +76,14 @@ struct TemplateScan {
   const Type_Decl *td;
 };
 
-ANN void   op_cpy(const Env env, const struct Op_Import *opi);
-ANN bool add_op(const Gwion gwion, const struct Op_Import *);
+ANN void  op_cpy(const Env env, const struct Op_Import *opi);
+ANN bool  add_op(const Gwion gwion, const struct Op_Import *);
 ANN void* op_get(const Env env, struct Op_Import *opi);
-ANN Type   op_check(const Env, struct Op_Import *);
-ANN m_bool op_emit(const Emitter, const struct Op_Import *);
-ANN bool operator_set_func(const struct Op_Import *);
-ANN void   free_op_map(Map map, struct Gwion_ *gwion);
-ANN void   free_op_tmpl(Vector v, struct Gwion_ *gwion);
+ANN Type  op_check(const Env, struct Op_Import *);
+ANN bool  op_emit(const Emitter, const struct Op_Import *);
+ANN bool  operator_set_func(const struct Op_Import *);
+ANN void  free_op_map(Map map, struct Gwion_ *gwion);
+ANN void  free_op_tmpl(Vector v, struct Gwion_ *gwion);
 
 ANN void               operator_suspend(const Nspc, struct Op_Import *);
 ANN static inline void operator_resume(struct Op_Import *opi) {

@@ -42,7 +42,7 @@ static OP_EMIT(opem_implicit_class) {
   struct Implicit *imp = (struct Implicit*)data;
   const Type t = actual_type(emit->gwion, imp->e->type);
   emit_pushimm(emit, map_size(&t->nspc->info->value->map));
-  return GW_OK;
+  return true;
 }
 
 static OP_CHECK(opck_implicit_class) {

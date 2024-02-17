@@ -269,7 +269,7 @@ static OP_EMIT(opem_usrugen) {
   Exp_Binary *bin   = (Exp_Binary *)data;
   const Instr instr = emit_add_instr(emit, UsrUGenTick);
   instr->m_val = !!bin->lhs->type->info->func->value_ref->from->owner_class;
-  return GW_OK;
+  return true;
 }
 
 static GWION_IMPORT(usrugen) {

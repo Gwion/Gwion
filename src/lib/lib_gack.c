@@ -30,12 +30,12 @@ static OP_EMIT(opem_gack_implicit) {
     struct Op_Import opi = {.lhs = t,
                           .op  = insert_symbol(emit->gwion->st, "@implicit"),
                           .rhs = imp->t};
-    CHECK_BB(op_emit(emit, &opi));
+    CHECK_B(op_emit(emit, &opi));
     emit_regmove(emit, -SZ_INT);
     const Instr cpy = emit_add_instr(emit, Reg2RegOther); // kind
     cpy->m_val = cpy->m_val2 = imp->t->size;
   }
-  return GW_OK;
+  return true;
 }
 
 GWION_IMPORT(gack) {
