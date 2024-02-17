@@ -146,4 +146,9 @@ ANN bool unwind(const VM_Shred shred, const Symbol effect, const m_uint size);
 #define BBQ_POS_MAX 16777216
 
 ANN void next_bbq_pos(const VM *vm);
+
+#define MEM_STEP   16
+#define SIZEOF_MEM (0x1 << MEM_STEP)
+#define SIZEOF_REG (0x1 << 14)
+
 #endif
