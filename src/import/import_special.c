@@ -51,7 +51,7 @@ ANN bool mk_gack(MemPool p, const Type type, const f_gack d) {
   return true;
 }
 
-ANN m_bool gwi_gack(const Gwi gwi, const Type type, const f_gack d) {
+ANN bool gwi_gack(const Gwi gwi, const Type type, const f_gack d) {
   return mk_gack(gwi->gwion->mp, type, d);
 }
 
