@@ -15,10 +15,9 @@ GWION_IMPORT(compile_file) {
   DECL_OB(FILE *, file, = fopen("rm_me.gw", "w+"));
   if(fprintf(file, "1;") >= 0) {
     rewind(file);
-    const m_bool ret =
-      compile_file(gwi->gwion, __FILE__, file) ? GW_OK : GW_ERROR;
+    const bool ret = compile_file(gwi->gwion, __FILE__, file);
     fclose(file);
     return ret;
   }
-  return GW_ERROR;
+  return false;
 }

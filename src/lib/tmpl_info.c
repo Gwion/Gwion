@@ -41,8 +41,8 @@ ANN static inline size_t tmpl_set(struct tmpl_info *info, const m_str str) {
   return len;
 }
 
-ANN static ssize_t template_size(const Env env, struct tmpl_info *info) {
-  DECL_OB(const m_str, str,
+ANN static size_t template_size(const Env env, struct tmpl_info *info) {
+  DECL_B(const m_str, str,
           = tl2str(env->gwion, info->td->types, info->td->tag.loc));
   const size_t tmpl_sz = tmpl_set(info, str);
   const m_str  base    = !is_func(env->gwion, info->base)
@@ -63,7 +63,7 @@ ANEW ANN static Symbol template_id(const Env               env,
   vector_init(&info->type);
   vector_init(&info->size);
   ssize_t      sz  = template_size(env, info);
-  const Symbol sym = sz > GW_ERROR ? _template_id(env, info, sz) : NULL;
+  const Symbol sym = sz ? _template_id(env, info, sz) : NULL;
   for (m_uint i = 0; i < vector_size(&info->type); ++i)
     mp_free2(env->gwion->mp, vector_at(&info->size, i),
              (m_str)vector_at(&info->type, i));
@@ -72,14 +72,7 @@ ANEW ANN static Symbol template_id(const Env               env,
   return sym;
 }
 
-ANN static m_bool template_match(Specialized_List sl, TmplArg_List tl) {
-//  uint32_t i = 0;
-//  while ((call = call->next)) i++;
-//&& (base = base->next))
-//  while ((call = call->next) && (base = base->next))
-//    ;
-//  return i = base->len ? GW_OK : GW_ERROR;
-//  return !call ? GW_OK : GW_ERROR;
+ANN static bool template_match(Specialized_List sl, TmplArg_List tl) {
   return tl->len >= sl->len;
 }
 
@@ -90,7 +83,7 @@ ANN static Type _tmpl_exists(const Env env, const Symbol name) {
 }
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
-  if (template_match(info->list, info->td->types) < 0) // invalid template
+  if (!template_match(info->list, info->td->types)) // invalid template
     ERR_N(info->td->tag.loc, _("invalid template types number"));
   if (!info->name)
     info->name = template_id(env, info);

@@ -117,7 +117,7 @@ ANN bool gwion_ini(const Gwion gwion, CliArg *arg) {
   gwion->type = (Type *)xcalloc(MAX_TYPE, sizeof(struct Type_ *));
   arg->si = gwion->vm->bbq->si = new_soundinfo(gwion->mp);
   new_passes(gwion);
-  CHECK_b(arg_parse(gwion, arg));
+  CHECK_B(arg_parse(gwion, arg));
   if (arg->color == COLOR_NEVER)
     tcol_override_color_checks(0);
   else if (arg->color == COLOR_AUTO)

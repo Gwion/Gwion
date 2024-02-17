@@ -17,11 +17,10 @@
 #include "specialid.h"
 #include "template.h"
 
-ANN static m_bool mk_dtor(MemPool p, const Type t, const m_uint d) {
+ANN static void mk_dtor(MemPool p, const Type t, const m_uint d) {
   VM_Code code = t->nspc->dtor = new_vmcode(p, NULL, NULL, t->name, SZ_INT, true, false);
   code->native_func = (m_uint)d;
   set_tflag(t, tflag_dtor);
-  return GW_OK;
 }
 
 ANN2(1, 2) static void import_class_ini(const Env env, const Type t) {
@@ -126,7 +125,7 @@ ANN Type gwi_struct_ini(const Gwi gwi, const m_str name) {
   return type_finish(gwi, t);
 }
 
-ANN m_int gwi_class_end(const Gwi gwi) {
+ANN bool gwi_class_end(const Gwi gwi) {
   if (gwi->gwion->data->cdoc && gwi->gwion->env->class_def->info->cdef) {
     gwi->gwfmt->indent--;
     gwfmt_indent(gwi->gwfmt);
@@ -151,5 +150,5 @@ ANN m_int gwi_class_end(const Gwi gwi) {
   }
 */
   env_pop(gwi->gwion->env, 0);
-  return GW_OK;
+  return false;
 }

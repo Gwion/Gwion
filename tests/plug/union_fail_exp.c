@@ -9,9 +9,9 @@
 #include "import.h"
 
 GWION_IMPORT(union_fail_exp) {
-  GWI_BB(gwi_union_ini(gwi, "U"))
-  GWI_BB(gwi_union_add(gwi, "Float", "f"))
-  GWI_BB(gwi_union_add(gwi, "int", "i"))
-  GWI_OB(gwi_union_end(gwi, 0))
+  GWI_B(gwi_union_ini(gwi, "U"))
+  GWI_B(gwi_union_add(gwi, "Float", "f"))
+  GWI_B(gwi_union_add(gwi, "int", "i"))
+  GWI_B(gwi_union_end(gwi, 0))
   return GW_OK;
 }

@@ -16,17 +16,17 @@
 #include "clean.h"
 
 ANN2(1, 2, 3)
-static m_bool dl_func_init(const Gwi gwi, const restrict m_str t,
+static bool dl_func_init(const Gwi gwi, const restrict m_str t,
                            const restrict m_str n) {
   CHECK_b(ck_ini(gwi, ck_fdef));
   gwi->ck->name = n;
   CHECK_b(check_typename_def(gwi, gwi->ck));
-  CHECK_OB((gwi->ck->td = gwi_str2td(gwi, t)));
+  CHECK_B((gwi->ck->td = gwi_str2td(gwi, t)));
   gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
-  return GW_OK;
+  return true;
 }
 
-ANN m_int gwi_func_ini(const Gwi gwi, const restrict m_str t,
+ANN bool gwi_func_ini(const Gwi gwi, const restrict m_str t,
                        const restrict m_str n) {
   return dl_func_init(gwi, t, n);
 }
@@ -58,44 +58,44 @@ ANEW ANN static Func_Def import_fdef(const Gwi gwi, ImportCK *ck) {
   return fdef;
 }
 
-ANN static m_bool section_fdef(const Gwi gwi, const Func_Def fdef) {
+ANN static bool section_fdef(const Gwi gwi, const Func_Def fdef) {
   Section section = MK_SECTION(func, func_def, fdef);
   gwi_body(gwi, &section);
-  return GW_OK;
+  return true;
 }
 
-ANN static m_bool error_fdef(const Gwi gwi, const Func_Def fdef) {
+ANN static bool error_fdef(const Gwi gwi, const Func_Def fdef) {
   func_def_cleaner(gwi->gwion, fdef);
-  return GW_ERROR;
+  return false;
 }
 
-ANN m_int gwi_func_valid(const Gwi gwi, ImportCK *ck) {
+ANN bool gwi_func_valid(const Gwi gwi, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
   fdef->builtin = true;
   if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
     section_fdef(gwi, fdef);
     fdef->d.dl_func_ptr = ck->addr;
-    return GW_OK;
+    return true;
   }
   if (!traverse_func_def(gwi->gwion->env, fdef))
     return error_fdef(gwi, fdef);
   builtin_func(gwi->gwion, fdef->base->func, ck->addr);
-  return GW_OK;
+  return true;
 }
 
-ANN m_int gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
+ANN bool gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
   CHECK_b(ck_ok(gwi, ck_fdef));
   gwi->ck->addr    = addr;
   gwi->ck->flag    = flag;
-  const m_bool ret = gwi_func_valid(gwi, gwi->ck);
+  const bool ret = gwi_func_valid(gwi, gwi->ck);
   ck_end(gwi);
   return ret;
 }
 
-ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
+ANN bool gwi_func_arg(const Gwi gwi, const restrict m_str t,
                        const restrict m_str n) {
   CHECK_b(ck_ok(gwi, ck_fdef));
-  DECL_OB(Type_Decl *, td, = gwi_str2td(gwi, t));
+  DECL_B(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n)) {
     Arg arg = { .var = MK_VAR(td, var) };
@@ -103,10 +103,10 @@ ANN m_int gwi_func_arg(const Gwi gwi, const restrict m_str t,
     return GW_OK;
   }
   free_type_decl(gwi->gwion->mp, td);
-  return GW_ERROR;
+  return false;
 }
 
-ANN m_int gwi_fptr_ini(const Gwi gwi, const restrict m_str type,
+ANN bool gwi_fptr_ini(const Gwi gwi, const restrict m_str type,
                        const restrict m_str name) {
   return dl_func_init(gwi, type, name);
 }
@@ -116,10 +116,10 @@ ANN static Fptr_Def import_fptr(const Gwi gwi) {
   return new_fptr_def(gwi->gwion->mp, base);
 }
 
-ANN static m_bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
+ANN static bool section_fptr(const Gwi gwi, const Fptr_Def fdef) {
   Section section = MK_SECTION(fptr, fptr_def, fdef);
   gwi_body(gwi, &section);
-  return GW_OK;
+  return true;
 }
 
 ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {

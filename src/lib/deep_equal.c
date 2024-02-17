@@ -39,8 +39,8 @@ static OP_CHECK(opck_deep_ne_any) {
   return t;
 }
 
-deep_any(emit, emit, em, EMIT,  CHECK_BB, eq, ==);
-deep_any(emit, emit, em, EMIT,  CHECK_BB, ne, !=);
+deep_any(emit, emit, em, EMIT,  CHECK_B, eq, ==);
+deep_any(emit, emit, em, EMIT,  CHECK_B, ne, !=);
 
 // get members of a specific type
 static void type_get_member(const Gwion gwion, const Type t, const Vector v) {
@@ -235,29 +235,29 @@ static OP_EMIT(opem_deep_equal) {
 
 GWION_IMPORT(deep_equal) {
 
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, "bool"))
+   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, (m_str)OP_ANY_TYPE, "bool"))
 
     gwidoc(gwi, "Deep Equality fallback");
-    GWI_BB(gwi_oper_add(gwi, opck_deep_eq_any))
-    GWI_BB(gwi_oper_emi(gwi, opem_deep_eq_any))
-    GWI_BB(gwi_oper_end(gwi, "?=", NULL))
+     GWI_B(gwi_oper_add(gwi, opck_deep_eq_any))
+     GWI_B(gwi_oper_emi(gwi, opem_deep_eq_any))
+     GWI_B(gwi_oper_end(gwi, "?=", NULL))
 
     gwidoc(gwi, "Deep Inequality fallback");
-    GWI_BB(gwi_oper_add(gwi, opck_deep_ne_any))
-    GWI_BB(gwi_oper_emi(gwi, opem_deep_ne_any))
-    GWI_BB(gwi_oper_end(gwi, "<>", NULL))
+     GWI_B(gwi_oper_add(gwi, opck_deep_ne_any))
+     GWI_B(gwi_oper_emi(gwi, opem_deep_ne_any))
+     GWI_B(gwi_oper_end(gwi, "<>", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "@Compound", "@Compound", "bool"))
+   GWI_B(gwi_oper_ini(gwi, "@Compound", "@Compound", "bool"))
 
     gwidoc(gwi, "Deep Equality");
-    GWI_BB(gwi_oper_add(gwi, opck_deep_equal))
-    GWI_BB(gwi_oper_emi(gwi, opem_deep_equal))
-    GWI_BB(gwi_oper_end(gwi, "?=", NULL))
+     GWI_B(gwi_oper_add(gwi, opck_deep_equal))
+     GWI_B(gwi_oper_emi(gwi, opem_deep_equal))
+     GWI_B(gwi_oper_end(gwi, "?=", NULL))
 
     gwidoc(gwi, "Deep Inequality");
-    GWI_BB(gwi_oper_add(gwi, opck_deep_equal))
-    GWI_BB(gwi_oper_emi(gwi, opem_deep_equal))
-    GWI_BB(gwi_oper_end(gwi, "<>", NULL))
+     GWI_B(gwi_oper_add(gwi, opck_deep_equal))
+     GWI_B(gwi_oper_emi(gwi, opem_deep_equal))
+     GWI_B(gwi_oper_end(gwi, "<>", NULL))
 
   return GW_OK;
 }

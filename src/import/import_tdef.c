@@ -11,12 +11,12 @@
 #include "import.h"
 #include "gwi.h"
 
-ANN m_int gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
+ANN bool gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
                           const restrict m_str name) {
-  CHECK_b(ck_ini(gwi, ck_tdef));
+  CHECK_B(ck_ini(gwi, ck_tdef));
   gwi->ck->name = name;
-  CHECK_b(check_typename_def(gwi, gwi->ck));
-  return (gwi->ck->td = gwi_str2td(gwi, type)) ? GW_OK : GW_ERROR;
+  CHECK_B(check_typename_def(gwi, gwi->ck));
+  return !!(gwi->ck->td = gwi_str2td(gwi, type));
 }
 
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {

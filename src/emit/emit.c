@@ -2119,7 +2119,7 @@ ANN static bool _emit_stmt_flow(const Emitter emit, const Stmt_Flow stmt,
   CHECK_B(scoped_stmt(emit, stmt->body));
   if (stmt->is_do) {
     if (!is_const) {
-      CHECK_OB((op = _flow(emit, stmt->cond, NULL, !is_while)));
+      CHECK_B((op = _flow(emit, stmt->cond, NULL, !is_while)));
       op->m_val = index;
     } else if ((is_while && stmt->cond->d.prim.d.gwint.num) ||
                (!is_while && !stmt->cond->d.prim.d.gwint.num)) {
@@ -2448,7 +2448,7 @@ ANN static bool emit_case_head(const Emitter emit, Exp* base,
 ANN static bool emit_case_body(const Emitter             emit,
                                  const struct Stmt_Match_ *stmt) {
   const Instr when = stmt->when ? emit_flow(emit, stmt->when) : NULL;
-  if (stmt->when) CHECK_OB(when);
+  if (stmt->when) CHECK_B(when);
   CHECK_B(emit_stmt_list(emit, stmt->list));
   const Instr instr = emit_add_instr(emit, Goto);
   vector_add(&emit->env->scope->match->vec, (vtype)instr);
@@ -2614,7 +2614,7 @@ ANN static bool emit_stmt_retry(const Emitter                  emit,
 
 #define emit_stmt_while emit_stmt_flow
 #define emit_stmt_until emit_stmt_flow
-#define emit_stmt_spread bdummy_func
+#define emit_stmt_spread dummy_func
 
 DECL_STMT_FUNC(emit, bool, Emitter);
 
@@ -2883,10 +2883,10 @@ ANN bool emit_func_def(const Emitter emit, const Func_Def fdef) {
   return ret;
 }
 
-#define emit_fptr_def  bdummy_func
-#define emit_trait_def bdummy_func
-#define emit_extend_def bdummy_func
-#define emit_prim_def bdummy_func
+#define emit_fptr_def  dummy_func
+#define emit_trait_def dummy_func
+#define emit_extend_def dummy_func
+#define emit_prim_def dummy_func
 
 HANDLE_SECTION_FUNC(emit, bool, Emitter);
 

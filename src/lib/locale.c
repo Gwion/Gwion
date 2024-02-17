@@ -44,8 +44,8 @@ static SFUN(BasicLocale) {
 
 GWION_IMPORT(locale) {
   gwidoc(gwi, "Definition of the basic locale");
-  GWI_BB(gwi_func_ini(gwi, "float", "BasicLocale"));
-  GWI_BB(gwi_func_arg(gwi, "string", "str"));
-  GWI_BB(gwi_func_end(gwi, BasicLocale, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "float", "BasicLocale"));
+  GWI_B(gwi_func_arg(gwi, "string", "str"));
+  GWI_B(gwi_func_end(gwi, BasicLocale, ae_flag_none));
   return GW_OK;
 }

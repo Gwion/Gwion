@@ -12,5 +12,5 @@
 
 #include <string.h>
 GWION_IMPORT(compile_string) {
-  return compile_string(gwi->gwion, __FILE__, "1;") ? GW_OK : GW_ERROR;
+  return compile_string(gwi->gwion, __FILE__, "1;");
 }

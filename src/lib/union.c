@@ -165,10 +165,10 @@ ANN GWION_IMPORT(union) {
       .type = gwi->gwion->type[et_none], .exec = NoOp, .is_const = 1};
   gwi_specialid(gwi, "None", &spid);
 
-  GWI_BB(gwi_oper_ini(gwi, "None", "None", "None"))
-  GWI_BB(gwi_oper_add(gwi, opck_none))
-  GWI_BB(gwi_oper_emi(gwi, opem_none))
-  GWI_BB(gwi_oper_end(gwi, ":=>", NoOp))
+   GWI_B(gwi_oper_ini(gwi, "None", "None", "None"))
+   GWI_B(gwi_oper_add(gwi, opck_none))
+   GWI_B(gwi_oper_emi(gwi, opem_none))
+   GWI_B(gwi_oper_end(gwi, ":=>", NoOp))
 
   const Type t_union = gwi_struct_ini(gwi, "union");
   //gwi_class_xtor(gwi, NULL, UnionDtor);
@@ -177,19 +177,19 @@ ANN GWION_IMPORT(union) {
   GWI_BB(gwi_item_ini(gwi, "int", "index"))
   GWI_BB(gwi_item_end(gwi, ae_flag_const, num, 0))
   /*
-  GWI_BB(gwi_func_ini(gwi, "void", "@ctor"))
-  GWI_BB(gwi_func_end(gwi, union_ctor, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "void", "@ctor"))
+  GWI_B(gwi_func_end(gwi, union_ctor, ae_flag_none))
   */
-  GWI_BB(gwi_func_ini(gwi, "bool", "is"))
-  GWI_BB(gwi_func_arg(gwi, "int", "member"))
-  GWI_BB(gwi_func_end(gwi, union_is, ae_flag_none))
-  GWI_BB(gwi_func_ini(gwi, "auto", "new:[T]"))
-  GWI_BB(gwi_func_arg(gwi, "int", "size"))
-  GWI_BB(gwi_func_arg(gwi, "int", "id"))
-  GWI_BB(gwi_func_arg(gwi, "T", "value"))
-  GWI_BB(gwi_func_end(gwi, union_new, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "bool", "is"))
+  GWI_B(gwi_func_arg(gwi, "int", "member"))
+  GWI_B(gwi_func_end(gwi, union_is, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "auto", "new:[T]"))
+  GWI_B(gwi_func_arg(gwi, "int", "size"))
+  GWI_B(gwi_func_arg(gwi, "int", "id"))
+  GWI_B(gwi_func_arg(gwi, "T", "value"))
+  GWI_B(gwi_func_end(gwi, union_new, ae_flag_none))
 
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_class_end(gwi))
 
   const struct Op_Func   opfunc0 = {.ck = opck_union_is};
   CHECK_B(add_op_func_check(gwi->gwion->env, t_union, &opfunc0, 0));
@@ -197,14 +197,14 @@ ANN GWION_IMPORT(union) {
   const struct Op_Func   opfunc1 = {.ck = opck_union_new};
   CHECK_B(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
 
-  GWI_BB(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_emi(gwi, opem_union_dot))
-  GWI_BB(gwi_oper_end(gwi, ".", NULL))
+   GWI_B(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_emi(gwi, opem_union_dot))
+   GWI_B(gwi_oper_end(gwi, ".", NULL))
 
-  GWI_BB(gwi_union_ini(gwi, "Option:[A]"))
-  GWI_BB(gwi_union_add(gwi, "None", "none"))
-  GWI_BB(gwi_union_add(gwi, "A", "val"))
-  GWI_BB(gwi_union_end(gwi, ae_flag_none))
+  GWI_B(gwi_union_ini(gwi, "Option:[A]"))
+  GWI_B(gwi_union_add(gwi, "None", "none"))
+  GWI_B(gwi_union_add(gwi, "A", "val"))
+  GWI_B(gwi_union_end(gwi, ae_flag_none))
 
   return GW_OK;
 }

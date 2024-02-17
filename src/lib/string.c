@@ -83,9 +83,9 @@ static GACK(gack_string) {
   INTERP_PRINTF("%s", obj ? STRING(obj) : "(null string)");
 }
 
-static inline m_bool bounds(const m_str str, const m_int i) {
-  CHECK_BB(i);
-  return (m_uint)i <= strlen(str) ? GW_OK : GW_ERROR;
+static inline bool bounds(const m_str str, const m_int i) {
+  CHECK_B(i);
+  return (m_uint)i <= strlen(str);
 }
 
 static INSTR(StringSlice) {
@@ -96,7 +96,7 @@ static INSTR(StringSlice) {
   const size_t   strsz = strlen(str);
   m_int          end   = *(m_uint *)REG(SZ_INT);
   if (end < 0) end = strsz + end - 1;
-  if (bounds(str, start) < 0 || bounds(str, end) < 0) {
+  if (!bounds(str, start) || !bounds(str, end)) {
     handle(shred, "OutOfBoundsStringSlice");
     return;
   }
@@ -481,113 +481,113 @@ GWION_IMPORT(string) {
   t_string->nspc->offset += SZ_INT;
 
   gwi_func_ini(gwi, "int", "size");
-  GWI_BB(gwi_func_end(gwi, string_len, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_len, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "upper");
-  GWI_BB(gwi_func_end(gwi, string_upper, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_upper, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "lower");
-  GWI_BB(gwi_func_end(gwi, string_lower, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_lower, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "ltrim");
-  GWI_BB(gwi_func_end(gwi, string_ltrim, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_ltrim, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "rtrim");
-  GWI_BB(gwi_func_end(gwi, string_rtrim, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_rtrim, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "trim");
-  GWI_BB(gwi_func_end(gwi, string_trim, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_trim, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "insert");
   gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "string", "str");
-  GWI_BB(gwi_func_end(gwi, string_insert, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_insert, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "replace");
   gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "string", "str");
-  GWI_BB(gwi_func_end(gwi, string_replace, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_replace, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "replace");
   gwi_func_arg(gwi, "int", "pos");
   gwi_func_arg(gwi, "int", "n");
   gwi_func_arg(gwi, "string", "str");
-  GWI_BB(gwi_func_end(gwi, string_replaceN, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_replaceN, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "char", "c");
-  GWI_BB(gwi_func_end(gwi, string_find, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_find, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "char", "c");
   gwi_func_arg(gwi, "int", "pos");
-  GWI_BB(gwi_func_end(gwi, string_findStart, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_findStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "string", "str");
-  GWI_BB(gwi_func_end(gwi, string_findStr, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_findStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "find");
   gwi_func_arg(gwi, "string", "str");
   gwi_func_arg(gwi, "int", "pos");
-  GWI_BB(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_findStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "char", "c");
-  GWI_BB(gwi_func_end(gwi, string_rfind, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_rfind, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "char", "c");
   gwi_func_arg(gwi, "int", "pos");
-  GWI_BB(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_rfindStart, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "string", "str");
-  GWI_BB(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_rfindStr, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "rfind");
   gwi_func_arg(gwi, "string", "str");
   gwi_func_arg(gwi, "int", "pos");
-  GWI_BB(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_rfindStrStart, ae_flag_none))
 
   gwi_func_ini(gwi, "void", "erase");
   gwi_func_arg(gwi, "int", "start");
   gwi_func_arg(gwi, "int", "length");
-  GWI_BB(gwi_func_end(gwi, string_erase, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_erase, ae_flag_none))
 
   gwi_func_ini(gwi, "void", "save");
   gwi_func_arg(gwi, "string", "path");
-  GWI_BB(gwi_func_end(gwi, string_save, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_save, ae_flag_none))
 
   gwi_func_ini(gwi, "string", "load");
   gwi_func_arg(gwi, "string", "path");
-  GWI_BB(gwi_func_end(gwi, string_load, ae_flag_static))
+  GWI_B(gwi_func_end(gwi, string_load, ae_flag_static))
 
   gwi_func_ini(gwi, "int", "atoi");
-  GWI_BB(gwi_func_end(gwi, string_atoi, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_atoi, ae_flag_none))
 
   gwi_func_ini(gwi, "int", "atoi2");
   gwi_func_arg(gwi, "&int", "offset");
-  GWI_BB(gwi_func_end(gwi, string_atoi2, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_atoi2, ae_flag_none))
 
   gwi_func_ini(gwi, "float", "atof");
-  GWI_BB(gwi_func_end(gwi, string_atof, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, string_atof, ae_flag_none))
 
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "int", "string", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_string_access))
-  GWI_BB(gwi_oper_emi(gwi, opem_string_access))
-  GWI_BB(gwi_oper_end(gwi, "[]", NULL))
+   GWI_B(gwi_oper_ini(gwi, "int", "string", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_string_access))
+   GWI_B(gwi_oper_emi(gwi, opem_string_access))
+   GWI_B(gwi_oper_end(gwi, "[]", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "string", "string", "bool"))
-  GWI_BB(gwi_oper_add(gwi, opck_string_eq))
-  GWI_BB(gwi_oper_end(gwi, "==", String_eq))
-  GWI_BB(gwi_oper_add(gwi, opck_string_neq))
-  GWI_BB(gwi_oper_end(gwi, "!=", String_neq))
+   GWI_B(gwi_oper_ini(gwi, "string", "string", "bool"))
+   GWI_B(gwi_oper_add(gwi, opck_string_eq))
+   GWI_B(gwi_oper_end(gwi, "==", String_eq))
+   GWI_B(gwi_oper_add(gwi, opck_string_neq))
+   GWI_B(gwi_oper_end(gwi, "!=", String_neq))
 
-  GWI_BB(gwi_oper_ini(gwi, "int", "string", "string"))
-  GWI_BB(gwi_oper_end(gwi, "[:]", StringSlice))
+   GWI_B(gwi_oper_ini(gwi, "int", "string", "string"))
+   GWI_B(gwi_oper_end(gwi, "[:]", StringSlice))
 
   struct SpecialId_ file_spid = {
       .ck = check_filepp, .is_const = 1};

@@ -20,7 +20,7 @@ static bool typecheck_ast(const Env env, Ast *ast) {
     env->context->error = true;
   if(!check_ast(env, ast))
     env->context->error = true;
-//  CHECK_b(traverse_ast(env, ast));
+//  CHECK_B(traverse_ast(env, ast));
 //  if(env->scope->poison)env->context->error = true;
   if(env->context->error)return false;
   return true;

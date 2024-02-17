@@ -9,7 +9,7 @@
 #include "import.h"
 
 GWION_IMPORT(typedef_tmpl) {
-  GWI_BB(gwi_typedef_ini(gwi, "Ptr:[A]", "Typedef:[A]"))
+  GWI_B(gwi_typedef_ini(gwi, "Ptr:[A]", "Typedef:[A]"))
   GWI_OB(gwi_typedef_end(gwi, ae_flag_none))
   return GW_OK;
 }

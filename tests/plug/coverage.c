@@ -14,10 +14,10 @@ SFUN(coverage_float) { *(m_float *)RETURN = 0; }
 
 GWION_IMPORT(coverage) {
   GWI_OB(gwi_class_ini(gwi, "Coverage", NULL))
-  GWI_BB(gwi_func_ini(gwi, "int", "i"))
-  GWI_BB(gwi_func_end(gwi, coverage_int, ae_flag_static))
-  GWI_BB(gwi_func_ini(gwi, "float", "f"))
-  GWI_BB(gwi_func_end(gwi, coverage_float, ae_flag_static))
+  GWI_B(gwi_func_ini(gwi, "int", "i"))
+  GWI_B(gwi_func_end(gwi, coverage_int, ae_flag_static))
+  GWI_B(gwi_func_ini(gwi, "float", "f"))
+  GWI_B(gwi_func_end(gwi, coverage_float, ae_flag_static))
 
   GWI_BB(gwi_item_ini(gwi, "int", "s_i"))
   GWI_BB(gwi_item_end(gwi, ae_flag_static, num, 5))
@@ -34,6 +34,6 @@ GWION_IMPORT(coverage) {
   GWI_BB(gwi_item_ini(gwi, "int[][]", "test_array"))
   GWI_BB(gwi_item_end(gwi, ae_flag_none, obj, NULL))
 
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_class_end(gwi))
   return GW_OK;
 }

@@ -46,10 +46,10 @@ GWION_IMPORT(gack) {
   GWI_BB(gwi_set_global_type(gwi, t_gack, et_gack));
 
   gwidoc(gwi, "@Gack implicit cast");
-  GWI_BB(gwi_oper_ini(gwi, "@Gack", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_gack_implicit))
-  GWI_BB(gwi_oper_emi(gwi, opem_gack_implicit))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+   GWI_B(gwi_oper_ini(gwi, "@Gack", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_gack_implicit))
+   GWI_B(gwi_oper_emi(gwi, opem_gack_implicit))
+   GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
 
   return GW_OK;
 }

@@ -187,11 +187,11 @@ GWION_IMPORT(ref) {
   gwinote(gwi, "a pointer to the referenced variable.");
   t_foreach->nspc->offset += SZ_INT;
 
-  GWI_BB(gwi_struct_end(gwi))
+  GWI_B(gwi_struct_end(gwi))
 
   gwidoc(gwi, "internal `Ref` type creation.");
-  GWI_BB(gwi_oper_ini(gwi, "Ref", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_ref_scan))
-  GWI_BB(gwi_oper_end(gwi, "class", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Ref", NULL, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_ref_scan))
+   GWI_B(gwi_oper_end(gwi, "class", NULL))
   return GW_OK;
 }

@@ -80,7 +80,10 @@ ANN bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t 
   return true;
 }
 
-#define SPEC_ERROR (Specialized_List) GW_ERROR
+#define ARG_ERROR     (Arg_List)         -1
+#define SPEC_ERROR    (Specialized_List) -1
+#define TMPLARG_ERROR (TmplArg_List)     -1
+
 ANN static bool _tmpl_list(const Gwion        gwion,
                                        struct td_checker *tdc, Specialized_List *sl) {
   if(unlikely(!strncmp(tdc->str, "...", 3))) {
@@ -148,18 +151,18 @@ ANN static TmplArg_List td_tmpl(const Gwion gwion, struct td_checker *tdc) {
   ++tdc->str;
   if (*tdc->str != '[') {
     GWION_ERR(tdc->loc, "invalid character");
-    return (TmplArg_List)GW_ERROR;
+    return TMPLARG_ERROR;
   }
   ++tdc->str;
   TmplArg_List tl = new_mp_vector(gwion->mp, TmplArg, 0);
   if (!str2tl(gwion, tdc, &tl)) {
     free_tmplarg_list(gwion->mp, tl);
-    return (TmplArg_List)GW_ERROR;
+    return TMPLARG_ERROR;
   }
   if (tdc->str[0] != ']') {
     free_tmplarg_list(gwion->mp, tl);
     GWION_ERR(tdc->loc, "unfinished template");
-    return (TmplArg_List)GW_ERROR;
+    return TMPLARG_ERROR;
   }
   ++tdc->str;
   return tl;
@@ -182,7 +185,7 @@ ANN static Arg_List fptr_args(const Gwion gwion, struct td_checker *tdc) {
     Type_Decl *td = _str2td(gwion, tdc);
     if(!td) {
       free_arg_list(gwion->mp, args);
-      return (Arg_List)GW_ERROR;
+      return ARG_ERROR;
     }
     mp_vector_add(gwion->mp, &args, Arg, (Arg){ .var = {.td = td }});
   } while(*tdc->str == ',' && tdc->str++);
@@ -194,14 +197,14 @@ ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   tdc->str++;
   Type_Decl *const ret_td = _str2td(gwion, tdc);
   const TmplArg_List tl = td_tmpl(gwion, tdc);
-  if (tl == (TmplArg_List)GW_ERROR) {
+  if (tl == TMPLARG_ERROR) {
     free_type_decl(gwion->mp, ret_td);
     return NULL;
   }
   const uint option = get_n(tdc, '?');
   tdc->str++;
   Arg_List args = fptr_args(gwion, tdc);
-  if (args == (Arg_List)GW_ERROR) {
+  if (args == ARG_ERROR) {
     if(tl) free_tmplarg_list(gwion->mp, tl);
     free_type_decl(gwion->mp, ret_td);
     return NULL;
@@ -241,7 +244,7 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
   struct AC ac = {.str = tdc->str, .loc = tdc->loc};
   CHECK_O(ac_run(gwion, &ac));
   tdc->str     = ac.str;
-  if (tl == (TmplArg_List)GW_ERROR) return NULL;
+  if (tl == TMPLARG_ERROR) return NULL;
   const uint option = get_n(tdc, '?');
   Type_Decl *next   = NULL;
   if (*tdc->str == '.') {

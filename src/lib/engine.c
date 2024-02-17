@@ -45,7 +45,7 @@ static FREEARG(freearg_release) {
   vector_release(&v);
 }
 
-ANN static m_bool import_core_libs(const Gwi gwi) {
+ANN static bool import_core_libs(const Gwi gwi) {
   gwidoc(gwi, "one type to rule them all.");
   const Type t_class = gwi_mk_type(gwi, "Class", SZ_INT, NULL);
   set_tflag(t_class, tflag_infer);
@@ -123,34 +123,34 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
   GWI_BB(gwimport_event(gwi))
   GWI_BB(gwimport_ugen(gwi))
   GWI_BB(gwimport_xork(gwi))
-  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_new))
-  GWI_BB(gwi_oper_emi(gwi, opem_new))
-  GWI_BB(gwi_oper_end(gwi, "new", NULL))
+   GWI_B(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_new))
+   GWI_B(gwi_oper_emi(gwi, opem_new))
+   GWI_B(gwi_oper_end(gwi, "new", NULL))
   GWI_BB(gwimport_ref(gwi))
   GWI_BB(gwimport_string(gwi))
   GWI_BB(gwimport_shred(gwi))
   GWI_BB(gwimport_modules(gwi))
 
   gwidoc(gwi, "allow member access.");
-  GWI_BB(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, ".", NULL))
+   GWI_B(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_object_dot))
+   GWI_B(gwi_oper_emi(gwi, opem_object_dot))
+   GWI_B(gwi_oper_end(gwi, ".", NULL))
 
   // allow const generics in functions
-  GWI_BB(gwi_oper_ini(gwi, "function", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, ".", NULL))
+   GWI_B(gwi_oper_ini(gwi, "function", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_object_dot))
+   GWI_B(gwi_oper_emi(gwi, opem_object_dot))
+   GWI_B(gwi_oper_end(gwi, ".", NULL))
 
   GWI_BB(gwimport_class(gwi))
 
   gwidoc(gwi, "allow static access.");
-  GWI_BB(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_dot))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_dot))
-  GWI_BB(gwi_oper_end(gwi, ".", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Class", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_object_dot))
+   GWI_B(gwi_oper_emi(gwi, opem_object_dot))
+   GWI_B(gwi_oper_end(gwi, ".", NULL))
   GWI_BB(gwimport_deep_equal(gwi));
 
   GWI_BB(gwimport_dict(gwi));
@@ -166,13 +166,13 @@ ANN static m_bool import_core_libs(const Gwi gwi) {
 
   gwi_register_freearg(gwi, ObjectRelease2, freearg_release);
 
-  return GW_OK;
+  return true;
 }
 
-ANN m_bool type_engine_init(const Gwion gwion) {
+ANN bool type_engine_init(const Gwion gwion) {
   gwion->env->name = "[builtin]";
-  CHECK_b(gwi_run(gwion, import_core_libs));
+  CHECK_B(gwi_run(gwion, import_core_libs));
   gwion->data->cdoc = false;
   push_global(gwion, "[user]");
-  return GW_OK;
+  return true;
 }

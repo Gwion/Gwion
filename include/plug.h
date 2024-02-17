@@ -3,7 +3,7 @@
 
 struct DriverData_;
 struct Gwi_;
-typedef m_bool (*gwplugin_t) (struct Gwi_*);
+typedef bool   (*gwplugin_t) (struct Gwi_*);
 typedef void*  (*gwmodini_t) (struct Gwion_ const* gwion, const Vector args);
 typedef void*  (*gwmodend_t) (struct Gwion_ const* gwion, void *self);
 typedef void   (*gwdriver_t) (struct DriverData_ *);

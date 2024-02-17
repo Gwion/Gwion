@@ -30,7 +30,7 @@ ANN2(1) static inline Type gwi_get_type(const Gwi gwi, const m_str str) {
 }
 
 ANN2(1, 2)
-static int import_op(const Gwi gwi, struct OperCK *const op, const f_instr f) {
+static bool import_op(const Gwi gwi, struct OperCK *const op, const f_instr f) {
   const Type lhs = gwi_get_type(gwi, op->lhs), rhs = gwi_get_type(gwi, op->rhs),
              ret              = gwi_get_type(gwi, op->ret);
   const struct Op_Func opfunc = {
@@ -44,26 +44,26 @@ static int import_op(const Gwi gwi, struct OperCK *const op, const f_instr f) {
                                 .op   = op->sym};
   const bool           b   = add_op(gwi->gwion, &opi);
   op->effect.ptr             = NULL;
-  return b ? GW_OK : GW_ERROR;
+  return b;
 }
 
 ANN2(1)
-m_int gwi_oper_ini(const Gwi gwi, const restrict m_str l,
+bool gwi_oper_ini(const Gwi gwi, const restrict m_str l,
                    const restrict m_str r, const restrict m_str t) {
   gwi->oper->ret = t;
   gwi->oper->rhs = r;
   gwi->oper->lhs = l;
-  return GW_OK;
+  return true;
 }
 
-ANN m_int gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void *)) {
+ANN bool gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void *)) {
   gwi->oper->ck = ck;
-  return GW_OK;
+  return true;
 }
 
-ANN m_int gwi_oper_emi(const Gwi gwi, const opem em) {
+ANN bool gwi_oper_emi(const Gwi gwi, const opem em) {
   gwi->oper->em = em;
-  return GW_OK;
+  return true;
 }
 
 ANN void gwi_oper_eff(const Gwi gwi, const m_str effect) {
@@ -71,7 +71,7 @@ ANN void gwi_oper_eff(const Gwi gwi, const m_str effect) {
   vector_add(&gwi->oper->effect, (m_uint)insert_symbol(gwi->gwion->st, effect));
 }
 
-ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
+ANN bool gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
   if (gwi->gwion->data->cdoc) {
     gwfmt_indent(gwi->gwfmt);
     gwfmt_util(gwi->gwfmt, "{+C}operator{0} ");
@@ -102,16 +102,16 @@ ANN m_int gwi_oper_end(const Gwi gwi, const m_str op, const f_instr f) {
     gwfmt_nl(gwi->gwfmt);
   }
   gwi->oper->sym   = insert_symbol(gwi->gwion->st, op);
-  const m_bool ret = import_op(gwi, gwi->oper, f);
+  const bool ret = import_op(gwi, gwi->oper, f);
   gwi->oper->ck    = NULL;
   gwi->oper->em    = NULL;
   return ret;
 }
 
-ANN m_int gwi_oper_cond(const Gwi gwi, const m_str type, const f_instr f1,
+ANN bool gwi_oper_cond(const Gwi gwi, const m_str type, const f_instr f1,
                         const f_instr f2) {
-  GWI_BB(gwi_oper_ini(gwi, NULL, type, "bool"))
-  GWI_BB(gwi_oper_end(gwi, "@conditional", f1))
-  GWI_BB(gwi_oper_end(gwi, "@unconditional", f2))
-  return GW_OK;
+   GWI_B(gwi_oper_ini(gwi, NULL, type, "bool"))
+   GWI_B(gwi_oper_end(gwi, "@conditional", f1))
+   GWI_B(gwi_oper_end(gwi, "@unconditional", f2))
+  return true;
 }

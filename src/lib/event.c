@@ -54,12 +54,12 @@ GWION_IMPORT(event) {
   gwi_class_xtor(gwi, event_ctor, event_dtor);
   gwi->gwion->type[et_event] = t_event; // use func
   t_event->nspc->offset += SZ_INT;
-  GWI_BB(gwi_func_ini(gwi, "void", "signal"))
-  GWI_BB(gwi_func_end(gwi, event_signal, ae_flag_none))
-  GWI_BB(gwi_func_ini(gwi, "void", "broadcast"))
-  GWI_BB(gwi_func_end(gwi, event_broadcast, ae_flag_none))
-  GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_oper_ini(gwi, "Event", "@now", "int"))
-  GWI_BB(gwi_oper_end(gwi, "=>", EventWait))
+  GWI_B(gwi_func_ini(gwi, "void", "signal"))
+  GWI_B(gwi_func_end(gwi, event_signal, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "void", "broadcast"))
+  GWI_B(gwi_func_end(gwi, event_broadcast, ae_flag_none))
+  GWI_B(gwi_class_end(gwi))
+   GWI_B(gwi_oper_ini(gwi, "Event", "@now", "int"))
+   GWI_B(gwi_oper_end(gwi, "=>", EventWait))
   return GW_OK;
 }

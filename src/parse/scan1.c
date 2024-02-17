@@ -256,9 +256,9 @@ ANN static inline bool scan1_exp_unary(const restrict Env env,
   return true;
 }
 
-#define scan1_exp_lambda bdummy_func
-#define scan1_exp_td     bdummy_func
-HANDLE_EXP_FUNC_B(scan1, bool, Env)
+#define scan1_exp_lambda dummy_func
+#define scan1_exp_td     dummy_func
+HANDLE_EXP_FUNC(scan1, bool, Env)
 
 ANN static inline bool _scan1_stmt_match_case(const restrict Env env,
                                                 const Stmt_Match   stmt) {
@@ -590,9 +590,9 @@ ANN bool scan1_union_def(const Env env, const Union_Def udef) {
 
 #define scan1_stmt_while    scan1_stmt_flow
 #define scan1_stmt_until    scan1_stmt_flow
-#define scan1_stmt_continue bdummy_func
-#define scan1_stmt_break    bdummy_func
-#define scan1_stmt_retry    bdummy_func
+#define scan1_stmt_continue dummy_func
+#define scan1_stmt_break    dummy_func
+#define scan1_stmt_retry    dummy_func
 
 ANN static bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
   if (!env->func)
@@ -791,9 +791,9 @@ ANN bool scan1_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
-#define scan1_trait_def bdummy_func
-#define scan1_extend_def bdummy_func
-#define scan1_prim_def bdummy_func
+#define scan1_trait_def dummy_func
+#define scan1_extend_def dummy_func
+#define scan1_prim_def dummy_func
 HANDLE_SECTION_FUNC(scan1, bool, Env)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {

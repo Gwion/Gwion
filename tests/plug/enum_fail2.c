@@ -9,8 +9,8 @@
 #include "import.h"
 
 GWION_IMPORT(enum_fail2) {
-  GWI_BB(gwi_enum_ini(gwi, "tmp"))
-  GWI_BB(gwi_enum_add(gwi, "adc", 0))
+  GWI_B(gwi_enum_ini(gwi, "tmp"))
+  GWI_B(gwi_enum_add(gwi, "adc", 0))
   GWI_OB(gwi_enum_end(gwi))
   return GW_OK;
 }

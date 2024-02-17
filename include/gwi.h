@@ -37,5 +37,5 @@ static inline Tmpl *gwi_tmpl(const Gwi gwi) {
 }
 
 ANN void gwi_effects(const Gwi gwi, const m_str name);
-ANN bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi));
+ANN bool gwi_run(const Gwion gwion, bool (*f)(const Gwi));
 #endif

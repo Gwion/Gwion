@@ -76,7 +76,7 @@ static OP_CHECK(opck_ctrl) {
 GWION_IMPORT(sift) {
   const Type sift = gwi_class_ini(gwi, "Sift", "Shred");
   SET_FLAG(sift, abstract | ae_flag_final);
-  GWI_BB(gwi_class_end(gwi));
+  GWI_B(gwi_class_end(gwi));
 
   gwidoc(gwi, "This operator expands too\n"
               "#!- spork {{\n"
@@ -85,20 +85,20 @@ GWION_IMPORT(sift) {
               "#!-     samp => now;\n"
               "#!-   }\n"
               "#!- }");
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "function", "Sift"));
-  GWI_BB(gwi_oper_add(gwi, opck_ctrl));
-  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+   GWI_B(gwi_oper_ini(gwi, "UGen", "function", "Sift"));
+   GWI_B(gwi_oper_add(gwi, opck_ctrl));
+   GWI_B(gwi_oper_end(gwi, "|>", NULL));
 
-  GWI_BB(gwi_oper_ini(gwi, "Sift", "function", "Sift"));
-  GWI_BB(gwi_oper_add(gwi, opck_sift));
-  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+   GWI_B(gwi_oper_ini(gwi, "Sift", "function", "Sift"));
+   GWI_B(gwi_oper_add(gwi, opck_sift));
+   GWI_B(gwi_oper_end(gwi, "|>", NULL));
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "funptr", "Sift"));
-  GWI_BB(gwi_oper_add(gwi, opck_ctrl));
-  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+   GWI_B(gwi_oper_ini(gwi, "UGen", "funptr", "Sift"));
+   GWI_B(gwi_oper_add(gwi, opck_ctrl));
+   GWI_B(gwi_oper_end(gwi, "|>", NULL));
 
-  GWI_BB(gwi_oper_ini(gwi, "Sift", "funptr", "Sift"));
-  GWI_BB(gwi_oper_add(gwi, opck_sift));
-  GWI_BB(gwi_oper_end(gwi, "|>", NULL));
+   GWI_B(gwi_oper_ini(gwi, "Sift", "funptr", "Sift"));
+   GWI_B(gwi_oper_add(gwi, opck_sift));
+   GWI_B(gwi_oper_end(gwi, "|>", NULL));
   return GW_OK;
 }

@@ -10,7 +10,7 @@
 #include "instr.h"
 
 GWION_IMPORT(func_subscript_not_empty) {
-  GWI_BB(gwi_func_ini(gwi, "int[]", "test"))
-  GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "int[]", "test"))
+  GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
   return GW_OK;
 }

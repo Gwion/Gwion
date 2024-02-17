@@ -55,29 +55,29 @@ static OP_CHECK(opck_implicit_class) {
 GWION_IMPORT(class) {
 
   gwidoc(gwi, "Operators class types.");
-  GWI_BB(gwi_oper_ini(gwi, "Class", "Class", "bool"))
-  GWI_BB(gwi_oper_end(gwi, "==", int_eq))
-  GWI_BB(gwi_oper_end(gwi, "!=", int_neq))
-  GWI_BB(gwi_oper_end(gwi, ">=", instr_class_ge))
-  GWI_BB(gwi_oper_end(gwi, ">", instr_class_gt))
-  GWI_BB(gwi_oper_end(gwi, "<=", instr_class_le))
-  GWI_BB(gwi_oper_end(gwi, "<", instr_class_lt))
+   GWI_B(gwi_oper_ini(gwi, "Class", "Class", "bool"))
+   GWI_B(gwi_oper_end(gwi, "==", int_eq))
+   GWI_B(gwi_oper_end(gwi, "!=", int_neq))
+   GWI_B(gwi_oper_end(gwi, ">=", instr_class_ge))
+   GWI_B(gwi_oper_end(gwi, ">", instr_class_gt))
+   GWI_B(gwi_oper_end(gwi, "<=", instr_class_le))
+   GWI_B(gwi_oper_end(gwi, "<", instr_class_lt))
 
   gwidoc(gwi, "Allow binary call to constructors.");
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Class", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_class_call))
-  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
+   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Class", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_class_call))
+   GWI_B(gwi_oper_end(gwi, "=>", NULL))
 
   gwidoc(gwi, "internal constructor operator.");
-  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_basic_ctor))
-  GWI_BB(gwi_oper_end(gwi, "call_type", NULL))
+   GWI_B(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_basic_ctor))
+   GWI_B(gwi_oper_end(gwi, "call_type", NULL))
 /*
   gwidoc(gwi, "Allow enum for array size");
-  GWI_BB(gwi_oper_ini(gwi, "Class", "int", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_implicit_class))
-  GWI_BB(gwi_oper_emi(gwi, opem_implicit_class))
-  GWI_BB(gwi_oper_end(gwi, "@implicit", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Class", "int", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_implicit_class))
+   GWI_B(gwi_oper_emi(gwi, opem_implicit_class))
+   GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
 */
   return GW_OK;
 }

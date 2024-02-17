@@ -26,10 +26,6 @@
   do {                                                                         \
     if (!f) return env->gwion->type[et_error];                                 \
   } while (0)
-#define CHECK_NB(f)                                                            \
-  do {                                                                         \
-    if (f == env->gwion->type[et_error]) return GW_ERROR;                      \
-  } while (0)
 #define CHECK_NO(f)                                                            \
   do {                                                                         \
     if (f == env->gwion->type[et_error]) return NULL;                          \

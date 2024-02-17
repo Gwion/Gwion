@@ -407,40 +407,40 @@ GWION_IMPORT(ugen) {
   gwi->gwion->type[et_ugen] = t_ugen; // use func
   t_ugen->nspc->offset += SZ_INT;
 
-  GWI_BB(gwi_func_ini(gwi, "UGen", "chan"))
-  GWI_BB(gwi_func_arg(gwi, "int", "arg0"))
-  GWI_BB(gwi_func_end(gwi, ugen_channel, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "UGen", "chan"))
+  GWI_B(gwi_func_arg(gwi, "int", "arg0"))
+  GWI_B(gwi_func_end(gwi, ugen_channel, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "op"))
-  GWI_BB(gwi_func_end(gwi, ugen_get_op, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "int", "op"))
+  GWI_B(gwi_func_end(gwi, ugen_get_op, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "int", "op"))
-  GWI_BB(gwi_func_arg(gwi, "int", "arg0"))
-  GWI_BB(gwi_func_end(gwi, ugen_set_op, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, "int", "op"))
+  GWI_B(gwi_func_arg(gwi, "int", "arg0"))
+  GWI_B(gwi_func_end(gwi, ugen_set_op, ae_flag_none))
 
-  GWI_BB(gwi_func_ini(gwi, "float", "last"))
-  GWI_BB(gwi_func_end(gwi, ugen_get_last, ae_flag_none))
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_func_ini(gwi, "float", "last"))
+  GWI_B(gwi_func_end(gwi, ugen_get_last, ae_flag_none))
+  GWI_B(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
+   GWI_B(gwi_oper_ini(gwi, "UGen", "UGen", "UGen"))
   _CHECK_OP("~>", chuck_ugen, UgenConnect)
   _CHECK_OP("~<", chuck_ugen, UgenDisconnect)
   _CHECK_OP(":~>", chuck_ugen, TrigConnect)
   _CHECK_OP(":~<", chuck_ugen, TrigDisconnect)
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen[]", "UGen[]", "UGen[]"))
+   GWI_B(gwi_oper_ini(gwi, "UGen[]", "UGen[]", "UGen[]"))
   _CHECK_OP("~>", chuck_ugen, UgenAAConnect)
   _CHECK_OP("~<", chuck_ugen, UgenAADisconnect)
   _CHECK_OP(":~>", chuck_ugen, TrigAAConnect)
   _CHECK_OP(":~<", chuck_ugen, TrigAADisconnect)
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen", "UGen[]", "UGen[]"))
+   GWI_B(gwi_oper_ini(gwi, "UGen", "UGen[]", "UGen[]"))
   _CHECK_OP("~>", chuck_ugen, UgenUAConnect)
   _CHECK_OP("~<", chuck_ugen, UgenUADisconnect)
   _CHECK_OP(":~>", chuck_ugen, TrigUAConnect)
   _CHECK_OP(":~<", chuck_ugen, TrigUADisconnect)
 
-  GWI_BB(gwi_oper_ini(gwi, "UGen[]", "UGen", "UGen"))
+   GWI_B(gwi_oper_ini(gwi, "UGen[]", "UGen", "UGen"))
   _CHECK_OP("~>", chuck_ugen, UgenAUConnect)
   _CHECK_OP("~<", chuck_ugen, UgenAUDisconnect)
   _CHECK_OP(":~>", chuck_ugen, TrigAUConnect)

@@ -616,55 +616,55 @@ GWION_IMPORT(dict) {
   t_dict->nspc->offset += sizeof(struct HMap);
   gwi->gwion->type[et_dict] = t_dict;
   set_tflag(t_dict, tflag_infer);
-  GWI_BB(gwi_func_ini(gwi, "void",   "remove"));
-  GWI_BB(gwi_func_arg(gwi, "Key",    "key"));
-  GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "void",   "remove"));
+  GWI_B(gwi_func_arg(gwi, "Key",    "key"));
+  GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none));
 
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_class_end(gwi))
 
-  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_dict_scan))
-  GWI_BB(gwi_oper_end(gwi, "class", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Dict", NULL, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_dict_scan))
+   GWI_B(gwi_oper_end(gwi, "class", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "int"))
-  GWI_BB(gwi_oper_emi(gwi, opem_dict_each))
-  GWI_BB(gwi_oper_end(gwi, "@each", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Dict", NULL, "int"))
+   GWI_B(gwi_oper_emi(gwi, opem_dict_each))
+   GWI_B(gwi_oper_end(gwi, "@each", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, "void"))
-  GWI_BB(gwi_oper_emi(gwi, opem_dict_each_init))
-  GWI_BB(gwi_oper_end(gwi, "@each_init", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Dict", NULL, "void"))
+   GWI_B(gwi_oper_emi(gwi, opem_dict_each_init))
+   GWI_B(gwi_oper_end(gwi, "@each_init", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_dict_each_val))
-  GWI_BB(gwi_oper_end(gwi, "@each_val", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Dict", NULL, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_dict_each_val))
+   GWI_B(gwi_oper_end(gwi, "@each_val", NULL))
 
-  GWI_BB(gwi_oper_ini(gwi, "Dict", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_dict_each_key))
-  GWI_BB(gwi_oper_end(gwi, "@each_idx", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Dict", NULL, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_dict_each_key))
+   GWI_B(gwi_oper_end(gwi, "@each_idx", NULL))
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "int",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_int_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "int",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_int_h, ae_flag_none));
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "Object",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_int_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "Object",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_int_h, ae_flag_none));
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "float",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "float",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "time",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "time",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "dur",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "dur",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_float_h, ae_flag_none));
 
-  GWI_BB(gwi_func_ini(gwi, "int",    "hash"));
-  GWI_BB(gwi_func_arg(gwi, "string",    "key"));
-  GWI_BB(gwi_func_end(gwi, mfun_string_h, ae_flag_none));
+  GWI_B(gwi_func_ini(gwi, "int",    "hash"));
+  GWI_B(gwi_func_arg(gwi, "string",    "key"));
+  GWI_B(gwi_func_end(gwi, mfun_string_h, ae_flag_none));
 
   return GW_OK;
 }

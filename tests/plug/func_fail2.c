@@ -10,9 +10,9 @@
 #include "instr.h"
 
 GWION_IMPORT(func_fail2) {
-  GWI_BB(gwi_func_ini(gwi, ":[int]Ptr", "test"))
-  GWI_BB(gwi_func_arg(gwi, "int", "i[][]"))
-  GWI_BB(gwi_func_arg(gwi, "int", "me"))
-  GWI_BB(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
+  GWI_B(gwi_func_ini(gwi, ":[int]Ptr", "test"))
+  GWI_B(gwi_func_arg(gwi, "int", "i[][]"))
+  GWI_B(gwi_func_arg(gwi, "int", "me"))
+  GWI_B(gwi_func_end(gwi, (f_xfun)1, ae_flag_none))
   return GW_OK;
 }

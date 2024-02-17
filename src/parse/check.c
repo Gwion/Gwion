@@ -1742,8 +1742,8 @@ ANN static bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return check_stmt(env, stmt->stmt);
 }
 
-#define check_stmt_retry bdummy_func
-#define check_stmt_spread bdummy_func
+#define check_stmt_retry dummy_func
+#define check_stmt_spread dummy_func
 DECL_STMT_FUNC(check, bool, Env)
 
 ANN bool check_stmt(const Env env, Stmt* stmt) {
@@ -2089,7 +2089,7 @@ ANN bool check_fptr_def(const Env env, const Fptr_Def fptr) {
   return ret;
 }
 
-#define check_prim_def bdummy_func
+#define check_prim_def dummy_func
 HANDLE_SECTION_FUNC(check, bool, Env)
 
 ANN static bool check_parent(const Env env, const Class_Def cdef) {

@@ -11,9 +11,9 @@
 static MFUN(test_mfun) {}
 GWION_IMPORT(invalid_arg) {
   GWI_OB(gwi_class_ini(gwi, "InvalidArg", NULL))
-  GWI_BB(gwi_func_ini(gwi, "int[]", "func"))
-  GWI_BB(gwi_func_arg(gwi, ".int", "i"))
-  GWI_BB(gwi_func_end(gwi, test_mfun, ae_flag_static))
-  GWI_BB(gwi_class_end(gwi))
+  GWI_B(gwi_func_ini(gwi, "int[]", "func"))
+  GWI_B(gwi_func_arg(gwi, ".int", "i"))
+  GWI_B(gwi_func_end(gwi, test_mfun, ae_flag_static))
+  GWI_B(gwi_class_end(gwi))
   return GW_OK;
 }

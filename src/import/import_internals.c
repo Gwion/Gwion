@@ -29,28 +29,28 @@ ANN void gwi_reset(const Gwi gwi) {
   env_reset(gwi->gwion->env);
 }
 
-ANN static bool run_with_doc(const Gwi gwi, m_bool (*f)(const Gwi)) {
+ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
   struct GwfmtState ls     = {.builtin = true, .nindent = 4};
   text_init(&ls.text, gwi->gwion->mp);
   Gwfmt             gwfmter = {.mp = gwi->gwion->mp, .ls = &ls, .st = gwi->gwion->st };
   gwfmt_indent(&gwfmter);
   gwfmt_util(&gwfmter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->gwfmt = &gwfmter;
-  const m_bool ret = f(gwi);
+  const bool ret = f(gwi);
   fprintf(stdout, "%s", ls.text.str);
-  return ret > 0;
+  return ret;
 }
 
-ANN bool gwi_run(const Gwion gwion, m_bool (*f)(const Gwi)) {
+ANN bool gwi_run(const Gwion gwion, bool (*f)(const Gwi)) {
   const m_str name = gwion->env->name;
   //  const Context ctx = gwion->env->context;
   //  gwion->env->context = NULL;
   OperCK       oper = {};
   struct Gwi_  gwi  = {.gwion = gwion, .oper = &oper};
-  const m_bool ret  = !gwion->data->cdoc ? f(&gwi) : run_with_doc(&gwi, f);
-  if (ret < 0) gwi_reset(&gwi);
+  const bool ret  = !gwion->data->cdoc ? f(&gwi) : run_with_doc(&gwi, f);
+  if (!ret) gwi_reset(&gwi);
   gwion->env->name = name;
   //  gwion->env->context = ctx;
-  return ret > 0;
+  return ret;
 }
 

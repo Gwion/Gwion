@@ -38,10 +38,10 @@ static GWION_IMPORT(gain) {
   GWI_OB(gwi_class_ini(gwi, "Gain", "UGen"))
   gwi_class_xtor(gwi, gain_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "gain");
-  GWI_BB(gwi_func_end(gwi, gain_get_gain, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, gain_get_gain, ae_flag_none))
   gwi_func_ini(gwi, "float", "gain");
   gwi_func_arg(gwi, "float", "arg0");
-  GWI_BB(gwi_func_end(gwi, gain_set_gain, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, gain_set_gain, ae_flag_none))
   return gwi_class_end(gwi);
 }
 
@@ -70,10 +70,10 @@ static GWION_IMPORT(impulse) {
   GWI_OB(gwi_class_ini(gwi, "Impulse", "UGen"))
   gwi_class_xtor(gwi, impulse_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "next");
-  GWI_BB(gwi_func_end(gwi, impulse_get_next, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, impulse_get_next, ae_flag_none))
   gwi_func_ini(gwi, "float", "next");
   gwi_func_arg(gwi, "float", "arg0");
-  GWI_BB(gwi_func_end(gwi, impulse_set_next, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, impulse_set_next, ae_flag_none))
   return gwi_class_end(gwi);
 }
 
@@ -134,10 +134,10 @@ static GWION_IMPORT(step) {
   GWI_OB(gwi_class_ini(gwi, "Step", "UGen"))
   gwi_class_xtor(gwi, step_ctor, basic_dtor);
   gwi_func_ini(gwi, "float", "next");
-  GWI_BB(gwi_func_end(gwi, step_get_next, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, step_get_next, ae_flag_none))
   gwi_func_ini(gwi, "float", "next");
   gwi_func_arg(gwi, "float", "arg0");
-  GWI_BB(gwi_func_end(gwi, step_set_next, ae_flag_none))
+  GWI_B(gwi_func_end(gwi, step_set_next, ae_flag_none))
   return gwi_class_end(gwi);
 }
 
@@ -275,13 +275,13 @@ static OP_EMIT(opem_usrugen) {
 static GWION_IMPORT(usrugen) {
   GWI_OB(gwi_class_ini(gwi, "UsrUGen", "UGen"))
   gwi_class_xtor(gwi, usrugen_ctor, usrugen_dtor);
-  GWI_BB(gwi_func_ini(gwi, "int", "default_tick"))
-  GWI_BB(gwi_func_end(gwi, default_tick, 0))
-  GWI_BB(gwi_class_end(gwi))
-  GWI_BB(gwi_oper_ini(gwi, "function", "UsrUGen", "UsrUGen"))
-  GWI_BB(gwi_oper_add(gwi, opck_usrugen))
-  GWI_BB(gwi_oper_emi(gwi, opem_usrugen))
-  GWI_BB(gwi_oper_end(gwi, "~=>", NULL))
+  GWI_B(gwi_func_ini(gwi, "int", "default_tick"))
+  GWI_B(gwi_func_end(gwi, default_tick, 0))
+  GWI_B(gwi_class_end(gwi))
+   GWI_B(gwi_oper_ini(gwi, "function", "UsrUGen", "UsrUGen"))
+   GWI_B(gwi_oper_add(gwi, opck_usrugen))
+   GWI_B(gwi_oper_emi(gwi, opem_usrugen))
+   GWI_B(gwi_oper_end(gwi, "~=>", NULL))
   return GW_OK;
 }
 

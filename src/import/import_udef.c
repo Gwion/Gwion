@@ -25,25 +25,25 @@ ANN Exp* make_exp(const Gwi gwi, const m_str type, const m_str name) {
   return new_exp_decl(gwi->gwion->mp, td, &vd, gwi->loc);
 }
 
-ANN m_int gwi_union_ini(const Gwi gwi, const m_str name) {
-  CHECK_b(ck_ini(gwi, ck_udef));
+ANN bool gwi_union_ini(const Gwi gwi, const m_str name) {
+  CHECK_B(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
   CHECK_b(check_typename_def(gwi, gwi->ck));
   gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Variable, 0);
-  return GW_OK;
+  return true;
 }
 
-ANN m_int gwi_union_add(const Gwi gwi, const restrict m_str type,
+ANN bool gwi_union_add(const Gwi gwi, const restrict m_str type,
                         const restrict m_str name) {
-  CHECK_b(ck_ok(gwi, ck_udef));
-  DECL_OB(Type_Decl *, td, = str2td(gwi->gwion, type, gwi->loc));
-  DECL_OB(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc));
+  CHECK_B(ck_ok(gwi, ck_udef));
+  DECL_B(Type_Decl *, td, = str2td(gwi->gwion, type, gwi->loc));
+  DECL_B(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc));
   Variable um = { .td = td, .vd = { .tag = MK_TAG(xid, gwi->loc) } };
   mp_vector_add(gwi->gwion->mp, &gwi->ck->list, Variable, um);
 //  const Variable_List l = new_variable_list(gwi->gwion->mp, td, xid, gwi->loc);
 //  l->next            = gwi->ck->list;
 //  gwi->ck->list      = l;
-  return GW_OK;
+  return true;
 }
 
 ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
@@ -64,8 +64,8 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
   return udef->type;
 }
 
-ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
-  CHECK_O(ck_ok(gwi, ck_udef));
+ANN bool gwi_union_end(const Gwi gwi, const ae_flag flag) {
+  CHECK_B(ck_ok(gwi, ck_udef));
   if (!gwi->ck->mpv->len) GWI_ERR_O(_("union is empty"));
   const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->mpv, gwi->loc);
   gwi->ck->list        = NULL;
@@ -78,7 +78,7 @@ ANN Type gwi_union_end(const Gwi gwi, const ae_flag flag) {
   const Type t = union_type(gwi, udef);
   if (!safe_tflag(t, tflag_tmpl)) free_union_def(gwi->gwion->mp, udef);
   ck_end(gwi);
-  return t;
+  return !!t;
 }
 
 ANN void ck_clean_udef(MemPool mp, ImportCK *ck) {

@@ -32,31 +32,41 @@ typedef struct Gwi_ *Gwi;
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
+#define GWI_B(a)                                                               \
+  {                                                                            \
+    gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
+    (void)(a);                                                                 \
+  }
 #define GWI_OB(a)                                                              \
   {                                                                            \
     gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
-#define GWION_IMPORT(a) ANN m_bool gwimport_##a(const Gwi gwi)
+#define GWION_IMPORT(a) ANN bool gwimport_##a(const Gwi gwi)
 #else
 #define GWI_BB(a)                                                              \
   {                                                                            \
     gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
-    CHECK_BB(a);                                                               \
+    CHECK_B(a);                                                                \
+  }
+#define GWI_B(a)                                                               \
+  {                                                                            \
+    gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
+    CHECK_B(a);                                                                \
   }
 #define GWI_OB(a)                                                              \
   {                                                                            \
     gwi_set_loc(gwi, (m_str)__FILE__, __LINE__);                               \
-    CHECK_OB(a);                                                               \
+    CHECK_B(a);                                                                \
   }
-#define GWION_IMPORT(a) ANN m_bool gwimport_##a(const Gwi gwi)
+#define GWION_IMPORT(a) ANN bool gwimport_##a(const Gwi gwi)
 #endif
 #define ALLOC_PTR(p, a, b, c)                                                  \
   b *a = (b *)_mp_calloc(p, sizeof(b));                                        \
   *a   = (b)c
 #define _CHECK_OP(op, check, func)                                             \
-  GWI_BB(gwi_oper_add(gwi, opck_##check))                                      \
-  GWI_BB(gwi_oper_end(gwi, op, func))
+  GWI_B(gwi_oper_add(gwi, opck_##check))                                       \
+  GWI_B(gwi_oper_end(gwi, op, func))
 
 #include "import/checker.h"
 #include "import/type.h"

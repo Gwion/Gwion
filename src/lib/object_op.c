@@ -182,7 +182,7 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
   return NULL;
 }
 
-ANN static m_bool member_access(const Env env, Exp* exp, const Value value) {
+ANN static bool member_access(const Env env, Exp* exp, const Value value) {
   if (!env->class_def || isa(env->class_def, value->from->owner_class) < 0) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
@@ -190,10 +190,11 @@ ANN static m_bool member_access(const Env env, Exp* exp, const Value value) {
       env_error_footer(env);
       defined_here(value);
       env_set_error(env, true);
+      return false;
     } else if (GET_FLAG(value, protect))
       exp_setprot(exp, 1);
   }
-  return GW_OK;
+  return true;
 }
 
 OP_CHECK(opck_object_dot) {
@@ -218,7 +219,7 @@ OP_CHECK(opck_object_dot) {
     return env->gwion->type[et_error];
   }
   CHECK_ON(not_from_owner_class(env, the_base, value, self->loc));
-  CHECK_BN(member_access(env, self, value));
+  CHECK_ON(member_access(env, self, value));
   if ((base_static && vflag(value, vflag_member)) ||
       (value->from->owner_class != env->class_def && isa(value->from->owner_class, env->class_def) > 0))
     ERR_N(self->loc,
@@ -379,28 +380,28 @@ GWION_IMPORT(object_op) {
   const Type t_error         = gwi_mk_type(gwi, "@error", 0, NULL);
   gwi->gwion->type[et_error] = t_error;
   GWI_BB(gwi_set_global_type(gwi, t_error, et_error))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_at))
-  GWI_BB(gwi_oper_emi(gwi, opem_object_at))
-  GWI_BB(gwi_oper_end(gwi, ":=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_object_instance))
-  GWI_BB(gwi_oper_end(gwi, "=>", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "Object", "Object", "bool"))
-  GWI_BB(gwi_oper_end(gwi, "==", EqObject))
-  GWI_BB(gwi_oper_end(gwi, "!=", NeqObject))
-  GWI_BB(gwi_oper_add(gwi, opck_object_cast))
-  GWI_BB(gwi_oper_end(gwi, "$", NULL))
-  GWI_BB(gwi_oper_ini(gwi, NULL, "Object", "bool"))
-  GWI_BB(gwi_oper_emi(gwi, opem_uncond_object))
-  GWI_BB(gwi_oper_end(gwi, "@unconditional", NULL))
-  GWI_BB(gwi_oper_emi(gwi, opem_cond_object))
-  GWI_BB(gwi_oper_end(gwi, "@conditional", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_unary_meta2))
-  GWI_BB(gwi_oper_emi(gwi, opem_not_object))
-  GWI_BB(gwi_oper_end(gwi, "!", NULL))
-  GWI_BB(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_struct_scan))
-  GWI_BB(gwi_oper_end(gwi, "class", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Object", "Object", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_object_at))
+   GWI_B(gwi_oper_emi(gwi, opem_object_at))
+   GWI_B(gwi_oper_end(gwi, ":=>", NULL))
+   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_object_instance))
+   GWI_B(gwi_oper_end(gwi, "=>", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Object", "Object", "bool"))
+   GWI_B(gwi_oper_end(gwi, "==", EqObject))
+   GWI_B(gwi_oper_end(gwi, "!=", NeqObject))
+   GWI_B(gwi_oper_add(gwi, opck_object_cast))
+   GWI_B(gwi_oper_end(gwi, "$", NULL))
+   GWI_B(gwi_oper_ini(gwi, NULL, "Object", "bool"))
+   GWI_B(gwi_oper_emi(gwi, opem_uncond_object))
+   GWI_B(gwi_oper_end(gwi, "@unconditional", NULL))
+   GWI_B(gwi_oper_emi(gwi, opem_cond_object))
+   GWI_B(gwi_oper_end(gwi, "@conditional", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_unary_meta2))
+   GWI_B(gwi_oper_emi(gwi, opem_not_object))
+   GWI_B(gwi_oper_end(gwi, "!", NULL))
+   GWI_B(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_struct_scan))
+   GWI_B(gwi_oper_end(gwi, "class", NULL))
   return GW_OK;
 }

@@ -91,13 +91,13 @@ static FREEARG(clean_fast_except) {
 }
 
 GWION_IMPORT(xork) {
-  GWI_BB(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_spork))
-  GWI_BB(gwi_oper_emi(gwi, opem_spork))
-  GWI_BB(gwi_oper_end(gwi, "spork", NULL))
-  GWI_BB(gwi_oper_add(gwi, opck_spork))
-  GWI_BB(gwi_oper_emi(gwi, opem_spork))
-  GWI_BB(gwi_oper_end(gwi, "fork", NULL))
+   GWI_B(gwi_oper_ini(gwi, NULL, (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_add(gwi, opck_spork))
+   GWI_B(gwi_oper_emi(gwi, opem_spork))
+   GWI_B(gwi_oper_end(gwi, "spork", NULL))
+   GWI_B(gwi_oper_add(gwi, opck_spork))
+   GWI_B(gwi_oper_emi(gwi, opem_spork))
+   GWI_B(gwi_oper_end(gwi, "fork", NULL))
   gwi_register_freearg(gwi, SporkIni, freearg_xork);
   gwi_register_freearg(gwi, fast_except, clean_fast_except);
   return GW_OK;

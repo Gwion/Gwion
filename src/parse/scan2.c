@@ -219,9 +219,9 @@ ANN static inline bool scan2_stmt_match(const restrict Env env,
   RET_NSPC(_scan2_stmt_match(env, stmt))
 }
 
-#define scan2_exp_lambda bdummy_func
-#define scan2_exp_td     bdummy_func
-HANDLE_EXP_FUNC_B(scan2, bool, Env)
+#define scan2_exp_lambda dummy_func
+#define scan2_exp_td     dummy_func
+HANDLE_EXP_FUNC(scan2, bool, Env)
 
 #define scan2_stmt_func(name, type, prolog, exp)                               \
   describe_stmt_func(scan2, name, type, prolog, exp)
@@ -256,10 +256,10 @@ ANN bool scan2_union_def(const Env env NUSED, const Union_Def udef) {
 
 #define scan2_stmt_while    scan2_stmt_flow
 #define scan2_stmt_until    scan2_stmt_flow
-#define scan2_stmt_continue bdummy_func
-#define scan2_stmt_break    bdummy_func
+#define scan2_stmt_continue dummy_func
+#define scan2_stmt_break    dummy_func
 #define scan2_stmt_return   scan2_stmt_exp
-#define scan2_stmt_retry    bdummy_func
+#define scan2_stmt_retry    dummy_func
 
 ANN static bool scan2_stmt_pp(const Env env, const Stmt_PP stmt) {
   if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
@@ -270,7 +270,7 @@ ANN static bool scan2_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return scan2_stmt(env, stmt->stmt);
 }
 
-#define scan2_stmt_spread bdummy_func
+#define scan2_stmt_spread dummy_func
 
 DECL_STMT_FUNC(scan2, bool, Env)
 
@@ -563,10 +563,10 @@ ANN bool scan2_func_def(const Env env, const Func_Def fdef) {
   return ret;
 }
 
-#define scan2_enum_def  bdummy_func
-#define scan2_trait_def bdummy_func
-#define scan2_extend_def bdummy_func
-#define scan2_prim_def bdummy_func
+#define scan2_enum_def  dummy_func
+#define scan2_trait_def dummy_func
+#define scan2_extend_def dummy_func
+#define scan2_prim_def dummy_func
 HANDLE_SECTION_FUNC(scan2, bool, Env)
 
 ANN static bool scan2_parent(const Env env, const Class_Def cdef) {
