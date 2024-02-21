@@ -588,7 +588,7 @@ ANN bool scan1_union_def(const Env env, const Union_Def udef) {
 #define scan1_stmt_retry    dummy_func
 
 ANN static bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
-  if (!env->func)
+  if (!env->func || is_ctor(env->func->def))
     ERR_B(stmt_self(stmt)->loc,
           _("'return' statement found outside function definition"));
   if (env->scope->depth == 1) env->func->memoize = 1;
