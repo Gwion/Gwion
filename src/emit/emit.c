@@ -47,9 +47,8 @@ typedef struct Local_ {
 static inline void emit_pop(const Emitter emit, const m_uint scope) {
   env_pop(emit->env, scope);
 }
-static inline m_uint emit_push(const Emitter emit, const Type type,
-                               const Nspc nspc) {
-  return env_push(emit->env, type, nspc);
+static inline m_uint emit_pushv(const Emitter emit, const Value value) {
+  return env_pushv(emit->env, value);
 }
 
 static inline m_uint emit_push_global(const Emitter emit) {
@@ -837,7 +836,7 @@ ANN bool emit_ensure_func(const Emitter emit, const Func f) {
   if(from->owner_class)
     CHECK_B(ensure_emit(emit, from->owner_class));
   if(f->code) return true;
-  const m_uint scope = emit_push(emit, from->owner_class, from->owner);
+  const m_uint scope = emit_pushv(emit, f->value_ref);
   const bool ret = emit_func_def(emit, f->def);
   emit_pop(emit, scope);
   return ret;
@@ -1318,7 +1317,7 @@ ANN static bool _emit_exp_call(const Emitter emit, const Exp_Call *call) {
     if(_f) {
       const Func base = emit->env->func;
       emit->env->func = _f;
-      const m_uint scope = emit_push(emit, _f->value_ref->from->owner_class, _f->value_ref->from->owner);
+      const m_uint scope = emit_pushv(emit, _f->value_ref);
       const bool ret = emit_inline(emit, _f, call);
       emit_pop(emit, scope);
       emit->env->func = base;
@@ -1435,7 +1434,7 @@ ANN bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value 
                       .scope = scope,
                       .flag  = tflag_emit};
   CHECK_B(envset_pushv(&es, v));
-  (void)emit_push(emit, v->from->owner_class, v->from->owner);
+  (void)emit_pushv(emit, v);
   const bool ret = traverse_emit_func_def(emit, fdef);
   emit_pop(emit, scope);
   envset_pop(&es, v->from->owner_class);
@@ -1481,7 +1480,7 @@ ANN static bool emit_template_code(const Emitter emit, const Func f) {
                       .scope = scope,
                       .flag  = tflag_emit};
   CHECK_B(envset_pushv(&es, v));
-  (void)emit_push(emit, v->from->owner_class, v->from->owner);
+  (void)emit_pushv(emit, v);
   const bool ret = emit_func_def(emit, f->def);
   envset_pop(&es, v->from->owner_class);
   emit_pop(emit, scope);

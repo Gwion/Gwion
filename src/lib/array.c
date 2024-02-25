@@ -807,13 +807,13 @@ static OP_CHECK(opck_array_scan) {
           = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
-                env->context->name, ts->td->tag.loc, 0);
+                env->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   if (tflag(base, tflag_ref)) {
     gwerr_basic("Can't use ref types as array base", NULL, NULL,
-                env->context->name, ts->td->tag.loc, 0);
+                env->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
@@ -828,8 +828,7 @@ static OP_CHECK(opck_array_scan) {
   mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;
-  const m_uint scope = env_push(env, base->info->value->from->owner_class,
-                                base->info->value->from->owner);
+  const m_uint scope = env_pushv(env, base->info->value);
   CHECK_ON(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))

@@ -572,7 +572,7 @@ static OP_CHECK(opck_op_impl) {
 //          s_name(impl->e->d.prim.d.var), func->name);
   const Value v = nspc_lookup_value0(opi.nspc, impl->e->d.prim.d.var);
   if (v) {
-    const m_uint scope = env_push(env, NULL, opi.nspc);
+    const m_uint scope = env_push_nspc(env, opi.nspc);
     _lhs.next          = &_rhs;
     Exp_Call   call    = {.args = &_lhs};
     const Func exists  = (Func)find_func_match(env, v->d.func_ref, &call);
@@ -614,7 +614,7 @@ static OP_CHECK(opck_op_impl) {
   def->base->tag.sym   = impl->e->d.prim.d.var;
 // use envset
 // or better, some function with envset and traverse
-  const m_uint scope   = env_push(env, NULL, opi.nspc);
+  const m_uint scope   = env_push_nspc(env, opi.nspc);
   // we assume succes here
   /*const bool ret = */ traverse_func_def(env, def);
   env_pop(env, scope);

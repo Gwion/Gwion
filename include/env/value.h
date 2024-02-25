@@ -60,4 +60,9 @@ ANN static inline void valid_value(const Env env, const Symbol xid, const Value 
   set_vflag(v, vflag_valid);
   nspc_add_value(env->curr, xid, v);
 }
+
+ANN static inline m_uint env_pushv(const Env env, const Value value) {
+  return env_push(env, value->from->owner_class, value->from->owner);
+}
+
 #endif

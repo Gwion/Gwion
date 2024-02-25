@@ -191,7 +191,7 @@ ANN static bool start(const Plug plug, const Gwion gwion, const m_str iname, con
   plug->nspc = new_nspc(gwion->mp, iname);
   vector_add(&gwion->data->plugs->vec, (m_uint)plug->nspc);
   set_parent(plug->nspc, gwion);
-  const m_uint scope = env_push(gwion->env, NULL, plug->nspc);
+  const m_uint scope = env_push_nspc(gwion->env, plug->nspc);
   const m_str  name  = gwion->env->name;
   gwion->env->name   = iname;
   const bool ret   = gwi_run(gwion, plug->plugin);

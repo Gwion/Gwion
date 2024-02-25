@@ -676,8 +676,10 @@ ANN static bool check_func_args(const Env env, Arg_List args) {
     Arg *arg = mp_vector_at(args, Arg, i);
     const Var_Decl *decl = &arg->var.vd;
     const Value    v    = decl->value;
-    if(decl->tag.sym && !can_define(env, decl->tag.sym, decl->tag.loc))
+    if(decl->tag.sym && !can_define(env, decl->tag.sym, decl->tag.loc)) {
       POISON(ok, env);
+      continue;
+    }
     valid_value(env, decl->tag.sym, v);
   }
   return ok;
@@ -775,8 +777,10 @@ ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
     for(uint32_t i = 0; i < len; i++) {
       Specialized *spec = mp_vector_at(sl, Specialized, i);
       if (tmplarg_match(env, spec->tag.sym, fdef->base->td->tag.sym, fdef->base->ret_type)) {
-         if(!check_exp(env, exp->other))
+         if(!check_exp(env, exp->other)) {
            POISON_NODE(ok, env, exp->other);
+           continue;
+        }
          if(!is_func(env->gwion, exp->other->type)) {
            TmplArg targ = {
              .type = tmplarg_td,
@@ -2056,8 +2060,10 @@ ANN static bool _check_trait_def(const Env env, const Trait_Def pdef) {
   for(m_uint i = 0; i < l->len; i++) {
     const Stmt* stmt = mp_vector_at(l, Stmt, i);
         if (stmt->stmt_type == ae_stmt_exp) {
-          if(!traverse_exp(env, stmt->d.stmt_exp.val))
+          if(!traverse_exp(env, stmt->d.stmt_exp.val)) {
             POISON_NODE(ok, env, stmt->d.stmt_exp.val);
+            continue;
+          }
           Var_Decl vd = stmt->d.stmt_exp.val->d.exp_decl.var.vd;
           const Value value = vd.value;
           valuefrom(env, value->from);

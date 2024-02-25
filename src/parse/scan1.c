@@ -439,8 +439,10 @@ ANN static bool scan1_args(const Env env, Arg_List args) {
     }
     if (arg->var.td) {
       SET_FLAG(arg->var.td, late);
-      if(!(arg->type = void_type(env, arg->var.td)))
+      if(!(arg->type = void_type(env, arg->var.td))) {
         POISON(ok, env);
+        continue;
+      }
       if (GET_FLAG(env->func->def->base, global) && !type_global(env, arg->type))
         ERR_OK(ok, arg->var.td->tag.loc, "is not global");
     }
@@ -546,8 +548,10 @@ ANN static inline bool scan1_union_def_inner_loop(const Env env,
   bool ok = true;
   for(uint32_t i = 0; i < l->len; i++) {
     Variable *um = mp_vector_at(l, Variable, i);
-    if (nspc_lookup_value0(env->curr, um->vd.tag.sym))
+    if (nspc_lookup_value0(env->curr, um->vd.tag.sym)) {
       ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym));
+      continue;
+    }
     const Type t = known_type(env, um->td);
     if(t) {
       if(tflag(t, tflag_ref)) {
@@ -641,8 +645,10 @@ ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
-    if(!scan1_stmt(env, stmt))
+    if(!scan1_stmt(env, stmt)) {
       POISON_NODE(ok, env, stmt);
+      continue;
+    }
     if(end_flow(stmt)) break;
   }
   if(++i < l->len) dead_code(env, l, i);

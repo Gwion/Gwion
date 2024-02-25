@@ -27,6 +27,7 @@ ANN Value new_value(const Env env, const Type type, const Tag tag) {
 }
 
 ANN void valuefrom(const Env env, ValueFrom *from) {
+  from->filename    = env->name;
   from->owner       = env->curr;
   from->owner_class = env->scope->depth ? NULL : env->class_def;
   from->ctx         = env->context;

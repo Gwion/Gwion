@@ -157,7 +157,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
   struct ResolverArgs ra     = {
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   CHECK_O(envset_pushv(&es, v));
-  (void)env_push(env, v->from->owner_class, v->from->owner);
+  (void)env_pushv(env, v);
   const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
       get_tmpl(v->from->owner_class) : NULL;
   if(tmpl)

@@ -86,7 +86,7 @@ ANN static inline Type find(const Env env, Type_Decl *td) {
   const Type exists = find_type(env, td);
   if(exists) return exists;
   const m_uint scope = env->context
-      ? env_push(env, NULL, env->context->nspc)
+      ? env_push_nspc(env, env->context->nspc)
       : env_push_global(env);
   const bool ret = traverse_fptr_def(env, fptr);
   env_pop(env, scope);

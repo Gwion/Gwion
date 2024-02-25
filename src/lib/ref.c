@@ -162,8 +162,7 @@ static OP_CHECK(opck_ref_scan) {
   set_tflag(t, tflag_check);
   set_tflag(t, tflag_emit);
   set_tflag(t, tflag_ref);
-  const m_uint scope = env_push(env, base->info->value->from->owner_class,
-                                base->info->value->from->owner);
+  const m_uint scope = env_pushv(env, base->info->value);
   mk_class(env, t, ts->td->tag.loc);
   base2ref(env, base, t);
   ref2base(env, t, base);

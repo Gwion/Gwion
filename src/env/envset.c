@@ -25,7 +25,7 @@ ANN static bool push(struct EnvSet *es, const Type t) {
   if (owner_class)
     CHECK_B(push(es, owner_class));
   else
-    env_push(es->env, NULL,
+    env_push_nspc(es->env,
              t->info->value->from->ctx ? t->info->value->from->ctx->nspc
                                        : es->env->curr);
   env_push_type((void *)es->env, t); // do not push if is a function?
@@ -45,7 +45,7 @@ bool envset_push(struct EnvSet *es, const Type t, const Nspc nspc) {
     return es->run ? push(es, t) : true;
   }
   if (nspc != es->env->curr) {
-    env_push(es->env, NULL, nspc);
+    env_push_nspc(es->env, nspc);
     es->run = 1;
   }
   return true;
