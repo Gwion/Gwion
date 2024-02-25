@@ -20,7 +20,7 @@ ANN bool gwi_item_ini(const Gwi gwi, const restrict m_str type,
 ANN static bool gwi_item_tmpl(const Gwi gwi) {
   Stmt_List slist = new_mp_vector(gwi->gwion->mp, Stmt, 1);
   mp_vector_set(slist, Stmt, 0, MK_STMT_EXP(gwi->loc, gwi->ck->exp));
-  Section section = MK_SECTION(stmt, stmt_list, slist);
+  Section section = MK_SECTION(stmt, stmt_list, slist, gwi->loc);
   gwi_body(gwi, &section);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;

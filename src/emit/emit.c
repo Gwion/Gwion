@@ -117,7 +117,7 @@ static const f_instr allocmember[4] = {RegPushImm, RegPushImm2, _staticmemset_,
 static const f_instr allocword[4]   = {AllocWord, AllocWord2, AllocWord3,
                                     RegPushMem4};
 
-ANN static bool      emit_class_def(const Emitter, const Class_Def);
+ANN static bool emit_class_def(const Emitter, const Class_Def);
 ANN static bool emit_cdef(const Emitter, const Type);
 
 ANN static bool ensure_emit(const Emitter emit, const Type t) {
@@ -919,8 +919,7 @@ ANN static bool struct_finish(const Emitter emit, const Exp_Decl *decl) {
   const Type t = decl->type;
   const bool emit_addr = exp_getvar(exp_self(decl));
   if(GET_FLAG(decl->var.vd.value, late) || GET_FLAG(decl->var.td, late)) {
-    if(!emit_addr)
-    decl_expand(emit, t);
+    if(!emit_addr) decl_expand(emit, t);
     return true;
   }
   if(!decl->args && !tflag(t, tflag_ctor) && emit_addr)
@@ -2246,13 +2245,13 @@ ANN static bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   emit_memsetimm(emit, key_offset, -1);
   stmt->var.value->from->offset = val_offset;
 //value_addref(stmt->v);
-_nspc_add_value(emit->env->curr, stmt->tag.sym, stmt->var.value);
+  _nspc_add_value(emit->env->curr, stmt->var.tag.sym, stmt->var.value);
   emit_debug(emit, stmt->var.value);
-  if (stmt->idx) {
-    stmt->idx->var.value->from->offset = key_offset;
-_nspc_add_value(emit->env->curr, stmt->idx->var.tag.sym, stmt->idx->var.value);
+  if (stmt->idx.tag.sym) {
+    stmt->idx.value->from->offset = key_offset;
+_nspc_add_value(emit->env->curr, stmt->idx.tag.sym, stmt->var.value);
 //value_addref(stmt->idx->v);
-    emit_debug(emit, stmt->idx->var.value);
+    emit_debug(emit, stmt->idx.value);
   }
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,
@@ -2260,7 +2259,7 @@ _nspc_add_value(emit->env->curr, stmt->idx->var.tag.sym, stmt->idx->var.value);
                         .n      = n,
                         .roll   = each_op,
                         .unroll = each_op,
-                        .idx    = stmt->idx,
+                        .idx    = stmt->idx.tag.sym ? &stmt->idx : NULL,
                         .init = false
                         };
   if (n) {
@@ -2296,7 +2295,7 @@ ANN static bool emit_stmt_each(const Emitter emit, const Stmt_Each stmt) {
   m_uint       end_pc = 0;
   const bool ret    = _emit_stmt_each(emit, stmt, &end_pc);
   emit_pop_stack(emit, end_pc);
-nspc_pop_value(emit->gwion->mp, emit->env->curr);
+  nspc_pop_value(emit->gwion->mp, emit->env->curr);
   emit->status.unroll = 0;
   return ret;
 }
@@ -2322,21 +2321,21 @@ ANN static bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
     emit->status.unroll = 0;
   }
   const m_uint offset = emit_local(emit, emit->gwion->type[et_int]);
-  if (stmt->idx) {
+  if (stmt->idx.tag.sym) {
     emit_memsetimm(emit, emit_local(emit, emit->gwion->type[et_int]), 0);
     emit_memsetimm(emit, offset, -1);
-    stmt->idx->var.value->from->offset = offset;
+    stmt->idx.value->from->offset = offset;
   }
   CHECK_B(emit_exp_pop_next(emit, stmt->cond));
   emit_regmove(emit, -SZ_INT);
-  emit_regtomem(emit, offset + !!stmt->idx * SZ_INT, 0);
+  emit_regtomem(emit, offset + !!stmt->idx.tag.sym * SZ_INT, 0);
   *index             = emit_code_size(emit);
   struct Looper loop = {.exp    = stmt->cond,
                         .stmt   = stmt->body,
                         .offset = offset,
                         .n      = n,
                         .roll =
-                            !stmt->idx ? stmt_loop_roll : stmt_loop_roll_idx};
+                            !stmt->idx.tag.sym ? stmt_loop_roll : stmt_loop_roll_idx};
   CHECK_B(looper_run(emit, &loop));
   const Instr _goto = emit_add_instr(emit, Goto);
   _goto->m_val      = *index;

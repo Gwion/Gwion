@@ -38,6 +38,7 @@ ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
   gwi->gwfmt = &gwfmter;
   const bool ret = f(gwi);
   fprintf(stdout, "%s", ls.text.str);
+  free_mstr(gwi->gwion->mp, ls.text.str);
   return ret;
 }
 

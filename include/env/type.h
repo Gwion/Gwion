@@ -58,6 +58,7 @@ struct Type_ {
   uint16_t          weight;
   ae_flag           flag;
   enum tflag        tflag;
+  bool error;
 };
 
 REF_FUNC(Type, type)

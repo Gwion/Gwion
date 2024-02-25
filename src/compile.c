@@ -118,7 +118,7 @@ ANN static inline bool passes(struct Gwion_ *gwion, struct Compiler *c) {
     if(isa(v->type, gwion->type[et_class])) {
       const Type t = (Type)v->d.ptr;
       type_addref(t);
-      mk_class(gwion->env, t, (loc_t) {});
+      mk_class(gwion->env, t, t->info->value->from->loc);
       nspc_add_type(gwion->env->curr, insert_symbol(gwion->st, v->name), t);
     } else
       valid_value(gwion->env, insert_symbol(gwion->st, v->name), v);
@@ -136,13 +136,9 @@ ANN static inline bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   return ret;
 }
 
-static pos_t pos = { 1 , 1 };
-void gwion_set_default_pos(const pos_t _pos) {
-  pos = _pos;
-}
 ANN static inline bool _check(struct Gwion_ *gwion, struct Compiler *c) {
   struct AstGetter_ arg = {c->name, c->file, gwion->st, .ppa = gwion->ppa};
-  CHECK_B((c->ast = parse_pos(&arg, pos)));
+  CHECK_B((c->ast = parse(&arg)));
   gwion->env->name = c->name;
   return passes(gwion, c);
 }

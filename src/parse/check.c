@@ -1351,7 +1351,7 @@ ANN Type check_exp(const Env env, Exp* exp) {
   do {
     if(curr->type) continue;
     if(curr->poison) continue;
-    if(!(curr->type = check_exp_func[curr->exp_type](env, &curr->d))) {
+    if(!(curr->type = check_exp_func[curr->exp_type](env, &curr->d)) || curr->type->error) {
       POISON_NODE(ok, env, curr);
       continue;
     }
@@ -1405,20 +1405,20 @@ ANN static inline bool for_empty(const Env env, const Stmt_For stmt) {
   return true;
 }
 
-ANN static void check_idx(const Env env, const Type base, struct EachIdx_ *const idx) {
-  idx->var.value = new_value(env, base, idx->var.tag);
-  valid_value(env, idx->var.tag.sym, idx->var.value);
-  SET_FLAG(idx->var.value, const);
+ANN static void check_idx(const Env env, const Type base, Var_Decl *const idx) {
+  idx->value = new_value(env, base, idx->tag);
+  valid_value(env, idx->tag.sym, idx->value);
+  SET_FLAG(idx->value, const);
 }
 
 /** sets for the key expression value
     with eg  type *int* for an array or the *Key* type of a Dict **/
-ANN static bool check_each_idx(const Env env, Exp* exp, struct EachIdx_ *const idx) {
+ANN static bool check_each_idx(const Env env, Exp* exp, Var_Decl *const idx) {
   struct Op_Import opi = {
     .lhs = exp->type,
     .op  = insert_symbol("@each_idx"),
     .data = (m_uint)exp,
-    .loc = idx->var.tag.loc
+    .loc = idx->tag.loc
   };
   DECL_B(const Type, t, = op_check(env, &opi));
   check_idx(env, t, idx);
@@ -1439,16 +1439,16 @@ ANN static Type check_each_val(const Env env, Exp* exp) {
 
 ANN static bool do_stmt_each(const Env env, const Stmt_Each stmt) {
   CHECK_B(check_exp(env, stmt->exp));
-  if (stmt->idx)
-    CHECK_B(check_each_idx(env, stmt->exp, stmt->idx));
+  if (stmt->idx.tag.sym)
+    CHECK_B(check_each_idx(env, stmt->exp, &stmt->idx));
   DECL_B(const Type, ret, = check_each_val(env, stmt->exp));
-  stmt->var.value = new_value(env, ret, stmt->tag);
-  valid_value(env, stmt->tag.sym, stmt->var.value);
+  stmt->var.value = new_value(env, ret, stmt->var.tag);
+  valid_value(env, stmt->var.tag.sym, stmt->var.value);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
 ANN static bool do_stmt_repeat(const Env env, const Stmt_Loop stmt) {
-  if (stmt->idx) check_idx(env, env->gwion->type[et_int], stmt->idx);
+  if (stmt->idx.tag.sym) check_idx(env, env->gwion->type[et_int], &stmt->idx);
   return check_conts(env, stmt_self(stmt), stmt->body);
 }
 
@@ -2076,6 +2076,7 @@ ANN static bool check_trait_def(const Env env, const Trait_Def pdef) {
 }
 
 ANN bool check_fptr_def(const Env env, const Fptr_Def fptr) {
+if(fptr->cdef->base.type->error) return false;
   if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
   const bool ret = check_class_def(env, fptr->cdef);
   if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
@@ -2232,8 +2233,10 @@ ANN static bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nsp
     for(uint32_t i = 0; i < tmpl->list->len; i++) {
       const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
       if(likely(targ.type == tmplarg_td)) continue;
-      if(!check_exp(env, targ.d.exp))
+      if(!check_exp(env, targ.d.exp)) {
         POISON_NODE(ok, env, targ.d.exp);
+        continue;
+      }
       const Specialized spec = *mp_vector_at(tmpl->list, Specialized, i);
       const Value v = new_value(env, targ.d.exp->type, MK_TAG(spec.tag.sym, targ.d.exp->loc));
       valuefrom(env, v->from);

@@ -8,6 +8,7 @@
 #include "operator.h"
 #include "instr.h"
 #include "import.h"
+#include "gwfmt.h"
 
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   const Array_Sub array = td->array;
@@ -117,7 +118,12 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
 }
 
 ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
+  struct GwfmtState ls     = {};
+  text_init(&ls.text, env->gwion->mp);
+  Gwfmt gwfmter = {.mp = env->gwion->mp, .ls = &ls, .st = env->gwion->st };
+  gwfmt_type_decl(&gwfmter, td);
   env_err(env, td->tag.loc, _("unknown type '%s'"), s_name(td->tag.sym));
+  free_mstr(env->gwion->mp, ls.text.str);
   return NULL;
 }
 

@@ -64,7 +64,7 @@ ANN bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
     insert_symbol("func"), args, ae_flag_static | ae_flag_private, loc);
   const Func_Def fdef = new_func_def(env->gwion->mp, fbase, NULL);
   Ast body = new_mp_vector(env->gwion->mp, Section, 1);
-  mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
+  mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef, loc));
   Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
   const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->tag, td, body);
   if(global) SET_FLAG(cdef, global);

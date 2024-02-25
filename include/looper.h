@@ -16,7 +16,7 @@ struct Looper {
     struct Vector_ unroll_v;
     Instr instr;
 //  };
-  struct EachIdx_ *idx;
+  Var_Decl *idx;
   bool init;
 };
 #endif

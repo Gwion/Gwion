@@ -161,16 +161,13 @@ ANN static void clean_stmt_for(Clean *a, Stmt_For b) {
   --a->scope;
 }
 
-ANN static void clean_idx(Clean *a, struct EachIdx_ *b) {
-  if (b->var.value) value_remref(b->var.value, a->gwion);
-}
-
 ANN static void clean_stmt_each(Clean *a, Stmt_Each b) {
   ++a->scope;
   clean_exp(a, b->exp);
   clean_stmt(a, b->body);
+  // use clean var_decl?
   if (b->var.value) mp_free(a->gwion->mp, Value, b->var.value);
-  if (b->idx) clean_idx(a, b->idx);
+  if (b->idx.value) clean_var_decl(a, &b->idx);
   --a->scope;
 }
 
@@ -178,6 +175,7 @@ ANN static void clean_stmt_loop(Clean *a, Stmt_Loop b) {
   ++a->scope;
   clean_exp(a, b->cond);
   clean_stmt(a, b->body);
+  if(b->idx.value) clean_var_decl(a, &b->idx);
   --a->scope;
 }
 

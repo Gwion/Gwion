@@ -75,6 +75,7 @@ ANN static Value scan2_func_assign(const Env env, const Func_Def d,
 }
 
 ANN bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
+  if(fptr->cdef->base.type->error) return false;
   if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
   const bool ret = scan2_class_def(env, fptr->cdef);
   const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
@@ -360,7 +361,7 @@ static bool scan2_fdef_tmpl(const Env env, const Func_Def f,
                               const Value overload) {
   const m_str name  = s_name(f->base->tag.sym);
   const Func  func  = scan_new_func(env, f, name);
-  const Value value = func_value(env, func, overload);
+  DECL_B(const Value, value, = func_value(env, func, overload));
   set_fflag(func, fflag_tmpl);
   set_vflag(value, vflag_valid);
   set_tflag(value->type,
@@ -453,9 +454,9 @@ ANN static m_str func_tmpl_name(const Env env, const Func_Def f) {
 ANN2(1, 2, 4)
 static Value func_create(const Env env, const Func_Def f, const Value overload,
                          const m_str name) {
-  const Func func = scan_new_func(env, f, name);
+  DECL_B(const Func, func, = scan_new_func(env, f, name));
   nspc_add_func(env->curr, insert_symbol(func->name), func);
-  const Value v = func_value(env, func, overload);
+  DECL_B(const Value, v, = func_value(env, func, overload));
   scan2_func_def_flag(env, f);
   nspc_add_value(env->curr, insert_symbol(func->name), v);
   return v;

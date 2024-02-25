@@ -807,13 +807,13 @@ static OP_CHECK(opck_array_scan) {
           = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   if (base->size == 0) {
     gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
-                "/dev/null", (loc_t) {}, 0);
+                env->context->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   if (tflag(base, tflag_ref)) {
-    gwerr_basic("Can't use ref types as array base", NULL, NULL, "/dev/null",
-                (loc_t) {}, 0);
+    gwerr_basic("Can't use ref types as array base", NULL, NULL,
+                env->context->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
@@ -821,10 +821,10 @@ static OP_CHECK(opck_array_scan) {
   const Type   type = nspc_lookup_type1(base->info->value->from->owner, sym);
   if (type) return type;
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
-  cdef->base.ext        = type2td(env->gwion, t_array, (loc_t){});
+  cdef->base.ext        = type2td(env->gwion, t_array, t_array->info->value->from->loc);
   cdef->base.tag.sym    = sym;
   cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, TmplArg, 1);
-  TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, (loc_t){})} };
+  TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, base->info->value->from->loc)} };
   mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
   const Context ctx  = env->context;
   env->context       = base->info->value->from->ctx;

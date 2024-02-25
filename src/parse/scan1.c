@@ -308,12 +308,12 @@ ANN static inline bool scan1_stmt_try(const restrict Env env,
 ANN static inline bool stmt_each_defined(const restrict Env env,
                                            const Stmt_Each    stmt) {
   bool ok = true;
-  if (nspc_lookup_value1(env->curr, stmt->tag.sym))
+  if (nspc_lookup_value1(env->curr, stmt->var.tag.sym))
     ERR_OK_NODE(ok, stmt_self(stmt), stmt_self(stmt)->loc, _("foreach value '%s' is already defined"),
-          s_name(stmt->tag.sym));
-  if (stmt->idx && nspc_lookup_value1(env->curr, stmt->idx->var.tag.sym))
-    ERR_OK_NODE(ok, stmt_self(stmt), stmt->idx->var.tag.loc, _("foreach index '%s' is already defined"),
-          s_name(stmt->idx->var.tag.sym));
+          s_name(stmt->var.tag.sym));
+  if (stmt->idx.tag.sym && nspc_lookup_value1(env->curr, stmt->idx.tag.sym))
+    ERR_OK_NODE(ok, stmt_self(stmt), stmt->idx.tag.loc, _("foreach index '%s' is already defined"),
+          s_name(stmt->idx.tag.sym));
   return ok;
 }
 
@@ -356,7 +356,7 @@ describe_ret_nspc(for, Stmt_For,, !(!scan1_stmt(env, stmt->c1) ||
     !scan1_stmt(env, stmt->body)) ? true : false)
 describe_ret_nspc(each, Stmt_Each,, !(!stmt_each_defined(env, stmt) || !scan1_exp(env, stmt->exp) ||
     !scan1_stmt(env, stmt->body)) ? true : false)
-describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx ? true : !shadow_var(env, stmt->idx->var.tag)) ||
+describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx.tag.sym ? true : !shadow_var(env, stmt->idx.tag)) ||
     !scan1_exp(env, stmt->cond) ||
     !scan1_stmt(env, stmt->body)) ? true : false)
 
@@ -550,8 +550,10 @@ ANN static inline bool scan1_union_def_inner_loop(const Env env,
       ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym));
     const Type t = known_type(env, um->td);
     if(t) {
-      if(tflag(t, tflag_ref))
+      if(tflag(t, tflag_ref)) {
         ERR_OK(ok, um->vd.tag.loc, _("can't declare ref type in union"));
+        continue;
+      }
       const Value v = new_value(env, t, um->vd.tag);
       tuple_contains(env, v);
       valuefrom(env, v->from);
@@ -849,12 +851,13 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
     Symbol sym = insert_symbol("@ctor");
     Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.tag.loc);
     Func_Def  fdef = new_func_def(mp, fb, ctor);
-    mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef));
+    mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef, cdef->base.tag.loc));
     free_mp_vector(mp, Section, base);
     cdef->body = body;
   }
 //  return 
-env_body(env, cdef, scan1_section);
+// check for previous errors?
+cdef->base.type->error = !env_body(env, cdef, scan1_section);
 return true;
 }
 

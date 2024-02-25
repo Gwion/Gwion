@@ -230,7 +230,7 @@ ANN bool gwi_primitive(const Gwi gwi, const m_str name, const m_uint size, const
     free_prim_def(gwi->gwion->mp, pdef);
     return ret;
   }
-  Section section = MK_SECTION(primitive, prim_def, pdef);
+  Section section = MK_SECTION(primitive, prim_def, pdef, gwi->loc);
   gwi_body(gwi, &section);
   return true;
 }

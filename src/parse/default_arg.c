@@ -62,7 +62,7 @@ ANN Func_Def default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max) 
       ? std_code(env, fb, max)
       : new_code(env, fb, max);
   const Func_Def  fdef  = new_func_def(env->gwion->mp, base, code);
-  Section section = MK_SECTION(func, func_def, fdef);
+  Section section = MK_SECTION(func, func_def, fdef, fb->tag.loc);
   mp_vector_add(env->gwion->mp, acc, Section, section);
   return fdef;
 }

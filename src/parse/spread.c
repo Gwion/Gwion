@@ -53,7 +53,7 @@ ANN bool spread_ast(const Env env, const Spread_Def spread, const Tmpl *tmpl) {
     free_mp_vector(env->gwion->mp, Section , ast);
   }
   fclose(f);
-  mp_vector_add(env->gwion->mp, &env->context->extend, Section, MK_SECTION(stmt, stmt_list, NULL));
+  mp_vector_add(env->gwion->mp, &env->context->extend, Section, MK_SECTION(stmt, stmt_list, NULL, spread->tag.loc));
   return true;
 }
 
@@ -70,7 +70,7 @@ ANN Ast spread_class(const Env env, const Ast body) {
         const Stmt stmt = *mp_vector_at(list, Stmt, j);
         if(stmt.stmt_type == ae_stmt_spread) {
           if(acc) {
-            mp_vector_add(env->gwion->mp, &new_body, Section, MK_SECTION(stmt, stmt_list, acc));
+            mp_vector_add(env->gwion->mp, &new_body, Section, MK_SECTION(stmt, stmt_list, acc, stmt.loc));
             acc = NULL;
           }
           const Ast extend = env->context->extend;
@@ -90,7 +90,7 @@ ANN Ast spread_class(const Env env, const Ast body) {
         }
       }
       if(acc) {
-        mp_vector_add(env->gwion->mp, &new_body, Section, MK_SECTION(stmt, stmt_list, acc));
+        mp_vector_add(env->gwion->mp, &new_body, Section, MK_SECTION(stmt, stmt_list, acc, section.loc));
       }
     }
   }

@@ -517,10 +517,10 @@ static INSTR(DictEachIdx) {
 static OP_EMIT(opem_dict_each) {
   Looper *loop = (Looper *)data;
   HMapInfo *const hinfo = (HMapInfo*)loop->exp->type->nspc->class_data;
-  if(loop->idx && !loop->init) loop->idx->var.value->from->offset = emit_localn(emit, hinfo->key);
-  const Instr instr = emit_add_instr(emit, !loop->idx ? DictEach : DictEachIdx);
+  if(loop->idx && !loop->init) loop->idx->value->from->offset = emit_localn(emit, hinfo->key);
+  const Instr instr = emit_add_instr(emit, !loop->idx->tag.sym ? DictEach : DictEachIdx);
   instr->m_val2 = loop->offset;
-  if(loop->idx) instr->m_val = loop->idx->var.value->from->offset;
+  if(loop->idx) instr->m_val = loop->idx->value->from->offset;
   if(loop->n)instr->m_val2 += SZ_INT;
   const Instr go = emit_add_instr(emit, BranchNeqInt);
   if(!loop->n) loop->instr = go;
