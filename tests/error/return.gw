@@ -1,0 +1,2 @@
+#! [contains] 'return' statement found outside function definition
+class C { return;}

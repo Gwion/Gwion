@@ -1,0 +1,2 @@
+#! [contains] ref types as array base
+var Array:[&void][12] i;

@@ -1,0 +1,2 @@
+#! [contains] type of size 0 as array base
+var void[12] i;

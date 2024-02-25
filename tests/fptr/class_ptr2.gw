@@ -1,10 +1,10 @@
 class C {
   fun void test(int i) { <<<  "int arg"  >>>; }
-  funptr void PtrType(int i);
+  funptr void PtrType(int);
   test :=> var static PtrType p;
-  p(1);
+  p(this, 1);
   test :=> p;
-  p(1);
+  p(this,1);
 }
 
 var C c;
