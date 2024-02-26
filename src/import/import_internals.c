@@ -43,15 +43,10 @@ ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
 }
 
 ANN bool gwi_run(const Gwion gwion, bool (*f)(const Gwi)) {
-  const m_str name = gwion->env->name;
-  //  const Context ctx = gwion->env->context;
-  //  gwion->env->context = NULL;
   OperCK       oper = {};
   struct Gwi_  gwi  = {.gwion = gwion, .oper = &oper};
   const bool ret  = !gwion->data->cdoc ? f(&gwi) : run_with_doc(&gwi, f);
   if (!ret) gwi_reset(&gwi);
-  gwion->env->name = name;
-  //  gwion->env->context = ctx;
   return ret;
 }
 

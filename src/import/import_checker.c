@@ -195,7 +195,7 @@ ANN static Arg_List fptr_args(const Gwion gwion, struct td_checker *tdc) {
 ANN static Type_Decl *str2td_fptr(const Gwion gwion, struct td_checker *tdc) {
   const m_str base = tdc->str;
   tdc->str++;
-  Type_Decl *const ret_td = _str2td(gwion, tdc);
+  DECL_O(Type_Decl *const, ret_td, = _str2td(gwion, tdc));
   const TmplArg_List tl = td_tmpl(gwion, tdc);
   if (tl == TMPLARG_ERROR) {
     free_type_decl(gwion->mp, ret_td);

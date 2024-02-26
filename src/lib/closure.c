@@ -614,8 +614,9 @@ static OP_CHECK(opck_op_impl) {
 // or better, some function with envset and traverse
   const m_uint scope   = env_push_nspc(env, opi.nspc);
   // we assume succes here
-  /*const bool ret = */ traverse_func_def(env, def);
+  const bool ret = traverse_func_def(env, def);
   env_pop(env, scope);
+  if(!ret) return NULL;
   def->base->func->value_ref->type->info->parent = env->gwion->type[et_op];
 	  impl->e->type         = def->base->func->value_ref->type;
   impl->e->d.prim.value = def->base->func->value_ref;
