@@ -228,8 +228,7 @@ ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t
 ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Env env = gwion->env;
   if(!_plugin_ini(gwion, iname, loc)) {
-    if(gwion->env->context && !gwion->env->context->error)
-      env_err(env, loc, "%s: no such plugin\n", iname);
+    env_err(env, loc, "%s: no such plugin\n", iname);
     return false;
   }
   return true;

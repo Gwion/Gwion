@@ -467,13 +467,11 @@ static OP_CHECK(opck_fptr_cast) {
 }
 
 static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
-  if (!env->context->error) {
-    gwerr_basic(_("invalid operator decay"),
-                _("Decayed operators take two arguments"), NULL, env->name, loc,
-                0);
-    if (fdef) defined_here(fdef->base->func->value_ref);
-    env_set_error(env, true);
-  }
+  gwerr_basic(_("invalid operator decay"),
+              _("Decayed operators take two arguments"), NULL, env->name, loc,
+            0);
+  if (fdef) defined_here(fdef->base->func->value_ref);
+  env_set_error(env, true);
 }
 static bool op_call_narg(const Env env, Exp* arg, const loc_t loc) {
   m_uint narg = 0;

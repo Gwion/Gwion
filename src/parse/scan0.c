@@ -417,11 +417,8 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
           POISON_NODE(ok, env, stmt);
       }
     } else if (stmt->stmt_type == ae_stmt_spread) {
-      if(!spreadable(env)) {
+      if(!spreadable(env))
         ERR_OK_NODE(ok, stmt, stmt->loc, "spread statement outside of variadic environment");
-        stmt->poison = true;
-        env->context->error = true;
-      }
       if(!env->context->extend)
          env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
       if(!spread_tmpl(env, &stmt->d.stmt_spread))

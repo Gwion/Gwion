@@ -145,11 +145,9 @@ ANN static bool request_fun(const Env env, const Type t,
   const Value parent = nspc_lookup_value1(env->global_nspc, request->base->tag.sym);
   if(parent) {
     const Value v = nspc_lookup_value1(env->curr, request->base->tag.sym);
-    if(!env->context->error) {
-      gwerr_basic_from("is missing {+G}global{0}", NULL, NULL, v->from, 0);
-      gwerr_secondary("from requested func", env->name, request->base->tag.loc);
-      env_set_error(env, true);
-    }
+    gwerr_basic_from("is missing {+G}global{0}", NULL, NULL, v->from, 0);
+    gwerr_secondary("from requested func", env->name, request->base->tag.loc);
+    env_set_error(env, true);
   } else gwerr_basic("missing requested function", NULL, NULL, env->name,
               request->base->tag.loc, 0);
   return false;

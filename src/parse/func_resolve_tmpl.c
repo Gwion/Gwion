@@ -43,7 +43,6 @@ tmpl_valid(const Env env, const Func_Def fdef, const m_str filename) {
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
                             Exp_Call *const exp, const m_str filename) {
   if (!tmpl_valid(env, fdef, filename)) return NULL;
-  if(env->context && env->context->error) return NULL;
   if (exp->args && !exp->args->type) return NULL;
   const Func f    = fdef->base->func;
   const Tmpl tmpl = {.list = fdef->base->tmpl->list, .call = exp->tmpl->call};

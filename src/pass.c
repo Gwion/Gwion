@@ -12,18 +12,11 @@
 #define N_SCANPASS 4
 
 static bool typecheck_ast(const Env env, Ast *ast) {
-  if(!scan0_ast(env, ast))
-    env->context->error = true;
-  if(!scan1_ast(env, ast))
-    env->context->error = true;
-  if(!scan2_ast(env, ast))
-    env->context->error = true;
-  if(!check_ast(env, ast))
-    env->context->error = true;
-//  CHECK_B(traverse_ast(env, ast));
-//  if(env->scope->poison)env->context->error = true;
-  if(env->context->error)return false;
-  return true;
+  scan0_ast(env, ast);
+  scan1_ast(env, ast);
+  scan2_ast(env, ast);
+  check_ast(env, ast);
+  return !env->context->error;
 }
 
 static const m_str            default_passes_name[2] = {"check", "emit"};

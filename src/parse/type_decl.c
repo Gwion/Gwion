@@ -108,8 +108,7 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
   Type_Decl *last = td;
   while (last->next) last = last->next;
   DECL_O(const Type, base, = find(env, td));
-  const Context ctx = base->info->value->from->ctx;
-  if (ctx && ctx->error) ERR_O(td->tag.loc, _("type '%s' is invalid"), base->name);
+  if (base->error) ERR_O(td->tag.loc, _("type '%s' is invalid"), base->name);
   DECL_O(const Type, type, = find1(env, base, td));
   DECL_O(const Type, t,    = !td->ref ? type : ref(env, td));
   DECL_O(const Type, ret,  = !td->option ? t : option(env, td));

@@ -312,21 +312,8 @@ ANN static bool td_info_run(const Env env, struct td_info *info) {
     if (i) text_add(&info->fmt->ls->text, ",");
     TmplArg *targ = mp_vector_at(tl, TmplArg, i);
     if(targ->type == tmplarg_td) {
-      // we may need to stop errors
-      if(env->context) env->context->error = true;
-      const Type t = known_type(env, targ->d.td);
-      if(env->context) env->context->error = false;
-      if(t)
-        td_fullname(env, &info->fmt->ls->text, t);
-      else {
-        Exp* exp = td2exp(gwion->mp, targ->d.td);
-        if(traverse_exp(env, exp)) {
-          if(is_class(gwion, exp->type)) {
-            td_fullname(env, &info->fmt->ls->text, exp->type);
-            free_exp(gwion->mp, exp);
-          } else gwfmt_exp(info->fmt, exp);
-        } else GWION_ERR_B(targ->d.td->tag.loc, "invalid template argument");
-      }
+      DECL_B(const Type, t, = known_type(env, targ->d.td));
+      td_fullname(env, &info->fmt->ls->text, t);
     } else {
       Exp* exp = targ->d.exp;
       if(check_exp(env, targ->d.exp)) {
