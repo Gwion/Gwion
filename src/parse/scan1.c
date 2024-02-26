@@ -645,6 +645,7 @@ ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(stmt->poison) { ok = false; continue;}
     if(!scan1_stmt(env, stmt)) {
       POISON_NODE(ok, env, stmt);
       continue;
@@ -845,10 +846,12 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
     Ast body = new_mp_vector(mp, Section, 1); // room for ctor
     for(uint32_t i = 0; i < base->len; i++) {
       Section section = *mp_vector_at(base, Section, i);
+      if(section.poison) continue;
       if(section.section_type == ae_section_stmt) {
         Stmt_List list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
           Stmt* stmt = mp_vector_at(list, Stmt, j);
+          if(stmt->poison) continue;
           mp_vector_add(mp, &ctor, Stmt, *stmt);
         }
       } else mp_vector_add(mp, &body, Section, section);
@@ -911,9 +914,9 @@ ANN bool scan1_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
-    if(section->poison) continue;
+    if(section->poison) { ok = false; continue;}
     if(!scan1_section(env, section))
-      POISON_NODE(ok, env, section);
+      POISON_SECTION(ok, env, section);
   }
   return ok;
 }

@@ -1354,7 +1354,7 @@ ANN Type check_exp(const Env env, Exp* exp) {
   env_weight(env, 1);
   do {
     if(curr->type) continue;
-    if(curr->poison) continue;
+    if(curr->poison) { ok = false; continue;}
     if(!(curr->type = check_exp_func[curr->exp_type](env, &curr->d)) || curr->type->error) {
       POISON_NODE(ok, env, curr);
       continue;
@@ -1750,6 +1750,7 @@ ANN bool check_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(stmt->poison) { ok = false; continue;}
     if(!check_stmt(env, stmt))
       POISON_NODE(ok, env, stmt);
   }
@@ -2303,18 +2304,20 @@ ANN static inline void check_unhandled(const Env env) {
   vector_pop(v);
 }
 
-ANN static void check_extend(const Env env, Ast ast) {
+ANN static bool check_extend(const Env env, Ast ast) {
+  bool ok = true;
   for(m_uint i = 0; i < ast->len; i++) {
     Section * section = mp_vector_at(ast, Section, i);
     if(section->poison) continue;
     if(!check_section(env, section)) {
-      section->poison = true;
+      POISON_SECTION(ok, env, section);
       continue;
     }
     mp_vector_add(env->gwion->mp, &env->context->tree, Section, *section);
   }
   free_mp_vector(env->gwion->mp, Section, env->context->extend);
   env->context->extend = NULL;
+  return ok;
 }
 
 ANN bool check_ast(const Env env, Ast *ast) {
@@ -2322,9 +2325,9 @@ ANN bool check_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
-    if(section->poison) continue;
+    if(section->poison) { ok = false; continue;} 
     if(!check_section(env, section))
-      POISON_NODE(ok, env, section);
+      POISON_SECTION(ok, env, section);
   }
   if(env->context->extend) check_extend(env, env->context->extend);
   if(ok && vector_size(&env->scope->effects)) check_unhandled(env);

@@ -409,6 +409,7 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(stmt->poison) { ok = false; continue; }
     if (stmt->stmt_type == ae_stmt_pp) {
       if (stmt->d.stmt_pp.pp_type == ae_pp_include)
         env->name = stmt->d.stmt_pp.data;
@@ -481,6 +482,7 @@ ANN static bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   bool ok = true;
   for(m_uint i = 0; i < ast->len; i++) {
     Section *section = mp_vector_at(ast, Section, i);
+    if(section->poison) { ok = false; continue; }
     if (section->section_type == ae_section_func) {
       const Func_Def fdef = section->d.func_def;
       if (fdef->base->flag != ae_flag_none &&
@@ -492,6 +494,7 @@ ANN static bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
       Stmt_List list = section->d.stmt_list;
       for(uint32_t i = 0; i < list->len; i++) {
         Stmt* stmt = mp_vector_at(list, Stmt, i);
+        if(stmt->poison) { ok = false; continue;}
         if(stmt->d.stmt_exp.val->exp_type != ae_exp_decl)
           ERR_OK(ok, stmt->loc, "trait can only contains variable requests and functions");
       }
@@ -567,8 +570,9 @@ ANN bool scan0_ast(const Env env, Ast *ast) {
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section * section = mp_vector_at(a, Section, i);
+    if(section->poison) { ok = false; continue;}
     if(!scan0_section(env, section))
-      POISON_NODE(ok, env, section);
+      POISON_SECTION(ok, env, section);
   }
   return ok;
 }

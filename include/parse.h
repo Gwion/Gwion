@@ -16,6 +16,14 @@
     (node)-> poison = true;                                                    \
   } while(false)
 
+#define POISON_SECTION(ok, env, node)                                          \
+  do {                                                                         \
+    if(node->section_type != ae_section_stmt)                                  \
+      POISON_NODE(ok, env, node);                                              \
+    else                                                                       \
+      env->context->error = true;                                              \
+} while(false)
+
 #define ERR_OK_NODE(ok, a, b, c, ...)                                          \
   do {                                                                         \
     env_err(env, (b), (c), ##__VA_ARGS__);                                     \
