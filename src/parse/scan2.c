@@ -604,10 +604,10 @@ ANN bool scan2_class_def(const Env env, const Class_Def cdef) {
   if (c->body) {
     const m_uint scope = env_push_type(env, t);
     const Tmpl *tmpl = cdef->base.tmpl;
-    if(tmpl && tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list)
+    if(tmpl)
       template_push_types(env, tmpl);
     const bool ret = scan2_class_body(env, c);
-    if(tmpl && tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list)
+    if(tmpl)
       nspc_pop_type(env->gwion->mp, env->curr);
     env_pop(env, scope);
     return ret;
