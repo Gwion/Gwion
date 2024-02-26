@@ -2271,7 +2271,6 @@ ANN static bool _check_class_def(const Env env, const Class_Def cdef) {
     ID_List list        = cdef->traits;
     if (!check_trait_requests(env, t, list, t->info->value->from)) {
       env->class_def = t;
-      env_error_footer(env);
       env_set_error(env, true);
       return false;
     }

@@ -64,7 +64,6 @@ ANN void   env_add_type(const Env, const Type, const loc_t);
 ANN Type   find_type(const Env, Type_Decl *);
 ANN void   env_err(const Env, const loc_t, const m_str fmt, ...);
 ANN void   env_warn(const Env, const loc_t, const m_str fmt, ...);
-ANN void   env_error_footer(const Env env);
 ANN Value  global_string(const Env env, const m_str str, const loc_t);
 ANN void   release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion);
 

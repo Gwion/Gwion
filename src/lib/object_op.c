@@ -187,7 +187,6 @@ ANN static bool member_access(const Env env, Exp* exp, const Value value) {
     if (GET_FLAG(value, private)) {
       gwerr_basic("invalid variable access", "is private", NULL, env->name,
                   exp->loc, 0);
-      env_error_footer(env);
       defined_here(value);
       env_set_error(env, true);
       return false;

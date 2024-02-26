@@ -70,7 +70,6 @@ ANN bool can_define(const Env env, const Symbol s, const loc_t loc) {
   if (!v || is_class(env->gwion, v->type)) return true;
   gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, loc, 0);
   declared_here(v);
-  env_error_footer(env);
   return false;
 }
 
