@@ -1433,11 +1433,9 @@ ANN bool traverse_dot_tmpl(const Emitter emit, const Func_Def fdef, const Value 
                       .func  = (_envset_func)emit_cdef,
                       .scope = scope,
                       .flag  = tflag_emit};
-  CHECK_B(envset_pushv(&es, v));
-  (void)emit_pushv(emit, v);
+  CHECK_B(envset_pushf(&es, v));
   const bool ret = traverse_emit_func_def(emit, fdef);
-  emit_pop(emit, scope);
-  envset_popv(&es, v);
+  envset_popf(&es, v);
   emit->env->scope->shadowing = shadowing;
   return ret;
 }
@@ -1479,11 +1477,9 @@ ANN static bool emit_template_code(const Emitter emit, const Func f) {
                       .func  = (_envset_func)emit_cdef,
                       .scope = scope,
                       .flag  = tflag_emit};
-  CHECK_B(envset_pushv(&es, v));
-  (void)emit_pushv(emit, v);
+  CHECK_B(envset_pushf(&es, v));
   const bool ret = emit_func_def(emit, f->def);
-  envset_popv(&es, v);
-  emit_pop(emit, scope);
+  envset_popf(&es, v);
   return ret ? push_func_code(emit, f) : false;
 }
 

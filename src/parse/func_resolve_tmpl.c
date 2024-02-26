@@ -32,10 +32,10 @@ ANN static inline Value template_get_ready(const Env env, const Value v,
 ANN static inline bool
 tmpl_valid(const Env env, const Func_Def fdef, const m_str filename) {
   if (safe_fflag(fdef->base->func, fflag_valid)) return true;
-  const m_str old_file = env->name;
-  env->name = filename;
+//  const m_str old_file = env->name;
+//  env->name = filename;
   const bool ret = check_traverse_fdef(env, fdef);
-  env->name = old_file;
+//  env->name = old_file;
   if(!fdef->base->func) free_func_def(env->gwion->mp, fdef);
   return ret;
 }
@@ -147,16 +147,14 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                           const m_str tmpl_name) {
   const TmplArg_List     types  = exp->tmpl->call;
   const Func          former = env->func;
-  const m_uint        scope  = env->scope->depth;
   struct EnvSet       es     = {.env   = env,
                       .data  = env,
                       .func  = (_envset_func)check_cdef,
-                      .scope = scope,
+                      .scope = env->scope->depth,
                       .flag  = tflag_check};
   struct ResolverArgs ra     = {
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_O(envset_pushv(&es, v));
-  (void)env_pushv(env, v);
+  CHECK_O(envset_pushf(&es, v));
   const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
       get_tmpl(v->from->owner_class) : NULL;
   if(tmpl)
@@ -166,8 +164,7 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                                : fptr_match(env, &ra);
   if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
-  env_pop(env, scope);
-  envset_popv(&es, v);
+  envset_popf(&es, v);
   env->func = former;
   return m_func;
 }
