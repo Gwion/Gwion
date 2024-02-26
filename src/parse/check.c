@@ -756,7 +756,7 @@ ANN static Type check_predefined(const Env env, Exp_Call *exp, const Value v,
     CHECK_O(envset_pushv(&es, v));
     func->def->base->fbflag |= fbflag_internal;
     const bool ret = check_traverse_fdef(env, func->def);
-    envset_pop(&es, v->from->owner_class);
+    envset_popv(&es, v);
     CHECK_O(ret);
   }
   exp->func->type = func->value_ref->type;

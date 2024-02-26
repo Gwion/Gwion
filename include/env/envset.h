@@ -22,4 +22,7 @@ ANN static inline bool envset_pushv(struct EnvSet *es, const Value v) {
   return true;
 }
 ANN2(1) void envset_pop(struct EnvSet *, const Type);
+ANN2(1) static inline void envset_popv(struct EnvSet *es, const Value v) {
+  envset_pop(es, v->from->owner_class);
+}
 #endif

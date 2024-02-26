@@ -326,11 +326,8 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
                       .flag  = tflag_check};
   const Type    owner = t->info->value->from->owner_class;
   CHECK_O(envset_pushv(&es, t->info->value));
-  const bool local = !owner && !tmpl_global(env, td->types) && from_global_nspc(env, env->curr);
-  if(local && env->context) env_push_nspc(env, env->context->nspc);
   const Type ret = _scan_class(env, &info);
-  if(local && env->context)env_pop(env, es.scope);
-  envset_pop(&es, owner);
+  envset_popv(&es, t->info->value);
   return ret;
 }
 

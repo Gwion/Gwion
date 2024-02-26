@@ -826,9 +826,12 @@ static OP_CHECK(opck_array_scan) {
   cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, TmplArg, 1);
   TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, base->info->value->from->loc)} };
   mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
-  const Context ctx  = env->context;
-  env->context       = base->info->value->from->ctx;
-  const m_uint scope = env_pushv(env, base->info->value);
+  struct EnvSet es = {
+    .env = env,
+    .data = env,
+    .scope = env->scope->depth
+  };
+  envset_pushv(&es, base->info->value);
   CHECK_ON(scan0_class_def(env, cdef));
   const Type   t   = cdef->base.type;
   if (GET_FLAG(base, abstract) && !tflag(base, tflag_union))
@@ -837,8 +840,7 @@ static OP_CHECK(opck_array_scan) {
     UNSET_FLAG(t, abstract);
   const bool ret = traverse_cdef(env, t);
     UNSET_FLAG(t, abstract);
-  env_pop(env, scope);
-  env->context = ctx;
+  envset_popv(&es, base->info->value);
   if (!ret) return NULL;
   set_tflag(t, tflag_emit);
   t->array_depth     = base->array_depth + 1;

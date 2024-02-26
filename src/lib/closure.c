@@ -689,7 +689,7 @@ static OP_CHECK(opck_closure_scan) {
   CHECK_O(envset_pushv(&es, owner->info->value));
   const bool ret = traverse_fptr_def(env, fdef);
   const Type t = ret ? fdef->cdef->base.type : NULL;
-  envset_pop(&es, owner->info->value->from->owner_class);
+  envset_popv(&es, owner->info->value);
   free_fptr_def(env->gwion->mp, fdef); // clean?
   if(t) set_tflag(t, tflag_emit);
   return t;

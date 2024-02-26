@@ -162,12 +162,18 @@ static OP_CHECK(opck_ref_scan) {
   set_tflag(t, tflag_check);
   set_tflag(t, tflag_emit);
   set_tflag(t, tflag_ref);
-  const m_uint scope = env_pushv(env, base->info->value);
+  
+  struct EnvSet es = {
+    .env = env,
+    .data = env,
+    .scope = env->scope->depth,
+  };
+  envset_pushv(&es, base->info->value);
   mk_class(env, t, ts->td->tag.loc);
   base2ref(env, base, t);
   ref2base(env, t, base);
   ref2ref(env, t, t);
-  env_pop(env, scope);
+  envset_popv(&es, base->info->value);
   t->info->tuple = new_tupleform(env->gwion->mp, base);
   type_addref(base);
   vector_add(&t->info->tuple->contains, (vtype)base);
