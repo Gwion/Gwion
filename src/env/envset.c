@@ -8,6 +8,8 @@
 ANN static void check(struct EnvSet *es, const Type t) {
   es->_ctx         = es->env->context;
   es->_filename    = es->env->name;
+  if(!type_global(es->env, t)) // why need value?
+    es->env->name    = t->info->value->from->filename;
   const Vector v     = &es->env->scope->class_stack;
   Type         owner = t->info->value->from->owner_class;
   for (vtype i = vector_size(v) + 1; owner && --i;) {

@@ -603,7 +603,8 @@ ANN static bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
 }
 
 ANN static bool scan1_stmt_pp(const Env env, const Stmt_PP stmt) {
-  if (stmt->pp_type == ae_pp_include) env->name = stmt->data;
+  if (stmt->pp_type == ae_pp_include)
+    env->name = stmt->data;
   if (stmt->pp_type == ae_pp_pragma && !strcmp(stmt->data, "packed")) {
     if(env->class_def && !tflag(env->class_def, tflag_union)) set_tflag(env->class_def, tflag_packed);
     else ERR_B(stmt_self(stmt)->loc, "`packed` pragma outside of {G+}class{0} or {G+}struct{0} declaration");

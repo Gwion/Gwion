@@ -147,14 +147,16 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                           const m_str tmpl_name) {
   const TmplArg_List     types  = exp->tmpl->call;
   const Func          former = env->func;
+  const m_uint        scope  = env->scope->depth;
   struct EnvSet       es     = {.env   = env,
                       .data  = env,
                       .func  = (_envset_func)check_cdef,
-                      .scope = env->scope->depth,
+                      .scope = scope,
                       .flag  = tflag_check};
   struct ResolverArgs ra     = {
       .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_O(envset_pushf(&es, v));
+  CHECK_O(envset_pushv(&es, v));
+  (void)env_push(env, v->from->owner_class, v->from->owner);
   const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
       get_tmpl(v->from->owner_class) : NULL;
   if(tmpl)
@@ -164,7 +166,8 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                                : fptr_match(env, &ra);
   if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
-  envset_popf(&es, v);
+  env_pop(env, scope);
+  envset_pop(&es, v->from->owner_class);
   env->func = former;
   return m_func;
 }
