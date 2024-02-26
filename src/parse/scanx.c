@@ -17,24 +17,22 @@ ANN static inline bool _body(const Env env, Ast ast, const _envset_func f) {
   return ok;
 }
 
-ANN static inline int actual(const Tmpl *tmpl) {
-  return tmpl->call && tmpl->call != (TmplArg_List)1 && tmpl->list;
-}
-
-ANN static inline bool tmpl_push(const Env env, const Tmpl *tmpl) {
-  return actual(tmpl) ? template_push_types(env, tmpl) : true;
+ANN static inline void _push(const Env env, const Class_Def c) {
+  env_push_type(env, c->base.type);
+  if (c->base.tmpl)
+    template_push_types(env, c->base.tmpl);
 }
 
 ANN static inline void _pop(const Env env, const Class_Def c, const m_uint s) {
-  if (c->base.tmpl && actual(c->base.tmpl))
+  if (c->base.tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
   env_pop(env, s);
 }
 
 ANN bool scanx_body(const Env env, const Class_Def c, const _envset_func f,
                       void *d) {
-  const m_int scope = env_push_type(env, c->base.type);
-  if(c->base.tmpl) CHECK_B(tmpl_push(env, c->base.tmpl));
+  const m_int scope = env->scope->depth; 
+  _push(env, c);
   const bool ret = _body(d, c->body, f);
   _pop(env, c, scope);
   return ret;

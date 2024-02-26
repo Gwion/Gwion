@@ -271,6 +271,7 @@ ANN static inline bool
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
+    if(stmt->poison) continue;
     if(!scan1_stmt_match_case(env, &stmt->d.stmt_match))
       POISON_NODE(ok, env, stmt);
   }

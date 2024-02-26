@@ -153,21 +153,19 @@ ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                       .func  = (_envset_func)check_cdef,
                       .scope = scope,
                       .flag  = tflag_check};
-  struct ResolverArgs ra     = {
-      .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
-  CHECK_O(envset_pushv(&es, v));
-  (void)env_push(env, v->from->owner_class, v->from->owner);
+  envset_pushf(&es, v);//);
   const Tmpl *tmpl = v->from->owner_class && v->from->owner_class->info->cdef ?
       get_tmpl(v->from->owner_class) : NULL;
   if(tmpl)
     (void)template_push_types(env, tmpl);
+   struct ResolverArgs ra     = {
+      .v = v, .e = exp, .tmpl_name = tmpl_name, .types = types};
   const bool is_clos = isa(exp->func->type, env->gwion->type[et_closure]);
   const Func m_func = !is_clos ? func_match(env, &ra)
                                : fptr_match(env, &ra);
   if(tmpl)
     nspc_pop_type(env->gwion->mp, env->curr);
-  env_pop(env, scope);
-  envset_pop(&es, v->from->owner_class);
+  envset_popf(&es, v);
   env->func = former;
   return m_func;
 }
@@ -191,14 +189,12 @@ ANN static Func _find_template_match(const Env env, const Value v,
     TmplArg arg = *mp_vector_at(tl, TmplArg, i);
     if(unlikely(spec->td)) {
       if(unlikely(arg.type == tmplarg_td))
-        ERR_O(exp_self(exp)->loc, "expected contant, not type");
-      // check argument in call exp
+        ERR_O(exp_self(exp)->loc, "expected constant, not type");
       continue;
 
     } else {
       if(unlikely(arg.type == tmplarg_exp)) {
         ERR_O(exp_self(exp)->loc, "expected type, not constant");
-        // check argument in call exp?
         continue;
       }
       DECL_O(const Type, t, = known_type(env, arg.d.td));
