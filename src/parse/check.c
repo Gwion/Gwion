@@ -1958,7 +1958,6 @@ ANN static bool check_ctor(const Env env, const Func func) {
 }
 
 ANN bool _check_func_def(const Env env, const Func_Def f) {
-  if (tmpl_base(f->base->tmpl) && fbflag(f->base, fbflag_op)) return true;
   const Func     func = f->base->func;
   const Func_Def fdef = func->def;
   if(fflag(func, fflag_valid))return true;
