@@ -698,18 +698,18 @@ ANN static void print_current_args(Exp* e) {
   gw_err("\n");
 }
 
-ANN2(1)
+ANN2(1, 2)
 static void function_alternative(const Env env, const Type t, Exp* args,
                                  const loc_t loc) {
-  if (env->context && env->context->error) // needed for ufcs
-    return;
+  const bool is_closure = !isa(t, env->gwion->type[et_closure]);
+  Func f = is_closure
+         ? t->info->func
+        : closure_def(t)->base->func;
+  if(!f) return;
   gwerr_basic("Argument type mismatch", "call site",
               "valid alternatives:", env->name, loc, 0);
-  const bool is_closure = !isa(t, env->gwion->type[et_closure]);
-  Func up = is_closure
-          ?  t->info->func : closure_def(t)->base->func;
-  do print_signature(up);
-  while ((up = up->next));
+  do print_signature(f);
+  while ((f = f->next));
   if (args)
     print_current_args(args);
   else
@@ -1069,7 +1069,7 @@ ANN Type check_exp_call1(const Env env, Exp_Call *const exp) {
       if(t) return t;
     }
   }
-  function_alternative(env, exp->func->type, exp->args, exp->func->loc);
+  function_alternative(env, t, exp->args, exp->func->loc);
   return NULL;
 }
 
