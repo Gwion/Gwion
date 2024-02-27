@@ -1,4 +1,4 @@
-#! [contains] Invalid variable unknown_type
+#! [contains] unknown type 'unknown_type'
 fun void my_function:[A]() { <<< "test" >>>; }
 
 my_function:[unknown_type]();
