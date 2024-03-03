@@ -513,7 +513,7 @@ ANN static bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   free_mp_vector(env->gwion->mp, Symbol, acc);
   if (len < sl->len) ERR_B(base->tag.loc, "too many template types for operator");
   if (!env->curr->operators)
-  env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
+    env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
   const Vector v = &env->curr->operators->tmpl;
   if (!v->ptr) vector_init(v);
   vector_add(v, (m_uint)cpy_func_def(env->gwion->mp, fdef));
