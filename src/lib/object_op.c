@@ -324,7 +324,6 @@ ANN Type scan_class(const Env env, const Type t, const Type_Decl *td) {
                       .func  = (_envset_func)scan0_cdef,
                       .scope = env->scope->depth,
                       .flag  = tflag_check};
-  const Type    owner = t->info->value->from->owner_class;
   CHECK_O(envset_pushv(&es, t->info->value));
   const Type ret = _scan_class(env, &info);
   envset_popv(&es, t->info->value);
