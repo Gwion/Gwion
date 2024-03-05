@@ -103,7 +103,7 @@ ANN static bool scan2_range(const Env env, Range *range) {
 ANN static inline bool scan2_prim(const Env env, const Exp_Primary *prim) {
   if (prim->prim_type == ae_prim_hack || prim->prim_type == ae_prim_dict || prim->prim_type == ae_prim_interp)
     CHECK_B(scan2_exp(env, prim->d.exp));
-  else if (prim->prim_type == ae_prim_array && prim->d.array->exp)
+  else if (prim->prim_type == ae_prim_array)
     return scan2_exp(env, prim->d.array->exp);
   else if (prim->prim_type == ae_prim_range)
     return scan2_range(env, prim->d.range);

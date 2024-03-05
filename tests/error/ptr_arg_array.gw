@@ -1,2 +1,2 @@
-#! [contains] must be defined with empty
+#! [contains] array must be empty
 funptr void my_func (int[4] i);

@@ -1,2 +1,2 @@
-#! [contains] must be defined with empty
+#! [contains] array must be empty
 fun int[] my_func(int[2] i){}

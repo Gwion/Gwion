@@ -189,7 +189,7 @@ ANN static inline bool scan1_prim(const Env env, const Exp_Primary *prim) {
     // we should use effects when typechecking for that
     return scan1_exp(env, prim->d.exp);
   }
-  if (prim->prim_type == ae_prim_array && prim->d.array->exp)
+  if (prim->prim_type == ae_prim_array)
     return scan1_exp(env, prim->d.array->exp);
   if (prim->prim_type == ae_prim_range) return scan1_range(env, prim->d.range);
   if (env->func && prim->prim_type == ae_prim_perform && env->scope->depth <= 2)

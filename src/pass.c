@@ -7,8 +7,9 @@
 #include "gwion.h"
 #include "pass.h"
 #include "traverse.h"
+#include "sema.h"
 
-#define N_PASS     2
+#define N_PASS     3
 #define N_SCANPASS 4
 
 static bool typecheck_ast(const Env env, Ast *ast) {
@@ -19,8 +20,8 @@ static bool typecheck_ast(const Env env, Ast *ast) {
   return !env->context->error;
 }
 
-static const m_str            default_passes_name[2] = {"check", "emit"};
-static const compilation_pass default_passes[2]      = {typecheck_ast, emit_ast};
+static const m_str            default_passes_name[3] = {"sema", "check", "emit"};
+static const compilation_pass default_passes[3]      = {sema_pass, typecheck_ast, emit_ast};
 
 ANN void pass_register(const Gwion gwion, const m_str name,
                        const compilation_pass pass) {

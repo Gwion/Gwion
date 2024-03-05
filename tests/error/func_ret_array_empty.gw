@@ -1,2 +1,2 @@
-#! [contains] must be defined with empty
-fun int[1] my_func(int i[]){}
+#! [contains] array must be empty
+fun int[1] my_func(int[] i){}

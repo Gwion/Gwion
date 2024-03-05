@@ -226,8 +226,8 @@ ANN static inline Type prim_array_match(const Env env, Exp* e) {
 ANN static Type check_prim_array(const Env env, const Array_Sub *data) {
   const Array_Sub array = *data;
   Exp*       e     = array->exp;
-  if (!e)
-    ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"));
+//  if (!e)
+//    ERR_O(prim_pos(data), _("must provide values/expressions for array [...]"));
   CHECK_O(check_exp(env, e));
   env_weight(env, 1);
   return array->type = prim_array_match(env, e);

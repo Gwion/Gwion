@@ -1,2 +1,2 @@
-#! [contains] instantiate with empty
+#! [contains] must provide values/expressions for array 
 new Object[];

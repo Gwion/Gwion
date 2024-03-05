@@ -30,19 +30,16 @@ ANN static inline Value template_get_ready(const Env env, const Value v,
 }
 
 ANN static inline bool
-tmpl_valid(const Env env, const Func_Def fdef, const m_str filename) {
+tmpl_valid(const Env env, const Func_Def fdef) {
   if (safe_fflag(fdef->base->func, fflag_valid)) return true;
-//  const m_str old_file = env->name;
-//  env->name = filename;
   const bool ret = check_traverse_fdef(env, fdef);
-//  env->name = old_file;
   if(!fdef->base->func) free_func_def(env->gwion->mp, fdef);
   return ret;
 }
 
 ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
-                            Exp_Call *const exp, const m_str filename) {
-  if (!tmpl_valid(env, fdef, filename)) return NULL;
+                            Exp_Call *const exp) {
+  if (!tmpl_valid(env, fdef)) return NULL;
   if (exp->args && !exp->args->type) return NULL;
   const Func f    = fdef->base->func;
   const Tmpl tmpl = {.list = fdef->base->tmpl->list, .call = exp->tmpl->call};
@@ -92,7 +89,7 @@ ANN static Func tmpl_exists(const Env env, struct ResolverArgs *ra,
                             const Value exists) {
   if (env->func == exists->d.func_ref)
     return find_func_match(env, env->func, ra->e) ? env->func : NULL;
-  return ensure_tmpl(env, exists->d.func_ref->def, ra->e, ra->v->from->filename);
+  return ensure_tmpl(env, exists->d.func_ref->def, ra->e);
 }
 
 ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
@@ -122,7 +119,7 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
     }
     fdef->base->args = args;
   }
-  const Func func        = ensure_tmpl(env, fdef, ra->e, ra->v->from->filename);
+  const Func func        = ensure_tmpl(env, fdef, ra->e);
   if (func && func->def->builtin) {
     builtin_func(env->gwion, func, (void*)ra->v->d.func_ref->code->native_func);
     set_vflag(func->value_ref, vflag_builtin);
