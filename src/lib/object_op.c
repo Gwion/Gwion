@@ -13,6 +13,7 @@
 #include "parse.h"
 #include "gwi.h"
 #include "tmpl_info.h"
+#include "sema.h"
 
 #undef insert_symbol
 
@@ -279,7 +280,8 @@ ANN static bool scantmpl_class_def(const Env env, struct tmpl_info *info) {
   if(c->body) cdef->body = cpy_ast(env->gwion->mp, c->body);
   cdef->cflag      = c->cflag;
   cdef->base.tmpl  = mk_tmpl(env, c->base.tmpl, info->td->types);
-  const bool ret = scan0_class_def(env, cdef);
+  const bool ret = (!is_spread_tmpl(cdef->base.tmpl) || sema_variadic_class(env, cdef)) &&
+                 scan0_class_def(env, cdef);
   if ((info->ret = cdef->base.type)) {
     info->ret->info->cdef = cdef;
     set_tflag(info->ret, tflag_cdef);
@@ -374,29 +376,29 @@ static OP_EMIT(opem_cond_object) {
 GWION_IMPORT(object_op) {
   const Type t_error         = gwi_mk_type(gwi, "@error", 0, NULL);
   gwi->gwion->type[et_error] = t_error;
-  GWI_B(gwi_set_global_type(gwi, t_error, et_error))
-   GWI_B(gwi_oper_ini(gwi, "Object", "Object", NULL))
-   GWI_B(gwi_oper_add(gwi, opck_object_at))
-   GWI_B(gwi_oper_emi(gwi, opem_object_at))
-   GWI_B(gwi_oper_end(gwi, ":=>", NULL))
-   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
-   GWI_B(gwi_oper_add(gwi, opck_object_instance))
-   GWI_B(gwi_oper_end(gwi, "=>", NULL))
-   GWI_B(gwi_oper_ini(gwi, "Object", "Object", "bool"))
-   GWI_B(gwi_oper_end(gwi, "==", EqObject))
-   GWI_B(gwi_oper_end(gwi, "!=", NeqObject))
-   GWI_B(gwi_oper_add(gwi, opck_object_cast))
-   GWI_B(gwi_oper_end(gwi, "$", NULL))
-   GWI_B(gwi_oper_ini(gwi, NULL, "Object", "bool"))
-   GWI_B(gwi_oper_emi(gwi, opem_uncond_object))
-   GWI_B(gwi_oper_end(gwi, "@unconditional", NULL))
-   GWI_B(gwi_oper_emi(gwi, opem_cond_object))
-   GWI_B(gwi_oper_end(gwi, "@conditional", NULL))
-   GWI_B(gwi_oper_add(gwi, opck_unary_meta2))
-   GWI_B(gwi_oper_emi(gwi, opem_not_object))
-   GWI_B(gwi_oper_end(gwi, "!", NULL))
-   GWI_B(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
-   GWI_B(gwi_oper_add(gwi, opck_struct_scan))
-   GWI_B(gwi_oper_end(gwi, "class", NULL))
+  gwi_set_global_type(gwi, t_error, et_error);
+  GWI_B(gwi_oper_ini(gwi, "Object", "Object", NULL))
+  GWI_B(gwi_oper_add(gwi, opck_object_at))
+  GWI_B(gwi_oper_emi(gwi, opem_object_at))
+  GWI_B(gwi_oper_end(gwi, ":=>", NULL))
+  GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "@Compound", NULL))
+  GWI_B(gwi_oper_add(gwi, opck_object_instance))
+  GWI_B(gwi_oper_end(gwi, "=>", NULL))
+  GWI_B(gwi_oper_ini(gwi, "Object", "Object", "bool"))
+  GWI_B(gwi_oper_end(gwi, "==", EqObject))
+  GWI_B(gwi_oper_end(gwi, "!=", NeqObject))
+  GWI_B(gwi_oper_add(gwi, opck_object_cast))
+  GWI_B(gwi_oper_end(gwi, "$", NULL))
+  GWI_B(gwi_oper_ini(gwi, NULL, "Object", "bool"))
+  GWI_B(gwi_oper_emi(gwi, opem_uncond_object))
+  GWI_B(gwi_oper_end(gwi, "@unconditional", NULL))
+  GWI_B(gwi_oper_emi(gwi, opem_cond_object))
+  GWI_B(gwi_oper_end(gwi, "@conditional", NULL))
+  GWI_B(gwi_oper_add(gwi, opck_unary_meta2))
+  GWI_B(gwi_oper_emi(gwi, opem_not_object))
+  GWI_B(gwi_oper_end(gwi, "!", NULL))
+  GWI_B(gwi_oper_ini(gwi, "@Compound", NULL, NULL))
+  GWI_B(gwi_oper_add(gwi, opck_struct_scan))
+  GWI_B(gwi_oper_end(gwi, "class", NULL))
   return true;
 }

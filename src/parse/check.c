@@ -15,7 +15,6 @@
 #include "specialid.h"
 #include "tmp_resolve.h"
 #include "partial.h"
-#include "spread.h"
 #include "array.h"
 
 ANN bool check_stmt(const Env env, Stmt*);
@@ -833,16 +832,18 @@ ANN static TmplArg_List check_template_args(const Env env, Exp_Call *exp,
 
   if(spread) {
     Exp* e = exp->args;
-    if(fdef->base->args)
-    for(uint32_t i = 0; i < fdef->base->args->len && e; i++) e = e->next;
-    while(e) {
-      TmplArg targ = {
-        .type = tmplarg_td,
-        .d = { .td = type2td(env->gwion, e->type, e->loc) }
-      };
-      mp_vector_add(env->gwion->mp, &tl, TmplArg, targ);
-      e = e->next;
-    }
+    const uint32_t len = fdef->base->args ? fdef->base->args->len : 0;
+//    if(fdef->base->args) {
+      for(uint32_t i = 0; i < len && e; i++) e = e->next;
+      while(e) {
+        TmplArg targ = {
+          .type = tmplarg_td,
+          .d = { .td = type2td(env->gwion, e->type, e->loc) }
+        };
+        mp_vector_add(env->gwion->mp, &tl, TmplArg, targ);
+        e = e->next;
+      }
+ //   }
   }
   return tl;
 }
@@ -1400,15 +1401,6 @@ ANN static bool check_conts(const Env env, Stmt* a, Stmt* b) {
   return true;
 }
 
-ANN static inline bool for_empty(const Env env, const Stmt_For stmt) {
-  if (!stmt->c2 || !stmt->c2->d.stmt_exp.val)
-    ERR_B(stmt_self(stmt)->loc,
-          _("empty for loop condition..."
-            "...(note: explicitly use 'true' if it's the intent)"
-            "...(e.g., 'for(; true;){{ /*...*/ }')"));
-  return true;
-}
-
 ANN static void check_idx(const Env env, const Type base, Var_Decl *const idx) {
   idx->value = new_value(env, base, idx->tag);
   valid_value(env, idx->tag.sym, idx->value);
@@ -1482,7 +1474,6 @@ stmt_func_xxx(flow, Stmt_Flow, env_inline_mult(env, 1.5),
        stmt_self(stmt)->stmt_type != ae_stmt_while) ||
     !check_conts(env, stmt_self(stmt), stmt->body)) ? true : false)
 stmt_func_xxx(for, Stmt_For, env_inline_mult(env, 1.5), !(
-  !for_empty(env, stmt) ||
   !check_stmt(env, stmt->c1) ||
   !check_flow(env, stmt->c2->d.stmt_exp.val) ||
   (stmt->c3 && !check_exp(env, stmt->c3)) ||
@@ -2230,8 +2221,6 @@ ANN static bool recursive_type_base(const Env env, const Type t) {
   }
   return !error;
 }
-
-ANN bool check_trait_requests(const Env env, const Type t, const ID_List list, const ValueFrom *from);
 
 ANN static bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nspc) {
   bool ok = true;

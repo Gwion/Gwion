@@ -1,6 +1,7 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
+#include "symbol.h"
 #include "vm.h"
 #include "traverse.h"
 #include "parse.h"
@@ -116,13 +117,21 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
   return !array ? ret : array_type(env, ret, array->depth, td->tag.loc);
 }
 
-ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
+ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td, bool no_color) {
   struct GwfmtState ls     = {};
-  text_init(&ls.text, env->gwion->mp);
-  Gwfmt gwfmter = {.mp = env->gwion->mp, .ls = &ls, .st = env->gwion->st };
+  text_init(&ls.text, mp);
+  Gwfmt gwfmter = {.mp = mp, .ls = &ls, .st = st };
+  bool has_color = tcol_has_color();
+  if(no_color) tcol_override_color_checks(false);
   gwfmt_type_decl(&gwfmter, td);
-  env_err(env, td->tag.loc, _("unknown type '%s'"), s_name(td->tag.sym));
-  free_mstr(env->gwion->mp, ls.text.str);
+  tcol_override_color_checks(has_color);
+  return ls.text.str;
+}
+
+ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
+  m_str str = tdpp(env->gwion->mp, env->gwion->st, td, false);
+  env_err(env, td->tag.loc, _("unknown type '%s'"), str);
+  free_mstr(env->gwion->mp, str);
   return NULL;
 }
 

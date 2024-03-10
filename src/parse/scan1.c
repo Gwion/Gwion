@@ -27,7 +27,6 @@ ANN static inline bool type_cyclic(const Env env, const Type t,
 }
 
 ANN static inline bool ensure_scan1(const Env env, const Type t) {
-//  if (tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
   if (tflag(t, tflag_scan1) || !(tflag(t, tflag_cdef) || tflag(t, tflag_union)))
     return true;
   struct EnvSet es = {.env   = env,
@@ -595,9 +594,6 @@ ANN bool scan1_union_def(const Env env, const Union_Def udef) {
 #define scan1_stmt_retry    dummy_func
 
 ANN static bool scan1_stmt_return(const Env env, const Stmt_Exp stmt) {
-  if (!env->func || is_ctor(env->func->def))
-    ERR_B(stmt_self(stmt)->loc,
-          _("'return' statement found outside function definition"));
   if (env->scope->depth == 1) env->func->memoize = 1;
   if(stmt->val) CHECK_B(scan1_exp(env, stmt->val));
   return true;
@@ -617,6 +613,7 @@ ANN static bool scan1_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return scan1_stmt(env, stmt->stmt);
 }
 
+// TODO: get rid of this function
 ANN static bool scan1_stmt_spread(const Env env, const Spread_Def spread) {
   ERR_B(stmt_self(spread)->loc, "spread statement outside of variadic environment");
 }
@@ -877,23 +874,13 @@ ANN static bool scan1_class_tmpl(const Env env, const Class_Def c) {
   TmplArg_List tl = c->base.tmpl->call;
   env_push_type(env, c->base.type);
   bool ret = true;
-// check len
   for(uint32_t i = 0; i < sl->len; i++) {
     const TmplArg targ = *mp_vector_at(tl, TmplArg, i);
-//      const Specialized spec = *mp_vector_at(sl, Specialized, i);
     if (targ.type == tmplarg_td) continue;
     if(!scan1_exp(env, targ.d.exp)) {
       ret = false;
       break;
     }
-/*
-      const Value v = new_value(env, env->gwion->type[et_int], s_name(spec.xid), targ.d.exp->loc);
-      valuefrom(env, v->from);
-      valid_value(env, spec.xid, v);
-      SET_FLAG(v, const| ae_flag_static);
-      set_vflag(v, vflag_builtin);
-      v->d.num = targ.d.exp->d.prim.d.gwint.num;
-*/
   }
   env_pop(env, 0);
   return ret;

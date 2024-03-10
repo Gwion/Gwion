@@ -12,7 +12,6 @@
 #include "instr.h"
 #include "object.h"
 #include "import.h"
-#include "spread.h"
 
 ANN static bool _push_types(const Env env, const Nspc nspc,
                               const Tmpl *tmpl) {

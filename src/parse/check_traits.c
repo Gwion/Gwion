@@ -60,9 +60,13 @@ ANN static bool trait_inherit(const Env env, const Type t, const Func_Def req) {
   const bool ret   = traverse_func_def(env, cpy);
   nspc_pop_type(env->gwion->mp, env->curr);
   Section section = MK_SECTION(func, func_def, cpy, t->info->value->from->loc);
+  
   if(!env->context->extend)
     env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
   mp_vector_add(env->gwion->mp, &env->context->extend, Section, section);
+
+  // sema_ast, traverse_ast
+  // mp_vector_add(env->gwion->mp, &t->info->cdef->body, Section, section);
   return ret;
 }
 

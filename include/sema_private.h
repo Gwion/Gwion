@@ -1,12 +1,18 @@
 typedef struct {
   char *filename;
   MemPool mp;
-  //Context context;
+  SymTable *st;
+  MP_Vector *tmpls;
+  Stmt_List *stmt_list;
+  struct PPArg_ *ppa;
   bool error;
   bool func;
+  bool scope;
   bool handling;
+  bool in_variadic;
 } Sema;
 
+#ifdef __SEMA_IMPLEMENTATION__
 ANN static bool sema_array_sub(Sema *a, Array_Sub b);
 ANN static bool sema_tmpl(Sema *a, Tmpl *b);
 ANN static bool sema_range(Sema *a, Range *b);
@@ -57,9 +63,8 @@ ANN static bool sema_stmt_pp(Sema *a, Stmt_PP b);
 ANN static bool sema_stmt_retry(Sema *a, Stmt_Exp b);
 ANN static bool sema_stmt_try(Sema *a, Stmt_Try b);
 ANN static bool sema_stmt_defer(Sema *a, Stmt_Defer b);
-ANN static bool sema_stmt(Sema *a, Stmt* b);
-ANN static bool sema_stmt_list(Sema *a, Stmt_List b);
-ANN static bool sema_func_base(Sema *a, Func_Base *b);
+ANN static bool sema_stmt(Sema *a, Stmt* b, bool in_list);
+ANN static bool sema_stmt_list(Sema *a, Stmt_List *b);
 ANN static bool sema_func_def(Sema *a, Func_Def b);
 ANN static bool sema_class_def(Sema *a, Class_Def b);
 ANN static bool sema_trait_def(Sema *a, Trait_Def b);
@@ -69,4 +74,5 @@ ANN static bool sema_fptr_def(Sema *a, Fptr_Def b);
 ANN static bool sema_type_def(Sema *a, Type_Def b);
 ANN static bool sema_extend_def(Sema *a, Extend_Def b);
 ANN static bool sema_section(Sema *a, Section *b);
-ANN static bool sema_ast(Sema *a, Ast b);
+ANN static bool sema_ast(Sema *a, Ast *b);
+#endif

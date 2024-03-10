@@ -13,7 +13,7 @@
 #include "emit.h"
 #include "specialid.h"
 #include "tmp_resolve.h"
-#include "spread.h"
+#include "sema.h"
 
 struct ResolverArgs {
   const Value     v;
@@ -32,7 +32,8 @@ ANN static inline Value template_get_ready(const Env env, const Value v,
 ANN static inline bool
 tmpl_valid(const Env env, const Func_Def fdef) {
   if (safe_fflag(fdef->base->func, fflag_valid)) return true;
-  const bool ret = check_traverse_fdef(env, fdef);
+  const bool ret = (fdef->builtin || sema_variadic_func(env, fdef)) &&
+    check_traverse_fdef(env, fdef);
   if(!fdef->base->func) free_func_def(env->gwion->mp, fdef);
   return ret;
 }

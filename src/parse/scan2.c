@@ -10,8 +10,6 @@
 #include "object.h"
 #include "instr.h"
 #include "import.h"
-#include "default_args.h"
-#include "spread.h"
 #include "closure.h"
 
 ANN static bool scan2_stmt(const Env, Stmt*);
@@ -613,23 +611,8 @@ ANN bool scan2_class_def(const Env env, const Class_Def cdef) {
   return true;
 }
 
-ANN void scan2_default_args(const Env env, const Section *s, Ast *acc) {
-  Func_Base *const fb = s->d.func_def->base;
-  Arg_List       args = fb->args;
-  uint32_t len = args->len;
-  while(args->len--) {
-    const Arg *arg = mp_vector_at(args, Arg, args->len);
-    if(!arg->exp) break;
-    const Func_Def fdef = default_args(env, fb, acc, len);
-    scan1_func_def(env, fdef);
-    scan2_func_def(env, fdef);
-  }
-  args->len = len;
-}
-
 ANN bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
-  Ast acc = new_mp_vector(env->gwion->mp, Section, 0);
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
     Section *section = mp_vector_at(a, Section, i);
@@ -638,16 +621,6 @@ ANN bool scan2_ast(const Env env, Ast *ast) {
       POISON_SECTION(ok, env, section);
       continue;
     }
-    if (section->section_type == ae_section_func &&
-        fbflag(section->d.func_def->base, fbflag_default))
-      mp_vector_add(env->gwion->mp, &acc, Section, *section);
   }
-  if(ok) {
-    for(uint32_t i = 0; i < acc->len; i++) {
-      Section *section = mp_vector_at(acc, Section, i);
-      scan2_default_args(env, section, ast);
-    }
-  }
-  free_mp_vector(env->gwion->mp, Section, acc);
   return ok;
 }

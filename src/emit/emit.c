@@ -599,10 +599,10 @@ ANN static inline bool emit_exp_pop_next(const Emitter emit, Exp* e);
 
 ANN static bool emit_range(const Emitter emit, Range *range) {
   if (range->start)
-    CHECK_B(emit_exp_pop_next(emit, range->start));
+    CHECK_B(emit_exp(emit, range->start));
   else emit_pushimm(emit, 0);
   if (range->end)
-    CHECK_B(emit_exp_pop_next(emit, range->end));
+    CHECK_B(emit_exp(emit, range->end));
   else emit_pushimm(emit, -1);
   return true;
 }
@@ -1624,12 +1624,14 @@ ANN bool emit_exp_call1(const Emitter emit, const Func f,
 {
 const Type t = f->value_ref->from->owner_class;
 if(t && (!emit->env->curr || !isa(t, emit->env->class_def)))
-//!is_new(f->def) || f->value_ref->from->owner_class->array_depth)
-//if(f->value_ref->from->owner_class->array_depth)
+
+      //!is_new(f->def) || f->value_ref->from->owner_class->array_depth)
+
+      //if(f,->value_ref->from->owner_class->array_depth)
 CHECK_B(emit_ensure_func(emit, f));
 }
   } else if(is_static)
-    push_func_code(emit, f);
+       push_func_code(emit, f);
   call_finish(emit, f, size, is_static);
   emit->status = status;
   return true;
@@ -1860,7 +1862,7 @@ ANN static bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
   const m_uint nval = m_vector_size(&emit->code->live_values);
   const uint16_t offset = emit->code->frame->curr_offset;
   const uint16_t vcount = emit->code->frame->value_count;
-  CHECK_B(emit_exp_pop_next(emit, e));
+  CHECK_B(emit_exp(emit, e));
   const m_uint nval_if = m_vector_size(&emit->code->live_values);
   if(nval < nval_if) {
     const m_uint diff = nval_if - nval;
@@ -1874,7 +1876,7 @@ ANN static bool emit_exp_if(const Emitter emit, const Exp_If *exp_if) {
 
   const Instr op2  = emit_add_instr(emit, Goto);
   op->m_val        = emit_code_size(emit);
-  const bool ret = emit_exp_pop_next(emit, exp_if->else_exp);
+  const bool ret = emit_exp(emit, exp_if->else_exp);
   const m_uint nval_else = m_vector_size(&emit->code->live_values);
   if(nval < nval_else) {
     const m_uint diff = nval_else - nval;
@@ -2022,7 +2024,7 @@ ANN static bool emit_stmt_return(const Emitter emit, const Stmt_Exp stmt) {
 //    if(!stmt->val->ref && tflag(stmt->val->type, tflag_compound))
 //      emit_local(emit, stmt->val->type);
     emit->status.in_return = true;
-    CHECK_B(emit_exp_pop_next(emit, stmt->val));
+    CHECK_B(emit_exp(emit, stmt->val));
     emit->status.in_return = false;
   }
   vector_add(&emit->code->stack_return, (vtype)emit_add_instr(emit, Goto));
@@ -2321,7 +2323,7 @@ ANN static bool _emit_stmt_loop(const Emitter emit, const Stmt_Loop stmt,
     emit_memsetimm(emit, offset, -1);
     stmt->idx.value->from->offset = offset;
   }
-  CHECK_B(emit_exp_pop_next(emit, stmt->cond));
+  CHECK_B(emit_exp(emit, stmt->cond));
   emit_regmove(emit, -SZ_INT);
   emit_regtomem(emit, offset + !!stmt->idx.tag.sym * SZ_INT, 0);
   *index             = emit_code_size(emit);

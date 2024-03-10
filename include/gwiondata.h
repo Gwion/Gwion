@@ -17,6 +17,7 @@ typedef struct GwionData_ {
   threadpool_t    *tpool;
   bool            cdoc;
   bool            errored;
+  bool            color;
 } GwionData;
 
 ANN GwionData *new_gwiondata(const MemPool, const uint32_t thread_count, const uint32_t queue_size);

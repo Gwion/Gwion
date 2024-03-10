@@ -4,7 +4,7 @@
 #include "vm.h"
 #include "gwion.h"
 #include "traverse.h"
-
+#include "sema_private.h"
 ANN2(1,2) static Exp* base_args(const MemPool p, const Arg_List args, Exp* next, const uint32_t min) {
   for(uint32_t i = min; i--;) {
     Arg *arg = mp_vector_at(args, Arg, i);
@@ -40,15 +40,15 @@ ANN static Stmt_List code(const MemPool p, Exp* func, const Arg_List lst,
   return code;
 }
 
-ANN static Stmt_List std_code(const Env env, Func_Base *base, const uint32_t max) {
-  const MemPool p = env->gwion->mp;
+ANN static Stmt_List std_code(const Sema *sema, Func_Base *base, const uint32_t max) {
+  const MemPool p = sema->mp;
   Exp* func = new_prim_id(p, base->tag.sym, base->tag.loc);
   return code(p, func, base->args, max, ae_stmt_return);
 }
 
-ANN static Stmt_List new_code(const Env env, Func_Base *base, const uint32_t max) {
-  const MemPool p = env->gwion->mp;
-  SymTable *st = env->gwion->st;
+ANN static Stmt_List new_code(const Sema *sema, Func_Base *base, const uint32_t max) {
+  const MemPool p = sema->mp;
+  SymTable *st = sema->st;
   Exp* dbase  = new_prim_id(p, insert_symbol(st, "this"), base->tag.loc);
   const Symbol sym = insert_symbol(st, "new");
   Exp* func  = new_exp_dot(p, dbase, sym, base->tag.loc);
@@ -56,13 +56,13 @@ ANN static Stmt_List new_code(const Env env, Func_Base *base, const uint32_t max
 }
 
 
-ANN Func_Def default_args(const Env env, Func_Base *fb, Ast *acc, uint32_t max) {
-  Func_Base *const base = cpy_func_base(env->gwion->mp, fb);
+ANN Func_Def default_args(const Sema *sema, Func_Base *fb, Ast *acc, uint32_t max) {
+  Func_Base *const base = cpy_func_base(sema->mp, fb);
   Stmt_List code = strcmp(s_name(base->tag.sym), "new")
-      ? std_code(env, fb, max)
-      : new_code(env, fb, max);
-  const Func_Def  fdef  = new_func_def(env->gwion->mp, base, code);
+      ? std_code(sema, fb, max)
+      : new_code(sema, fb, max);
+  const Func_Def  fdef  = new_func_def(sema->mp, base, code);
   Section section = MK_SECTION(func, func_def, fdef, fb->tag.loc);
-  mp_vector_add(env->gwion->mp, acc, Section, section);
+  mp_vector_add(sema->mp, acc, Section, section);
   return fdef;
 }

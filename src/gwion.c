@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <unistd.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
@@ -119,11 +120,12 @@ ANN bool gwion_ini(const Gwion gwion, CliArg *arg) {
   new_passes(gwion);
   CHECK_B(arg_parse(gwion, arg));
   if (arg->color == COLOR_NEVER)
-    tcol_override_color_checks(0);
+    gwion->data->color = false;
   else if (arg->color == COLOR_AUTO)
-    tcol_override_color_checks(isatty(1));
+    gwion->data->color = isatty(1);
   else if (arg->color == COLOR_ALWAYS)
-    tcol_override_color_checks(1);
+    gwion->data->color = true;
+  tcol_override_color_checks(gwion->data->color);
   if(!vector_size(&gwion->data->passes->vec)) {
     if (!gwion->data->cdoc)
     pass_default(gwion);

@@ -28,7 +28,8 @@ ANN2(1) static inline void envset_popv(struct EnvSet *es, const Value v) {
 
 ANN static inline bool envset_pushf(struct EnvSet *es, const Value owner) {
   CHECK_B(envset_pushv(es, owner));
-  return env_pushv(es->env, owner);
+  /*return*/ env_pushv(es->env, owner);
+  return true;
 }
 ANN2(1) static inline void envset_popf(struct EnvSet *es, const Value owner) {
   env_pop(es->env, es->scope);

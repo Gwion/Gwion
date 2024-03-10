@@ -10,7 +10,6 @@
 #include "instr.h"
 #include "operator.h"
 #include "import.h"
-#include "spread.h"
 #include "emit.h"
 
 static inline void add_type(const Env env, const Nspc nspc, const Type t) {
@@ -370,41 +369,6 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   return t;
 }
 
-
-ANN static bool _spread_tmpl(const Env env, const Type t, const Spread_Def spread) {
-  if(t->info->value->from->owner_class)
-    CHECK_B(_spread_tmpl(env, t->info->value->from->owner_class, spread));
-  const Tmpl *tmpl = get_tmpl(t);
-  if(!tmpl || !tmpl->call) return true;
-  if(is_spread_tmpl(tmpl))
-    CHECK_B(spread_ast(env, spread, tmpl));
-  return true;
-}
-
-ANN static bool spread_tmpl(const Env env, const Spread_Def spread) {
-  if(env->class_def) CHECK_B(_spread_tmpl(env, env->class_def, spread));
-  if(!env->func) return true;
-  const Tmpl *tmpl = env->func->def->base->tmpl;
-  if(!tmpl || !tmpl->call) return true;
-  if(is_spread_tmpl(tmpl))
-      CHECK_B(spread_ast(env, spread, tmpl));
-  return true;
-}
-
-ANN static bool spreadable(const Env env) {
-  const Func f = env->func;
-  if(f && f->def->base->tmpl && is_spread_tmpl(f->def->base->tmpl))
-    return true;
-  Type t = env->class_def;
-  while(t) {
-    const Tmpl *tmpl = get_tmpl(t);
-    if(tmpl && is_spread_tmpl(tmpl))
-      return true;
-    t = t->info->value->from->owner_class;
-  }
-  return false;
-}
-
 ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
@@ -417,34 +381,26 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
         if(!plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->loc))
           POISON_NODE(ok, env, stmt);
       }
-    } else if (stmt->stmt_type == ae_stmt_spread) {
-      if(!spreadable(env))
+    } /*else if (stmt->stmt_type == ae_stmt_spread) {
+      if(!spreadable(env)) // TODO: we can prolly get rid of this
         ERR_OK_NODE(ok, stmt, stmt->loc, "spread statement outside of variadic environment");
-      if(!env->context->extend)
-         env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
-      if(!spread_tmpl(env, &stmt->d.stmt_spread))
-          POISON_NODE(ok, env, stmt);
-    }
+    }*/
   }
   return ok;
 }
 
 ANN bool scan0_func_def(const Env env, const Func_Def fdef) {
-  const Ast old_extend = env->context ? env->context->extend : NULL;
   if(!fdef->base->tmpl || !fdef->base->tmpl->call) return true;
-  if(env->context) {
-    if(fdef->base->tmpl && fdef->base->tmpl->call && is_spread_tmpl(fdef->base->tmpl)) {
-    struct Func_ fake = {.name = s_name(fdef->base->tag.sym), .def = fdef }, *const former =
-                                                            env->func;
+  bool ok = true;
+  if(fdef->base->tmpl && fdef->base->tmpl->call && is_spread_tmpl(fdef->base->tmpl)) {
+    struct Func_ fake = {.name = s_name(fdef->base->tag.sym), .def = fdef };
+    const Func former = env->func;
     env->func = &fake;
     if(!fdef->builtin && fdef->d.code)
       scan0_stmt_list(env, fdef->d.code);
-    if(env->context->extend)
-      fdef->d.code = spread_func(env, fdef->d.code);
     env->func = former;
-    env->context->extend = old_extend;
-  }}
-  return true;
+  }
+  return ok;
 }
 
 ANN static bool scan0_extend_def(const Env env, const Extend_Def xdef) {
@@ -544,22 +500,13 @@ ANN static bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   return cdef->body ? env_body(env, cdef, scan0_section) : true;
 }
 
-ANN Ast spread_class(const Env env, const Ast body);
-
 ANN bool scan0_class_def(const Env env, const Class_Def c) {
   bool global = false;
   CHECK_B(scan0_global(env, c->flag, c->base.tag.loc, &global));
-  const Ast old_extend = env->context ? env->context->extend : NULL;
   const int       cpy  = tmpl_base(c->base.tmpl) || GET_FLAG(c, global);
   const Class_Def cdef = !cpy ? c : cpy_class_def(env->gwion->mp, c);
   const bool ret = scan0_class_def_inner(env, cdef);
-
   if (cpy && cdef->base.type) c->base.type = cdef->base.type;
-  if(env->context) {
-    if(!tmpl_base(c->base.tmpl) && env->context->extend)
-      cdef->body = spread_class(env, cdef->body);
-    env->context->extend = old_extend;
-  }
   if(cflag(cdef, cflag_struct)) scan0_struct_assign(env, cdef->base.type);
   if (GET_FLAG(cdef, global)) env_pop(env, 0);
   return ret;
