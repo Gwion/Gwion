@@ -735,8 +735,15 @@ ANN static bool sema_union_def(Sema *a, Union_Def b) {
     if(!type_decl_array_empty(a, c->td, "in union member"))
       ok = false;
   }
-  if(b->tmpl && !sema_tmpl(a, b->tmpl))
-    ok = false;
+  if(b->tmpl) {
+    if(!sema_tmpl(a, b->tmpl))
+      ok = false;
+    if(is_spread_tmpl(b->tmpl)) {
+      gwerr_basic(_("unions can't be variadic"), NULL, NULL,
+                  a->filename, b->tag.loc, 0);
+      ok = false;
+    }
+  }
   return ok;
 }
 
