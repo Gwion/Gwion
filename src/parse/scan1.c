@@ -438,7 +438,6 @@ ANN static bool scan1_args(const Env env, Arg_List args) {
         POISON(ok, env);
     }
     if (arg->var.td) {
-      SET_FLAG(arg->var.td, late);
       if(!(arg->type = void_type(env, arg->var.td))) {
         POISON(ok, env);
         continue;

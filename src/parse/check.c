@@ -40,9 +40,9 @@ ANN bool check_implicit(const Env env, Exp* e, const Type t) {
 
 ANN bool check_subscripts(Env env, const Array_Sub array,
                             const bool is_decl) {
-  CHECK_B(check_exp(env, array->exp));
-  m_uint depth = 0;
   Exp*    e     = array->exp;
+  CHECK_B(check_exp(env, e));
+  m_uint depth = 0;
   bool ok = true;
   do {
     if (is_decl) {
@@ -519,7 +519,7 @@ ANN Type check_array_access(const Env env, const Array_Sub array) {
 
 static ANN Type check_exp_array(const Env env, const Exp_Array *array) {
   CHECK_O((array->array->type = check_exp(env, array->base)));
-  CHECK_O(check_subscripts(env, array->array, 0));
+  CHECK_O(check_subscripts(env, array->array, false));
   if(exp_getmeta(array->base)) exp_setmeta(exp_self(array), true);
   return check_array_access(env, array->array);
 }
