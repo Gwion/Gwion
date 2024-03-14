@@ -18,7 +18,7 @@ jobs:
     env:
       CC: ${{ matrix.cc }}
       USE_DOUBLE: ${{ matrix.double }}
-      USE_DEBUG: 1
+        #      USE_DEBUG: 1
     strategy:
       matrix:
         cc: [gcc, clang]
