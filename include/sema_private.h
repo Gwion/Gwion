@@ -10,6 +10,7 @@ typedef struct {
   bool scope;
   bool handling;
   bool in_variadic;
+  bool in_defer;
 } Sema;
 
 #ifdef __SEMA_IMPLEMENTATION__

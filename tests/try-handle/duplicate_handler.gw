@@ -1,0 +1,6 @@
+#! [contains] duplicate handler tag
+try {
+
+} handle Foo {
+} handle Foo {}
+

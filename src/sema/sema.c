@@ -331,6 +331,11 @@ ANN static bool sema_stmt_return(Sema *a, Stmt_Exp b) {
     POISON(a, stmt_self(b));
     ok = false;
   }
+  if(a->in_defer) {
+    gwerr_basic("'return' statement in defered action", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
+    POISON(a, stmt_self(b));
+    ok = false;
+  }
   if(b->val && !unique_expression(a, b->val, "in `return` statement"))
     ok = false;
   return ok;
@@ -377,7 +382,7 @@ ANN static bool sema_stmt_pp(Sema *a, Stmt_PP b) {
 
 ANN static bool sema_stmt_retry(Sema *a NUSED, Stmt_Exp b NUSED) {
   if(a->handling) return true;
-  gwerr_basic("`retry outside of `handle` block", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
+  gwerr_basic("`retry` outside of `handle` block", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
   return false;
 }
 
@@ -422,7 +427,10 @@ ANN static bool sema_stmt_try(Sema *a, Stmt_Try b) {
 }
 
 ANN static bool sema_stmt_defer(Sema *a, Stmt_Defer b) {
+  const bool in_defer = a ->in_defer;
+  a->in_defer = true;
   return sema_stmt(a, b->stmt, false);
+  a ->in_defer = in_defer;
 }
 
 ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector **acc) {
@@ -662,20 +670,23 @@ ANN static bool sema_func_def(Sema *a, Func_Def b) {
   const Tmpl *tmpl = b->base->tmpl;
   const bool is_base = tmpl && tmpl_base(tmpl);
   const bool is_spread = tmpl && is_spread_tmpl(tmpl);
-  const bool in_variadic = a->in_variadic;
   const bool is_fill = !is_base && is_spread;
+  const bool in_variadic = a->in_variadic;
+  const bool in_defer = a->in_defer;
   a->in_variadic = in_variadic || is_spread;
+  a->in_defer = in_defer;
   if(is_fill && !fill(a, tmpl)) 
     return false;
   bool ok = sema_func_base(a, b->base, !GET_FLAG(b->base, abstract));
   if(b->d.code) {
     const bool func = a->func;
-    a->func = true;
+    a->func = true; // we can move this out
     (void)sema_stmt_list(a, &b->d.code); // ignore code in return value
     a->func = func;
   }
   if(is_fill) unfill(a, tmpl);
   a->in_variadic = in_variadic;
+  a->in_defer = in_defer;
   return ok;
 }
 
