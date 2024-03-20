@@ -143,6 +143,7 @@ enum {
   efloat_int_r_div,
   eCastI2F,
   eCastF2I,
+  eDur_Advance,
   eTime_Advance,
   eRecurs,
   eSetCode,
@@ -364,6 +365,7 @@ enum {
 #define  float_int_r_div       (f_instr)efloat_int_r_div
 #define  CastI2F               (f_instr)eCastI2F
 #define  CastF2I               (f_instr)eCastF2I
+#define  Dur_Advance           (f_instr)eDur_Advance
 #define  Time_Advance          (f_instr)eTime_Advance
 #define  Recurs                (f_instr)eRecurs
 #define  SetCode               (f_instr)eSetCode
@@ -1084,6 +1086,10 @@ ANN static inline void dump_opcodes(const VM_Code code) {
         break;
       case eCastF2I:
         gw_out("{Y}┃{0}{-}% 4lu{0}: CastF2I     ", j);
+        gw_out("\n");
+        break;
+      case eDur_Advance:
+        gw_out("{Y}┃{0}{-}% 4lu{0}: Dur_Advance ", j);
         gw_out("\n");
         break;
       case eTime_Advance:

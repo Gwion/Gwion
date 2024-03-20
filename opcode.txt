@@ -140,6 +140,7 @@ float_int_r_mul
 float_int_r_div
 CastI2F
 CastF2I
+Dur_Advance
 Time_Advance
 Recurs
 SetCode~i~i

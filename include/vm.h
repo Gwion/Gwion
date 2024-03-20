@@ -101,7 +101,9 @@ ANN ANEW VM_Code vmcode_callback(MemPool p, const VM_Code code);
 ANN VM_Shred shreduler_get(const Shreduler s) __attribute__((hot));
 ANN void     shreduler_remove(const Shreduler s, const VM_Shred out,
                               const bool erase) __attribute__((hot));
-ANN void     shredule(const Shreduler s, const VM_Shred shred,
+ANN void shredule(const Shreduler s, const VM_Shred shred,
+                      const m_float wake_time);
+ANN void     shredule_time(const Shreduler s, const VM_Shred shred,
                       const m_float wake_time) __attribute__((hot));
 ANN void     shreduler_set_loop(const Shreduler s, const bool loop);
 ANN void     shreduler_ini(const Shreduler s, const VM_Shred shred);

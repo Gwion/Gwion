@@ -79,12 +79,11 @@ ANN void shreduler_remove(const Shreduler s, const VM_Shred out,
 ANN static void _shredule(const Shreduler s,   struct ShredTick_ *tk,
                   const m_float wake_time) {
   if(tk->prev == (struct ShredTick_*)-1) return;
-  const m_float      time = wake_time + (m_float)s->bbq->pos;
-  tk->wake_time           = time;
+  tk->wake_time           = wake_time;
   if (s->list) {
     struct ShredTick_ *curr = s->list, *prev = NULL;
     do {
-      if (curr->wake_time > time) break;
+      if (curr->wake_time > wake_time) break;
       prev = curr;
     } while ((curr = curr->next));
     if (!prev) {
@@ -99,12 +98,21 @@ ANN static void _shredule(const Shreduler s,   struct ShredTick_ *tk,
   if (tk == s->curr) s->curr = NULL;
 }
 
-ANN void shredule(const Shreduler s, const VM_Shred shred,
+ANN void shredule_time(const Shreduler s, const VM_Shred shred,
                   const m_float wake_time) {
+  if(wake_time < s->bbq->pos) {
+    handle(shred, "NegativeWakeUpTime");
+    return;
+  }
   struct ShredTick_ *tk   = shred->tick;
   gwt_lock(&s->mutex);
   _shredule(s, tk, wake_time);
   gwt_unlock(&s->mutex);
+}
+
+ANN void shredule(const Shreduler s, const VM_Shred shred,
+                  const m_float wake_time) {
+  return shredule_time(s, shred, wake_time + s->bbq->pos);
 }
 
 ANN void shreduler_ini(const Shreduler s, const VM_Shred shred) {

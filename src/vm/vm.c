@@ -453,7 +453,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&ifrassign, &&ifradd, &&ifrsub, &&ifrmul, &&ifrdiv, &&fiadd, &&fisub,
       &&fimul, &&fidiv, &&fiand, &&fior, &&fieq, &&fine, &&figt, &&fige, &&filt,
       &&file, &&firassign, &&firadd, &&firsub, &&firmul, &&firdiv, &&itof,
-      &&ftoi, &&timeadv, &&recurs, &&setcode, &&regmove,
+      &&ftoi, &&duradv, &&timeadv, &&recurs, &&setcode, &&regmove,
       &&regtomem, &&regtomemother, &&staticmemcpy, &&staticmemset,
       &&overflow,
       &&funcusrend, &&funcusrend2, &&funcmemberend,
@@ -901,10 +901,11 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       *(m_int *)(reg - SZ_INT) = (m_int)f;
       DISPATCH()
 }
+    duradv:
+      *(m_float *)(reg - SZ_FLOAT*2) += vm->bbq->pos;
     timeadv:
       reg -= SZ_FLOAT;
-      shredule(s, shred, *(m_float *)(reg - SZ_FLOAT));
-      *(m_float *)(reg - SZ_FLOAT) += vm->bbq->pos;
+      shredule_time(s, shred, *(m_float *)(reg - SZ_FLOAT));
       VM_OUT
       break;
     recurs:
@@ -1341,7 +1342,7 @@ static void *_dispatch[] = {
       &&_ifrassign, &&_ifradd, &&_ifrsub, &&_ifrmul, &&_ifrdiv, &&_fiadd, &&_fisub,
       &&_fimul, &&_fidiv, &&_fiand, &&_fior, &&_fieq, &&_fine, &&_figt, &&_fige, &&_filt,
       &&_file, &&_firassign, &&_firadd, &&_firsub, &&_firmul, &&_firdiv, &&_itof,
-      &&_ftoi, &&_timeadv, &&_recurs, &&_setcode, &&_regmove,
+      &&_ftoi, &&_duradv, &&_timeadv, &&_recurs, &&_setcode, &&_regmove,
       &&_regtomem, &&_regtomemother, &&_staticmemcpy, &&_staticmemset,
       &&_overflow,
       &&_funcusrend, &&_funcusrend2, &&_funcmemberend,
@@ -1535,6 +1536,7 @@ return;
     PREPARE(itof);
     PREPARE(ftoi);
 
+    PREPARE(duradv);
     PREPARE(timeadv);
 
     PREPARE(recurs);
