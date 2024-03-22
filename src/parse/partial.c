@@ -151,7 +151,8 @@ ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc
       if(next) {
         const Type tnext = next->value_ref->from->owner_class;
         if(!t || !tnext || !isa(t, tnext)) {
-          gwerr_basic(_("can't resolve ambiguity"), _("in this partial application"), _("use typed holes: _ $ type"), env->name, loc, 0);
+          gwlog_error(_("can't resolve ambiguity"), _("in this partial application"), env->name, loc, 0);
+          gwlog_hint(_("use typed holes: `_ $ type`"), env->name, loc);
           gw_err(_("\nthose functions could match:\n"));
           print_signature(f);
           ambiguity(env, next, args, loc);

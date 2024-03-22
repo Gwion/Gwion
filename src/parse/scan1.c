@@ -44,10 +44,10 @@ ANN static bool check_global(const Env env, const Type t, const loc_t loc) {
   if(from_global_nspc(env, from->owner) ||
     (from->owner_class && type_global(env, from->owner_class)))
       return true;
-  gwerr_basic("can't use non-global type in a global class", NULL, NULL, env->name, loc, 0);
-  gwerr_secondary_from("not declared global", from);
+  gwlog_error("can't use non-global type in a global class", NULL, env->name, loc, 0);
+  gwlog_related_from("not declared global", from);
   const ValueFrom *ownerFrom = env->class_def->info->value->from;
-  gwerr_secondary_from("is global", ownerFrom);
+  gwlog_related_from("is global", ownerFrom);
   env_set_error(env, true);
   return false;
 }
@@ -320,7 +320,7 @@ ANN static inline bool stmt_each_defined(const restrict Env env,
 ANN static inline bool shadow_err(const Env env, const Value v,
                                     const loc_t loc) {
   if(env->scope->shadowing) return true;
-  gwerr_basic(_("shadowing a previously defined variable"), NULL, NULL,
+  gwlog_error(_("shadowing a previously defined variable"), NULL,
               env->name, loc, 0);
   defined_here(v);
   env_set_error(env, true);
@@ -774,9 +774,12 @@ ANN static bool _scan1_func_def(const Env env, const Func_Def fdef) {
        !fake.memoize)
      ERR_B(fdef->base->td->tag.loc,
            _("missing return statement in a non void function"));
+  // check gack is called.
+  // there **may** be a better way using effects
   if (fdef->base->tag.sym == insert_symbol("@gack") && !fake.weight) {
-    gwerr_basic(_("`@gack` operator does not print anything"), NULL,
-      _("use `<<<` `>>>` in the function"), env->name, fdef->base->tag.loc, 0);
+    gwlog_error(_("`@gack` operator does not print anything"), NULL,
+      env->name, fdef->base->tag.loc, 0);
+    gwlog_hint(_("use `<<<` `>>>` in the function"), env->name, fdef->base->tag.loc);
     env_set_error(env,  true);
     return false;
   }

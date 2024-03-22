@@ -201,12 +201,12 @@ ANN static bool check_collection(const Env env, Type type, Exp* e,
 
   char fst[20 + strlen(type->name)];
   sprintf(fst, "expected `{+/}%s{0}`", type->name);
-  gwerr_basic(_("literal contains incompatible types"), fst, "the first element determines the type", env->name,
-              loc, 0);
-  // suggested fix: rewrite int 2 as float 2.0"
+  gwlog_error(_("literal contains incompatible types"), fst,
+              env->name, loc, 0);
+  gwlog_hint(_("the first element determines the type"), env->name, loc);
   char sec[16 + strlen(e->type->name)];
   sprintf(sec, "got `{+/}%s{0}`", e->type->name);
-  gwerr_secondary(sec, env->name, e->loc);
+  gwlog_related(sec, env->name, e->loc);
   return false;
 }
 
@@ -364,9 +364,9 @@ ANN static Type check_dot(const Env env, const Exp_Dot *member) {
 ANN static bool check_upvalue(const Env env, const Exp_Primary *prim, const Value v) {
   if(not_upvalue(env, v))
     return true;
-  gwerr_basic(_("value not in lambda scope"), NULL, NULL, env->name, exp_self(prim)->loc, 4242);
+  gwlog_error(_("value not in lambda scope"), NULL, env->name, exp_self(prim)->loc, 4242);
   declared_here(v);
-  gw_err("{-}hint:{0} try adding it to capture list");
+  gwlog_hint(_("{0} try adding it to capture list"), env->name, exp_self(prim)->loc);
   env_set_error(env,  true);
   return false;
 }
@@ -406,7 +406,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
     }
     m_str str = NULL;
     gw_asprintf(env->gwion->mp, &str, "Invalid variable {R}%s{0}\n", name);
-    gwerr_basic(str, _("not legit at this point."), NULL,
+    gwlog_error(str, _("not legit at this point."),
                 env->name, prim_pos(data), 0);
     free_mstr(env->gwion->mp, str);
     did_you_mean_nspc(v ? v->from->owner : env->curr, s_name(sym));
@@ -693,7 +693,6 @@ ANN static inline Exp* next_arg_exp(const Exp *e) {
 }
 
 ANN static void print_current_args(Exp* e) {
-  gw_err(_("and not\n  "));
   do gw_err(" {G}%s{0}", e->type ? e->type->name : "<Unknown>");
   while ((e = next_arg_exp(e)));
   gw_err("\n");
@@ -707,14 +706,16 @@ static void function_alternative(const Env env, const Type t, Exp* args,
          ? t->info->func
         : closure_def(t)->base->func;
   if(!f) return;
-  gwerr_basic("Argument type mismatch", "call site",
-              "valid alternatives:", env->name, loc, 0);
+  gwlog_error("Argument type mismatch", "call site",
+              env->name, loc, 0);
+  // TODO: hint valid alternatives
   do print_signature(f);
   while ((f = f->next));
+  gw_err(_("and not\n  "));
   if (args)
     print_current_args(args);
   else
-    gw_err(_("and not:\n  {G}void{0}\n"));
+    gw_err(_("  {G}void{0}\n"));
   env_set_error(env, true);
 }
 
@@ -1156,7 +1157,7 @@ ANN static bool predefined_call(const Env env, const Type t,
           str);
   free_mstr(env->gwion->mp, str);
   if (tflag(t, tflag_typedef)) {
-    gwerr_secondary("from definition:", env->name,
+    gwlog_related("from definition:", env->name,
                     t->info->func->def->base->tag.loc);
   }
   return false;
@@ -1314,11 +1315,12 @@ ANN bool check_type_def(const Env env, const Type_Def tdef) {
     if (!isa(when->type, env->gwion->type[et_bool])) {
       char explain[strlen(when->type->name) + 20];
       sprintf(explain, "found `{/+}%s{0}`", when->type->name);
-      gwerr_basic("Invalid `{/+}when{0}` predicate expression type", explain,
-                  "use `{/+}bool{0}`", env->name, when->loc, 0);
+      gwlog_error("Invalid `{/+}when{0}` predicate expression type", explain,
+                  env->name, when->loc, 0);
+      gwlog_hint(_("use `bool`"), env->name, when->loc);
       char from[strlen(tdef->type->name) + 39];
       sprintf(from, "in `{/+}%s{0}` definition", tdef->type->name);
-      gwerr_secondary(from, env->name, tdef->tag.loc);
+      gwlog_related(from, env->name, tdef->tag.loc);
       env_set_error(env, true);
       return false;
     }
@@ -1455,9 +1457,9 @@ ANN static inline bool repeat_type(const Env env, Exp* e) {
   if (!check_implicit(env, e, t_int)) {
     char explain[40 + strlen(e->type->name)];
     sprintf(explain, "expected `{/+}int{0}`, got `{/+}%s{0}`", e->type->name);
-    gwerr_basic(_("invalid repeat condition type"), explain,
-                _("use an integer or cast to int if possible"), env->name,
-                e->loc, 0);
+    gwlog_error(_("invalid repeat condition type"), explain,
+                env->name, e->loc, 0);
+    gwlog_hint(_("use an integer or cast to int if possible"), env->name, e->loc);
     env_set_error(env, true);
     return false;
   }
@@ -1767,8 +1769,8 @@ ANN static bool check_signature_match(const Env env, const Func_Def fdef,
   }
   if(fdef->base->tmpl || isa(fdef->base->ret_type, parent->def->base->ret_type))
     return true;
-  gwerr_basic_from("invalid overriding", NULL, NULL, fdef->base->func->value_ref->from, 0);
-  gwerr_secondary_from("does not match", parent->value_ref->from);
+  gwlog_error_from("invalid overriding", NULL, fdef->base->func->value_ref->from, 0);
+  gwlog_related_from("does not match", parent->value_ref->from);
   env_set_error(env,  true);
   return false;
 }
@@ -2112,13 +2114,12 @@ ANN bool check_abstract(const Env env, const Class_Def cdef) {
    if (f && f->def->base && GET_FLAG(f->def->base, abstract)) {
       if (!err) {
         err = true;
-        gwerr_basic(_("missing function definition"),
+        gwlog_error(_("missing function definition"),
                     _("must be declared 'abstract'"),
-                    _("provide an implementation for the following:"),
                     env->name, cdef->base.tag.loc, 0);
       }
       ValueFrom *from = f->value_ref->from;
-      gwerr_secondary_from("implementation missing", from);
+      gwlog_related_from("implementation missing", from);
       env_set_error(env, true);
     }
   }
@@ -2160,7 +2161,7 @@ ANN static bool recursive_value(const Env env, const Type t, const Value v) {
   if(type_is_recurs(t, tgt)) {
     env_err(env, v->from->loc, _("recursive type"));
     env_set_error(env,  false);
-    gwerr_secondary("in class", t->name, t->info->cdef->base.tag.loc);
+    gwlog_related("in class", t->name, t->info->cdef->base.tag.loc);
 
     const Type first = tgt->info->value->from->loc.first.line < t->info->value->from->loc.first.line ?
       v->type : t;
@@ -2287,7 +2288,7 @@ ANN static inline void check_unhandled(const Env env) {
     struct ScopeEffect *eff = mp_vector_at(w, struct ScopeEffect, j);
     if(s_name(eff->sym)[0] == '!')
       continue;
-    gwerr_secondary("Unhandled effect", env->name, eff->loc);
+    gwlog_warning("Unhandled effect", env->name, eff->loc);
     env_set_error(env,  false);
   }
   free_mp_vector(env->gwion->mp, struct ScopeEffect, w);

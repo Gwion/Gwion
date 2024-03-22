@@ -120,7 +120,7 @@ ANN static void trace(VM_Shred shred, const m_uint size) {
   }
   loc_t loc = {.first = {.line = line, .column = 1},
                .last  = {.line = line, .column = 1}};
-  gwerr_secondary("called from here", code_name(shred->code->name, true), loc);
+  gwlog_related("called from here", code_name(shred->code->name, true), loc);
   gw_err("      {M}┗━╸{0} {-}in code{0} {+W}%s{0}{-}:{0}\n", shred->code->name);
   if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return;

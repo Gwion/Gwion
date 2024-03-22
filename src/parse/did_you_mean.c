@@ -55,7 +55,7 @@ ANN static void trait_ressembles(const Scope scope, const char *name,
         gw_err("{-/}did you mean{0}:\n");
       }
       if (trait->filename) // TODO: check why is that from check
-        gwerr_secondary(_("defined here"), trait->filename, trait->loc);
+        gwlog_related(_("defined here"), trait->filename, trait->loc);
     }
   }
 }

@@ -107,9 +107,9 @@ ANN bool const_generic_typecheck(const Env env, const Specialized *spec, const T
   if(!isa(targ->d.exp->type, target)) {
     char msg[256];
     tcol_snprintf(msg, 255, "expected {G+}%s{0}", target->name);
-    gwerr_basic("invalid type for const generic argument", msg, NULL, env->name, spec->tag.loc, 0);
+    gwlog_error("invalid type for const generic argument", msg, env->name, spec->tag.loc, 0);
     tcol_snprintf(msg, 255, "got {G+}%s{0}", targ->d.exp->type->name);
-    gwerr_secondary(msg, env->name, targ->d.exp->loc);
+    gwlog_related(msg, env->name, targ->d.exp->loc);
     return false;
   }
   return true;

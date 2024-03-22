@@ -159,9 +159,9 @@ INSTR(fast_except) {
     return;
   } else if(info) {
     if(info->file)
-      gwerr_basic("Object not instantiated", NULL, NULL, info->file, info->loc, 0);
+      gwlog_error("Object not instantiated", NULL, info->file, info->loc, 0);
     if(info->file2)
-      gwerr_warn("declared here", NULL, NULL, info->file2, info->loc2);
+      gwlog_related("declared here", info->file2, info->loc2);
   }
   handle(shred, "NullPtrException");
 }

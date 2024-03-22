@@ -352,7 +352,8 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
     return opi->rhs;
   if (!strcmp(op, "@func_check")) return NULL;
   if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
-    gwerr_basic(_("no match found for operator"), "expected duration", "did you try converting to `dur`?", env->name, opi->loc, 0);
+    gwlog_error(_("no match found for operator"), "expected duration", env->name, opi->loc, 0);
+    gwlog_hint(_("did you try converting to `dur`?"), env->name, opi->loc);
     env_set_error(env,  true);
   } else if (strcmp(op, "@implicit")) {
     if (opi->rhs && opi->lhs && is_func(env->gwion, opi->rhs)) { // is_callable

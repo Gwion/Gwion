@@ -806,13 +806,13 @@ static OP_CHECK(opck_array_scan) {
   DECL_ON(const Type, base,
           = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
   if (base->size == 0) {
-    gwerr_basic("Can't use type of size 0 as array base", NULL, NULL,
+    gwlog_error("Can't use type of size 0 as array base", NULL,
                 env->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
   if (tflag(base, tflag_ref)) {
-    gwerr_basic("Can't use ref types as array base", NULL, NULL,
+    gwlog_error("Can't use ref types as array base", NULL,
                 env->name, ts->td->tag.loc, 0);
     env_set_error(env, true);
     return env->gwion->type[et_error];
@@ -1201,9 +1201,11 @@ ANN2(1,2) bool check_array_instance(const Env env, Type_Decl *td, Exp* args) {
     if (!args)
       ERR_B(td->tag.loc, "declaration of abstract type arrays needs lambda");
   } else {
-    if(args)
-      gwerr_warn("array is empty", "no need to provide a lambda",
-          NULL, env->name, td->array->exp->loc);
+    if(args) {
+      gwlog_warning("array is empty",
+          env->name, td->array->exp->loc);
+      gwlog_hint(_("no need to provide a lambda"), env->name, td->tag.loc);
+    }
   }
   return true;
 }

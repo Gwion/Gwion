@@ -47,15 +47,6 @@ FLAG_FUNC(Value, v)
 ANEW ANN Value new_value(const Env, const Type type, const Tag tag);
 ANN void       valuefrom(const Env, ValueFrom *);
 
-ANN static inline void defined_here(const Value v) {
-  if (v->from->filename) {// TODO: check why is that from check
-    char c[256];
-    c[255] = '\0';
-    snprintf(c, 256, _("%.*s defined here"), 240, v->name);
-    gwerr_secondary(c, v->from->filename, v->from->loc);
-  }
-}
-
 ANN static inline void valid_value(const Env env, const Symbol xid, const Value v) {
   set_vflag(v, vflag_valid);
   nspc_add_value(env->curr, xid, v);

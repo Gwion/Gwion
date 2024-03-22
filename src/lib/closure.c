@@ -216,14 +216,14 @@ ANN static bool fptr_args(const Env env, Func_Base *base[2]) {
 ANN static bool fptr_effects(const Env env, struct FptrInfo *info) {
   if (!info->lhs->def->base->effects.ptr) return true;
   if (!info->rhs->def->base->effects.ptr) {
-    gwerr_secondary("too many effects", env->name, info->exp->loc);
+    gwlog_warning("too many effects", env->name, info->exp->loc);
     return false;
   }
   const Vector lhs = &info->lhs->def->base->effects;
   const Vector rhs = &info->rhs->def->base->effects;
   for (m_uint i = 0; i < vector_size(lhs); i++) {
     if (vector_find(rhs, vector_at(lhs, 0)) == -1) {
-      gwerr_secondary("effect not handled", env->name, info->exp->loc);
+      gwlog_warning("effect not handled", env->name, info->exp->loc);
       return false;
     }
   }
@@ -467,8 +467,8 @@ static OP_CHECK(opck_fptr_cast) {
 }
 
 static void op_narg_err(const Env env, const Func_Def fdef, const loc_t loc) {
-  gwerr_basic(_("invalid operator decay"),
-              _("Decayed operators take two arguments"), NULL, env->name, loc,
+  gwlog_error(_("invalid operator decay"),
+              _("Decayed operators take two arguments"), env->name, loc,
             0);
   if (fdef) defined_here(fdef->base->func->value_ref);
   env_set_error(env, true);

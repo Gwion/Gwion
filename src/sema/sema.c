@@ -25,8 +25,8 @@
 ANN static bool unique_expression(Sema *a, Exp *b, const char *ctx) {
   const bool ok = sema_exp(a, b);
   if(!b->next) return true && ok;
-  gwerr_basic("can't use multiple expressions", ctx,
-              NULL, a->filename, b->next->loc, 0);
+  gwlog_error("can't use multiple expressions", ctx,
+              a->filename, b->next->loc, 0);
   return false;
 }
 
@@ -35,8 +35,8 @@ ANN static bool array_not_empty(Sema *a, Array_Sub b,
                                 const char *ctx, const loc_t loc) {
   if(b->exp)
     return true;
-  gwerr_basic(_("must provide values/expressions for array [...]"),
-                ctx, NULL, a->filename, loc, 0);
+  gwlog_error(_("must provide values/expressions for array [...]"),
+                ctx, a->filename, loc, 0);
   return false;
 }
 
@@ -45,8 +45,8 @@ ANN static bool array_empty(Sema *a, Array_Sub b,
                             const char *ctx, const loc_t loc) {
   if(!b->exp)
     return true;
-  gwerr_basic(_("array must be empty []"),
-                ctx, NULL, a->filename, loc, 0);
+  gwlog_error(_("array must be empty []"),
+                ctx, a->filename, loc, 0);
   return false;
 }
 
@@ -272,10 +272,9 @@ ANN static bool sema_stmt_until(Sema *a, Stmt_Flow b) {
 ANN static bool sema_stmt_for(Sema *a, Stmt_For b) {
   bool ok = sema_stmt(a, b->c1, false);
   if (!b->c2 || !b->c2->d.stmt_exp.val) {
-    gwerr_basic(
+    gwlog_error(
           _("empty for loop condition..."),
           _("...(note: explicitly use 'true' if it's the intent)"),
-          _("...(e.g., 'for(; true;){{ /*...*/ }')"),
           a->filename, stmt_self(b)->loc, 0);
     ok = false;
   } else if(!sema_stmt(a, b->c2, false))
@@ -327,12 +326,12 @@ ANN static bool sema_stmt_continue(Sema *a, Stmt_Index b) {
 ANN static bool sema_stmt_return(Sema *a, Stmt_Exp b) {
   bool ok = true;
   if(!a->func) {
-    gwerr_basic("'return' statement found outside function definition", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
+    gwlog_error("'return' statement found outside function definition", NULL, a->filename, stmt_self(b)->loc, 0);
     POISON(a, stmt_self(b));
     ok = false;
   }
   if(a->in_defer) {
-    gwerr_basic("'return' statement in defered action", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
+    gwlog_error("'return' statement in defered action", NULL, a->filename, stmt_self(b)->loc, 0);
     POISON(a, stmt_self(b));
     ok = false;
   }
@@ -382,7 +381,7 @@ ANN static bool sema_stmt_pp(Sema *a, Stmt_PP b) {
 
 ANN static bool sema_stmt_retry(Sema *a NUSED, Stmt_Exp b NUSED) {
   if(a->handling) return true;
-  gwerr_basic("`retry` outside of `handle` block", NULL, NULL, a->filename, stmt_self(b)->loc, 0);
+  gwlog_error("`retry` outside of `handle` block", NULL, a->filename, stmt_self(b)->loc, 0);
   return false;
 }
 
@@ -391,12 +390,12 @@ ANN static bool sema_handler(Sema *a, Handler *b, ID_List *tags) {
   for(uint32_t i = 0; i < (*tags)->len; i++) {
     Tag *tag = mp_vector_at(*tags, Tag, i);
     if(!tag->sym && b->tag.sym) {
-      gwerr_basic("named handler after a catch-all one", NULL, NULL, a->filename, b->tag.loc, 0);
-      gwerr_secondary("catch-all used here", a->filename, b->tag.loc);
+      gwlog_error("named handler after a catch-all one", NULL, a->filename, b->tag.loc, 0);
+      gwlog_related("catch-all used here", a->filename, b->tag.loc);
       ok = false;
     } else if(b->tag.sym == tag->sym) {
-      gwerr_basic("duplicate handler tag", NULL, NULL, a->filename, b->tag.loc, 0);
-      gwerr_secondary("handler used here", a->filename, b->tag.loc);
+      gwlog_error("duplicate handler tag", NULL, a->filename, b->tag.loc, 0);
+      gwlog_related("handler used here", a->filename, b->tag.loc);
       ok = false;
     }
   }
@@ -508,7 +507,7 @@ ANN static Stmt_List spread_to_stmt_list(Sema *a, const Spread_Def spread) {
     free_mp_vector(a->mp, Section, ast);
     return stmt_list;
   }
-  gwerr_basic(_("invalid spread section"), NULL, NULL, a->filename, spread->tag.loc, 0);
+  gwlog_error(_("invalid spread section"), NULL, a->filename, spread->tag.loc, 0);
   free_ast(a->mp, ast);
   return NULL;
 }
@@ -518,7 +517,7 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
   if(!a->tmpls) {
     if(a->in_variadic) return sema_spread(a, b, NULL);
     else {
-      gwerr_basic(_("spread statement outside of variadic environment"), NULL, NULL,
+      gwlog_error(_("spread statement outside of variadic environment"), NULL,
         a->filename, b->tag.loc, 0);
       return false;
     }
@@ -584,7 +583,7 @@ ANN static bool sema_arg(Sema *a, Arg *b, const bool no_default) {
       ok = false;
   if (b->exp) {
     if(no_default) {
-      gwerr_basic("'default' argument not allowed", NULL, NULL, a->filename, b->var.vd.tag.loc, 0);
+      gwlog_error("'default' argument not allowed", NULL, a->filename, b->var.vd.tag.loc, 0);
       ok = false;
     }
     if(!unique_expression(a, b->exp, "in argument list"))
@@ -599,14 +598,14 @@ ANN static bool sema_arg_list(Sema *a, Arg_List b,
   for(uint32_t i = 0; i < b->len; i++) {
     Arg *c = mp_vector_at(b, Arg, i);
     if(!c->var.vd.tag.sym && arg_needs_sym) {
-      gwerr_basic("argument needs name", NULL, NULL, a->filename, c->var.vd.tag.loc, 0);
+      gwlog_error("argument needs name", NULL, a->filename, c->var.vd.tag.loc, 0);
       ok = false;
     }
     if(!sema_arg(a, c, no_default))
       ok = false;
     if(c->exp) *has_default = true;
     else if(*has_default) {
-      gwerr_basic("missing default argument", NULL, NULL, a->filename, c->var.vd.tag.loc, 0);
+      gwlog_error("missing default argument", NULL, a->filename, c->var.vd.tag.loc, 0);
       ok = false;
     }
   }
@@ -647,12 +646,12 @@ ANN static bool fill(Sema *a, const Tmpl *tmpl) {
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
     if(targ.type != tmplarg_td) {
-      gwerr_basic("invalid const expression in variadic template", NULL,
+      gwlog_error("invalid const expression in variadic template",
                   "can't use expression in spread",
                   a->filename, targ.d.exp->loc, 0);
       Specialized *spec = mp_vector_at(tmpl->list, Specialized,
                                        tmpl->list->len - 1);
-      gwerr_secondary("spread starts here", a->filename, spec->tag.loc);
+      gwlog_related("spread starts here", a->filename, spec->tag.loc);
       ok = false;
     }
     mp_vector_add(a->mp, &a->tmpls, Type_Decl*, targ.d.td);
@@ -750,7 +749,7 @@ ANN static bool sema_union_def(Sema *a, Union_Def b) {
     if(!sema_tmpl(a, b->tmpl))
       ok = false;
     if(is_spread_tmpl(b->tmpl)) {
-      gwerr_basic(_("unions can't be variadic"), NULL, NULL,
+      gwlog_error(_("unions can't be variadic"), NULL,
                   a->filename, b->tag.loc, 0);
       ok = false;
     }
@@ -825,12 +824,12 @@ ANN static bool ext_fill(const Gwion gwion, MP_Vector **vec, const Tmpl *tmpl) {
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
     TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
     if(targ.type != tmplarg_td) {
-      gwerr_basic("invalid const expression in variadic template", NULL,
+      gwlog_error("invalid const expression in variadic template",
                   "can't use expression in spread",
                   gwion->env->name, targ.d.exp->loc, 0);
       Specialized *spec = mp_vector_at(tmpl->list, Specialized,
                                        tmpl->list->len - 1);
-      gwerr_secondary("spread starts here", gwion->env->name, spec->tag.loc);
+      gwlog_related("spread starts here", gwion->env->name, spec->tag.loc);
       return false;
     }
     mp_vector_add(gwion->mp, vec, Type_Decl*, targ.d.td);

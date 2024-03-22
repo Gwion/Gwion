@@ -188,7 +188,7 @@ ANN static void env_xxx(const Env env, const loc_t loc, const m_str fmt,
   va_end(tmpa);
   char c[size + 1];
   vsprintf(c, fmt, arg);
-  gwerr_basic(c, NULL, NULL, env->name, loc, 0);
+  gwlog_error(c, NULL, env->name, loc, 0);
 #endif
 }
 
@@ -201,7 +201,7 @@ ANN static void _env_warn(const Env env, const loc_t loc, const m_str fmt,
   va_end(tmpa);
   char c[size + 1];
   vsprintf(c, fmt, arg);
-  gwerr_warn(c, NULL, NULL, env->name, loc);
+  gwlog_warning(c, env->name, loc);
 #endif
 }
 

@@ -15,26 +15,26 @@
 ANN static bool var_match(const Value a, const Value b) {
   bool error = true;
   if (!isa(a->type, a->type)) {
-    gwerr_basic_from("invalid variable type", NULL, NULL, a->from, 0);
+    gwlog_error_from("invalid variable type", NULL, a->from, 0);
     error = false;
   }
   if (GET_FLAG(a, const) && !GET_FLAG(b, const)) {
-    gwerr_basic_from("variable differs in {/}constness{0}", NULL, NULL, a->from, 0);
+    gwlog_error_from("variable differs in {/}constness{0}", NULL, a->from, 0);
     error = false;
   }
   if (GET_FLAG(a, static) && !GET_FLAG(b, static)) {
-    gwerr_basic_from("variable differs in {/}storage{0}", NULL, NULL, a->from, 0);
+    gwlog_error_from("variable differs in {/}storage{0}", NULL, a->from, 0);
     error = false;
   }
   if (error) return true;
-  gwerr_secondary_from("from requested variable", b->from);
+  gwlog_related_from("from requested variable", b->from);
   return error;
 }
 
 ANN static bool request_var(const Env env, const Type t, const Value request) {
   const Value value = nspc_lookup_value0(t->nspc, insert_symbol(request->name));
   if (!value) {
-    gwerr_basic("missing requested variable", NULL, NULL,
+    gwlog_error("missing requested variable", NULL,
                 request->from->filename, request->from->loc, 0);
     return false;
   }
@@ -91,7 +91,7 @@ ANN static bool request_found(const Env env, const Type t,
   const Value v = nspc_lookup_value0(t->nspc, request->base->tag.sym);
   if (!v) return false;
   if (!is_func(env->gwion, v->type)) {
-    gwerr_basic_from("is not a function", NULL, NULL, v->from, 0);
+    gwlog_error_from("is not a function", NULL, v->from, 0);
     return false;
   }
   Func f = v->d.func_ref;
@@ -149,10 +149,10 @@ ANN static bool request_fun(const Env env, const Type t,
   const Value parent = nspc_lookup_value1(env->global_nspc, request->base->tag.sym);
   if(parent) {
     const Value v = nspc_lookup_value1(env->curr, request->base->tag.sym);
-    gwerr_basic_from("is missing {+G}global{0}", NULL, NULL, v->from, 0);
-    gwerr_secondary("from requested func", env->name, request->base->tag.loc);
+    gwlog_error_from("is missing {+G}global{0}", NULL, v->from, 0);
+    gwlog_related("from requested func", env->name, request->base->tag.loc);
     env_set_error(env, true);
-  } else gwerr_basic("missing requested function", NULL, NULL, env->name,
+  } else gwlog_error("missing requested function", NULL, env->name,
               request->base->tag.loc, 0);
   return false;
 }
@@ -186,13 +186,13 @@ ANN bool check_trait_requests(const Env env, const Type t, const ID_List list, c
     const Symbol xid = *mp_vector_at(list, Symbol, i);
     const Trait trait = nspc_lookup_trait1(env->curr, xid);
     if (!trait_nodup(list, i)) {
-      gwerr_secondary_from("class has duplicated trait", from);
+      gwlog_warning_from("class has duplicated trait", from);
       return trait_error(env);
     }
     if (trait->var ? check_trait_variables(env, t, trait) : false ||
         trait->fun ? check_trait_functions(env, t, trait) : false) {
-      gwerr_secondary("in trait", trait->filename, trait->loc);
-      gwerr_secondary("requested here", from->filename, from->loc);
+      gwlog_warning("in trait", trait->filename, trait->loc);
+      gwlog_related_from("requested here", from);
       return trait_error(env);
     }
   }

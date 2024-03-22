@@ -4,7 +4,7 @@ typedef struct {
   SymTable *st;
   MP_Vector *tmpls;
   Stmt_List *stmt_list;
-  struct PPArg_ *ppa;
+  PPArg *ppa;
   bool error;
   bool func;
   bool scope;

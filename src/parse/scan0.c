@@ -335,7 +335,7 @@ ANN static bool find_traits(const Env env, ID_List traits, const loc_t loc) {
   for(uint32_t i = 0; i < traits->len; i++) {
     Symbol xid = *mp_vector_at(traits, Symbol, i);
     if (!nspc_lookup_trait1(env->curr, xid)) {
-      gwerr_basic(_("can't find trait"), NULL, NULL, env->name, loc, 0);
+      gwlog_error(_("can't find trait"), NULL, env->name, loc, 0);
       did_you_mean_trait(env->curr, s_name(xid));
       env_set_error(env, true);
       POISON(ok, env);
@@ -348,7 +348,7 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   CHECK_O(scan0_defined(env, cdef->base.tag));
   DECL_O(const Type, parent, = cdef_parent(env, cdef));
   if(GET_FLAG(cdef, global) && !isa(parent, env->gwion->type[et_closure]) && !type_global(env, parent)) {
-    gwerr_basic(_("parent type is not global"), NULL, NULL, env->name, cdef->base.ext ? cdef->base.ext->tag.loc : cdef->base.tag.loc, 0);
+    gwlog_error(_("parent type is not global"), NULL,  env->name, cdef->base.ext ? cdef->base.ext->tag.loc : cdef->base.tag.loc, 0);
     declared_here(parent->info->value);
     env_set_error(env,  true);
     return NULL;
@@ -412,8 +412,8 @@ ANN static bool scan0_extend_def(const Env env, const Extend_Def xdef) {
       const Trait global = nspc_lookup_trait1(env->global_nspc, xid);
       if(!global) {
         const Trait trait = nspc_lookup_trait1(env->curr, xid);
-        gwerr_basic("trait should be declared global", NULL, NULL, trait->filename, trait->loc, 0);
-        gwerr_secondary("from the request ", env->name, xdef->td->tag.loc);
+        gwlog_error("trait should be declared global", NULL, trait->filename, trait->loc, 0);
+        gwlog_related("from the request ", env->name, xdef->td->tag.loc);
         env_set_error(env, true);
         POISON(ok, env);
       }
@@ -464,8 +464,8 @@ ANN static bool scan0_trait_def(const Env env, const Trait_Def pdef) {
   const Symbol s      = pdef->tag.sym;
   const Trait  exists = nspc_lookup_trait1(env->curr, s);
   if (exists) {
-    gwerr_basic("trait already defined", NULL, NULL, env->name, pdef->tag.loc, 0);
-    gwerr_secondary("defined here", env->name, exists->loc);
+    gwlog_error("trait already defined", NULL, env->name, pdef->tag.loc, 0);
+    gwlog_related("defined here", env->name, exists->loc);
     env_set_error(env, true);
     return can_define(env, s, pdef->tag.loc);
   }

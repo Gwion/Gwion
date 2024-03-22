@@ -13,17 +13,31 @@
 #include "env/tuple.h"
 #include "env/envset.h"
 
-ANN2(1,4) static inline void gwerr_basic_from(const m_str msg, const m_str explain,
-                                              const m_str fix, const ValueFrom *from,
+ANN2(1,3) static inline void gwlog_error_from(const m_str msg, const m_str explain,
+                                              const ValueFrom *from,
                                               const uint code) {
-  gwerr_basic(msg, explain, fix, from->filename, from->loc, code);
+  gwlog_error(msg, explain, from->filename, from->loc, code);
 }
-ANN static inline void gwerr_secondary_from(const m_str msg, const ValueFrom *from) {
-  gwerr_secondary(msg, from->filename, from->loc);
+ANN static inline void gwlog_warning_from(const m_str msg, const ValueFrom *from) {
+  gwlog_warning(msg, from->filename, from->loc);
+}
+ANN static inline void gwlog_related_from(const m_str msg, const ValueFrom *from) {
+  gwlog_related(msg, from->filename, from->loc);
 }
 
 ANN static inline void declared_here(const Value v) {
-  gwerr_secondary_from((m_str)"declared here", v->from);
+  gwlog_related_from((m_str)"declared here", v->from);
 }
+
+ANN static inline void defined_here(const Value v) {
+  if (v->from->filename) {// TODO: check why is that from check
+    char c[256];
+    c[255] = '\0';
+    snprintf(c, 256, _("%.*s defined here"), 240, v->name);
+    gwlog_related_from(c, v->from);
+  }
+}
+
+
 #endif
 

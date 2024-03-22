@@ -109,9 +109,9 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
       sprintf(c, "arg%u", idx);
       TmplArg targ = *mp_vector_at(ra->types, TmplArg, idx);
       if(targ.type != tmplarg_td) {
-        gwerr_basic("invalid const expression in variadic template", NULL, "can't use expression in spread", env->name, targ.d.exp->loc, 0);
+        gwlog_error("invalid const expression in variadic template", "can't use expression in spread", env->name, targ.d.exp->loc, 0);
         Specialized *spec = mp_vector_at(value->d.func_ref->def->base->tmpl->list, Specialized, value->d.func_ref->def->base->tmpl->list->len - 1);
-        gwerr_secondary("spread starts here", env->name, spec->tag.loc);
+        gwlog_related("spread starts here", env->name, spec->tag.loc);
         env_set_error(env, true);
         return NULL;
       }

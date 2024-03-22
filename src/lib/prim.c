@@ -252,7 +252,7 @@ static GACK(gack_bool) {
 
 static OP_CHECK(bool2float) {
   struct Implicit *impl = (struct Implicit *)data;
-  gwerr_basic("Can't implicitely cast {G+}bool{0} to {G+}float{0}", NULL, "Did you forget a cast?",
+  gwlog_error("Can't implicitely cast {G+}bool{0} to {G+}float{0}", "Did you forget a cast?",
        env->name, impl->e->loc, 0);
   env_set_error(env, true);
   return env->gwion->type[et_error];

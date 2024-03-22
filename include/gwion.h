@@ -15,7 +15,7 @@ struct Gwion_ {
   Emitter            emit;
   struct GwionData_ *data;
   Type *             type;
-  struct PPArg_ *    ppa;
+  PPArg *    ppa;
 };
 
 ANN bool gwion_ini(const Gwion, CliArg*);

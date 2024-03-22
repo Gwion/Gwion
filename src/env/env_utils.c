@@ -68,7 +68,7 @@ ANN Type find_type(const Env env, Type_Decl *td) {
 ANN bool can_define(const Env env, const Symbol s, const loc_t loc) {
   const Value v = nspc_lookup_value0(env->curr, s);
   if (!v || is_class(env->gwion, v->type)) return true;
-  gwerr_basic(_("already declared as variable"), NULL, NULL, env->name, loc, 0);
+  gwlog_error(_("already declared as variable"), NULL, env->name, loc, 0);
   declared_here(v);
   return false;
 }

@@ -186,7 +186,7 @@ ANN static inline Value get_value(const Env env, const Exp_Dot *member,
 ANN static bool member_access(const Env env, Exp* exp, const Value value) {
   if (!env->class_def || !isa(env->class_def, value->from->owner_class)) {
     if (GET_FLAG(value, private)) {
-      gwerr_basic("invalid variable access", "is private", NULL, env->name,
+      gwlog_error("invalid variable access", "is private", env->name,
                   exp->loc, 0);
       defined_here(value);
       env_set_error(env, true);
