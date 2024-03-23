@@ -264,7 +264,7 @@ OP_EMIT(opem_object_dot) {
     assert(GET_FLAG(value, static));
     emit_dot_static_import_data(emit, value, exp_getvar(exp_self(member)));
   }
-  if(isa(value->type, emit->gwion->type[et_object]) &&
+  if(is_object(emit->gwion, value->type) &&
      !exp_getvar(exp_self(member)) &&
     (GET_FLAG(value, static) || GET_FLAG(value, late)))
     emit_fast_except(emit, value->from, exp_self(member)->loc);

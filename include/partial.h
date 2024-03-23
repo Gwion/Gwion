@@ -2,7 +2,6 @@
 #define __PARTIAL_APPLICATION
 
 ANN Type partial_type(const Env, Exp_Call *const);
-ANN void print_signature(const Func f);
 
 ANN static inline bool func_match_inner(const Env env, Exp* e,
                                         const Type t, const bool implicit,

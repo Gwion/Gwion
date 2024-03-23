@@ -114,30 +114,11 @@ ANN Func find_match_actual(const Env env, const Func up, Exp* args) {
 
 ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc_t loc);
 
-ANN static void print_arg(Arg_List args) {
-  for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    gw_err("{G}%s{0} {/}%s{0}", arg->type ? arg->type->name : NULL,
-           arg->var.vd.tag.sym ? s_name(arg->var.vd.tag.sym) : "");
-    if(i < args->len - 1) gw_err(", ");
-  }
-}
-
-ANN void print_signature(const Func f) {
-  gw_err("  {-}(%s){0}  ", f->name);
-  const Arg_List args = f->def->base->args;
-  if (args)
-    print_arg(args);
-  else
-    gw_err("{G}void{0}");
-  gw_err("\n");
-}
-
 ANN void ambiguity(const Env env, Func f, Exp* args, const loc_t loc) {
-  print_signature(f);
+  print_signature(env->gwion, f);
   while(f->next) {
     const Func next = partial_match(env, f->next, args, loc);
-    if(next) print_signature(next);
+    if(next) print_signature(env->gwion, next);
     f = f->next;
   }
 }
@@ -154,7 +135,7 @@ ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc
           gwlog_error(_("can't resolve ambiguity"), _("in this partial application"), env->name, loc, 0);
           gwlog_hint(_("use typed holes: `_ $ type`"), env->name, loc);
           gw_err(_("\nthose functions could match:\n"));
-          print_signature(f);
+          print_signature(env->gwion, f);
           ambiguity(env, next, args, loc);
           env_set_error(env,  true);
           return NULL;

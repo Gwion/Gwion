@@ -452,8 +452,7 @@ ANN static bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
     const m_uint size  = v->type->size;
     emit_dotstatic(emit, (m_uint)&v->d.ptr, size, emit_addr);
     // prevent invalid access to global variables
-    if(!emit_addr &&
-       isa(v->type, emit->gwion->type[et_object]))
+    if(!emit_addr && is_object(emit->gwion, v->type))
       emit_fast_except(emit, v->from, prim_pos(data));
   } else {
     const m_uint size = v->type->size;
@@ -464,7 +463,7 @@ ANN static bool emit_symbol_builtin(const Emitter emit, const Symbol *data) {
   return true;
 }
 
-ANN static bool _emit_symbol(const Emitter emit, const Symbol *data) {
+ANN static bool emit_symbol(const Emitter emit, const Symbol *data) {
   const Value v = prim_self(data)->value;
   if (is_class(emit->gwion, v->type)) {
     emit_pushimm(emit, (m_uint)actual_type(emit->gwion, v->type));
@@ -502,15 +501,9 @@ ANN static bool _emit_symbol(const Emitter emit, const Symbol *data) {
   else
     emit_regpushbase(emit, v->from->offset, size, exp_getvar(prim_exp(data)));
   if (GET_FLAG(v, late) && !exp_getvar(prim_exp(data)) &&
-      isa(v->type, emit->gwion->type[et_object]))
+      is_object(emit->gwion, v->type))
     emit_fast_except(emit, v->from, prim_pos(data));
   return true;
-}
-
-ANN static bool emit_symbol(const Emitter emit, const Exp_Primary *prim) {
-  if (!prim->value) // assume it's an operator
-    ERR_B(exp_self(prim)->loc, "missing value for operator");
-  return _emit_symbol(emit, &prim->d.var);
 }
 
 ANN VM_Code finalyze(const Emitter emit, const f_instr exec) {
@@ -725,7 +718,7 @@ ANN static bool emit_prim_id(const Emitter emit, const Symbol *data) {
   struct SpecialId_ *spid = specialid_get(emit->gwion, *data);
   if (unlikely(spid))
     return specialid_instr(emit, spid, prim_self(data));
-  return emit_symbol(emit, prim_self(data));
+  return emit_symbol(emit, data);
 }
 
 ANN static bool emit_prim_perform(const Emitter emit, const Symbol *xid) {
@@ -783,7 +776,7 @@ ANN static void emit_gack_type(const Emitter emit, Exp* e) {
   if (e->exp_type == ae_exp_cast ||
       (e->exp_type == ae_exp_primary && e->d.prim.prim_type == ae_prim_str))
      return;
-  const bool isobj = isa(e->type, emit->gwion->type[et_object]);
+  const bool isobj = is_object(emit->gwion, e->type);
   if (isobj  && (tflag(e->type, tflag_ref) || !GET_FLAG(e->type, final)))
     emit_add_instr(emit, GackType);
 }
@@ -943,11 +936,12 @@ ANN static bool emit_exp_decl_static(const Emitter emit, const Exp_Decl *decl,
                                        const bool     is_ref,
                                        const bool     emit_addr) {
   const Value v = var_decl->value;
-  if (isa(v->type, emit->gwion->type[et_object]) && !is_ref)
+  bool isobj = is_object(emit->gwion, v->type);
+  if (isobj && !is_ref)
     CHECK_B(decl_static(emit, decl, var_decl, 0));
   CHECK_B(emit_dot_static_data(emit, v, !struct_ctor(v) ? emit_addr : 1));
   if (tflag(v->type, tflag_struct)) CHECK_B(struct_finish(emit, decl));
-  if (isa(v->type, emit->gwion->type[et_object]) && !is_ref) {
+  if (isobj && !is_ref) {
     if(safe_tflag(emit->env->class_def, tflag_struct) && GET_FLAG(emit->env->class_def, global))
       emit_object_addref(emit, 0, emit_addr);
   }
@@ -1009,7 +1003,7 @@ ANN static bool emit_exp_decl_non_static(const Emitter   emit,
                                            const uint      emit_var) {
   const Value     v        = var_decl->value;
   const Type      type     = v->type;
-  const bool      is_obj   = isa(type, emit->gwion->type[et_object]);
+  const bool      is_obj   = is_object(emit->gwion, type);
   const bool emit_addr = (!is_obj || is_ref) ? emit_var : true;
   if (is_obj && !is_ref && !exp_self(decl)->ref) {
     if(!decl->args) CHECK_B(emit_instantiate_decl(emit, type, decl->var.td, is_ref));
@@ -1052,7 +1046,7 @@ ANN static bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
                                        const uint is_ref, const bool emit_var) {
   const Value     v        = var_decl->value;
   const Type      type     = v->type;
-  const bool      is_obj   = isa(type, emit->gwion->type[et_object]);
+  const bool      is_obj   = is_object(emit->gwion, type);
   const bool emit_addr = (!is_obj || is_ref) ? emit_var : true;
   if (is_obj && !is_ref) {
     if(!decl->args) CHECK_B(emit_instantiate_decl(emit, type, decl->var.td, is_ref));
@@ -1072,18 +1066,6 @@ ANN static bool emit_exp_decl_global(const Emitter emit, const Exp_Decl *decl,
     struct_finish(emit, decl);
   }
   return true;
-}
-
-ANN static void set_late(const Exp_Decl *decl, const Var_Decl *var) {
-  const Value v         = var->value;
-  if (!exp_getvar(exp_self(decl)) &&
-      (GET_FLAG(array_base_simple(v->type), abstract) || GET_FLAG(decl->var.td, late)))
-    SET_FLAG(v, late);
-  else UNSET_FLAG(v, late);
-}
-
-static inline bool late_array(const Type_Decl* td) {
-  return !td->array || !td->array->exp;
 }
 
 ANN static bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
@@ -1106,26 +1088,8 @@ ANN static bool emit_decl(const Emitter emit, Exp_Decl *const decl) {
                             .op  = insert_symbol("@implicit"),
                             .rhs = t};
     CHECK_B(op_emit(emit, &opi));
-  }
-  set_late(decl, vd);
-  if (!decl->args && !exp_getvar(exp_self(decl)) && GET_FLAG(array_base_simple(v->type), abstract) && !GET_FLAG(decl->var.td, late) &&
-      GET_FLAG(v, late) && late_array(decl->var.td)
-      && GET_FLAG(v->type, abstract)) {
-    env_err(emit->env, decl->var.td->tag.loc, _("Type '%s' is abstract, use {+G}late{0} instead of {G+}%s{0}"),
-             v->type->name, !GET_FLAG(decl->var.td, const) ? "var" : "const");
-    if(v->type->nspc->vtable.ptr) {
-      const Vector vec = &v->type->nspc->vtable;
-      for(m_uint i = 0; i < vector_size(vec); i++) {
-        const Func f = (Func)vector_at(vec, i);
-        if(is_new(f->def)) {
-          gw_err(_("maybe use a constructor?\n"));
-          break;
-        }
-      }
-    }
-    return false;
-  }
-  if(isa(v->type, emit->gwion->type[et_object]) && GET_FLAG(v, late) && exp_getuse(exp_self(decl)))
+  } 
+  if(is_object(emit->gwion, v->type) /*&& GET_FLAG(v, late) */&& exp_getuse(exp_self(decl)) && !exp_getvar(exp_self(decl)))
     emit_add_instr(emit, GWOP_EXCEPT);
   return true;
 }
@@ -1140,7 +1104,7 @@ ANN /*static */ bool emit_exp_decl(const Emitter emit, Exp_Decl *const decl) {
       !global ? emit->env->scope->depth : emit_push_global(emit);
   const bool ret = emit_decl(emit, decl);
   if (global) emit_pop(emit, scope);
-  if(emit->status.in_return && GET_FLAG(decl->var.vd.value, late) && isa(t, emit->gwion->type[et_object]))
+  if(emit->status.in_return && GET_FLAG(decl->var.vd.value, late) && is_object(emit->gwion, t))
     emit_add_instr(emit, GWOP_EXCEPT);
   return ret;
 }
@@ -1957,8 +1921,8 @@ ANN2(1) /*static */ bool emit_exp(const Emitter emit, /* const */ Exp* e) {
     }
     CHECK_B(emit_exp_func[exp->exp_type](emit, &exp->d));
     if (exp->cast_to) CHECK_B(emit_implicit_cast(emit, exp, exp->cast_to));
-    if (isa(e->type, emit->gwion->type[et_object]) &&
-        (e->cast_to ? isa(e->cast_to, emit->gwion->type[et_object]) : 1) &&
+    if (is_object(emit->gwion, exp->type) &&
+        (e->cast_to ? is_object(emit->gwion, e->cast_to) : true) &&
         e->exp_type == ae_exp_decl && GET_FLAG(e->d.exp_decl.var.td, late) &&
         exp_getuse(e) && !exp_getvar(e) &&
         GET_FLAG(e->d.exp_decl.var.vd.value, late))

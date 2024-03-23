@@ -87,11 +87,6 @@ ANN static inline void operator_resume(struct Op_Import *opi) {
   *(uintptr_t *)opi->ret = opi->data;
 }
 
-ANN static inline void set_decl_ref(Exp* e) {
-  if (e->exp_type == ae_exp_decl)
-    SET_FLAG(e->d.exp_decl.var.vd.value, late);
-}
-
 ANN void func_operator(const Func_Def fdef, struct Op_Import *opi);
 ANN bool add_op_func_check(const Env env, const Type t, const struct Op_Func *opfunc, const m_uint idx);
 #endif

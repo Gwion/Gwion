@@ -1,0 +1,6 @@
+#! [contains] maybe use a constructor?
+class C {
+  operator new() {};
+}
+
+var C c;

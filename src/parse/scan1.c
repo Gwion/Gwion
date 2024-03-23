@@ -133,7 +133,7 @@ ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
         set_vflag(v, vflag_member);
         if(tflag(t, tflag_release))
           set_tflag(env->class_def, tflag_release);
-        if(isa(t, env->gwion->type[et_object]))
+        if(is_object(env->gwion, t))
           set_vflag(v, vflag_release);
         if (tflag(env->class_def, tflag_struct)) {
           v->from->offset = env->class_def->size;
@@ -815,7 +815,7 @@ ANN static bool scan1_parent(const Env env, const Class_Def cdef) {
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
     CHECK_B(scan1_exp(env, cdef->base.ext->array->exp));
   DECL_B(const Type, parent, = scan1_get_parent(env, &cdef->base));
-  if (!isa(parent, env->gwion->type[et_object]) &&
+  if (!is_object(env->gwion, parent) &&
 //      !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_udef)))
       !(tflag(cdef->base.type, tflag_cdef) || tflag(cdef->base.type, tflag_union)))
     ERR_B(loc, _("cannot extend primitive type '%s'"), parent->name);

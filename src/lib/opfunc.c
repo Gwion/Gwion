@@ -152,7 +152,7 @@ OP_CHECK(opck_new) {
      (!array || (array->exp && exp_is_zero(array->exp))))
     ERR_N(unary->ctor.td->tag.loc, _("can't use 'new' on abstract type '%s'\n"),
           t->name);
-  if (!isa(t, env->gwion->type[et_object]))
+  if (!is_object(env->gwion, t))
     ERR_N(exp_self(unary)->loc, _("can't use 'new' on non-object types...\n"));
   return t;
 }

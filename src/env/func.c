@@ -1,6 +1,7 @@
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
+#include "gwfmt.h"
 #include "vm.h"
 #include "gwion.h"
 #include "clean.h"
@@ -54,7 +55,17 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
         if(likely(arg.type == tmplarg_td))
           mp_vector_set(f->code->types, Type, n++, known_type(gwion->env, arg.d.td));
       }
-//      f->code->types->len = n;
     }
   }
 }
+
+ANN void print_signature(const Gwion gwion, const Func f) {
+  struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
+  text_init(&ls.text, gwion->mp);
+  Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
+  gwfmt_func_def(&l, f->def);
+  gwlog_related_from(ls.text.str, f->value_ref->from); 
+  text_release(&ls.text);
+}
+
+

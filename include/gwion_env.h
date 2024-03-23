@@ -39,5 +39,6 @@ ANN static inline void defined_here(const Value v) {
 }
 
 
+#define is_new(a) !strcmp(s_name((a)->base->tag.sym), "new")
 #endif
 

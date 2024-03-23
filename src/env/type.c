@@ -139,6 +139,10 @@ ANN bool is_func(const struct Gwion_ *gwion, const Type t) {
   return isa(actual_type(gwion, t), gwion->type[et_function]);
 }
 
+ANN bool is_object(const struct Gwion_ *gwion, const Type t) {
+  return isa(t, gwion->type[et_object]);
+}
+
 ANN inline bool is_class(const struct Gwion_ *gwion, const Type t) {
 //  return isa(t, gwion->type[et_class]);
   return t->info->parent ==  gwion->type[et_class];

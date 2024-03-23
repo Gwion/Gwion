@@ -82,6 +82,7 @@ ANN Type      actual_type(const struct Gwion_ *gwion, const Type t);
 ANN static inline m_uint env_push_type(const Env env, const Type type) {
   return env_push(env, type, type->nspc);
 }
+ANN bool is_object(const struct Gwion_ *, const Type t);
 ANN bool is_func(const struct Gwion_ *, const Type t);
 ANN bool is_class(const struct Gwion_ *, const Type t);
 ANN __attribute__((returns_nonnull)) static inline Type _class_base(Type t) {

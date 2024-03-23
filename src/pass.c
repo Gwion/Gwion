@@ -8,6 +8,7 @@
 #include "pass.h"
 #include "traverse.h"
 #include "sema.h"
+#include "validate.h"
 
 #define N_PASS     3
 #define N_SCANPASS 4
@@ -17,6 +18,7 @@ static bool typecheck_ast(const Env env, Ast *ast) {
   scan1_ast(env, ast);
   scan2_ast(env, ast);
   check_ast(env, ast);
+  ast_validation(env, ast);
   return !env->context->error;
 }
 

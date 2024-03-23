@@ -171,5 +171,4 @@ ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
          member->base->exp_type == ae_exp_cast;
 }
 
-#define is_new(a) !strcmp(s_name((a)->base->tag.sym), "new")
 #endif

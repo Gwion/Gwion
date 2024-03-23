@@ -403,7 +403,7 @@ ANN static inline bool array_do(const Emitter emit, const Array_Sub array,
     access = emit_add_instr(emit, ArrayAccess);
     access->m_val      = (i+1) * SZ_INT - offset;
     access->udata.one  = offset;
-    if(i < get_depth(t) || isa(array_base(t), emit->gwion->type[et_object])) {
+    if(i < get_depth(t) || is_object(emit->gwion, array_base(t))) {
       const Instr ex     = emit_add_instr(emit, GWOP_EXCEPT);
       ex->m_val          = -SZ_INT;
     }

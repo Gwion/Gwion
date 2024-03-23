@@ -24,7 +24,7 @@ src := $(wildcard src/*.c)
 src += $(wildcard src/*/*.c)
 
 CFLAGS += -Iutil/include -Iast/include -D_GNU_SOURCE
-CFLAGS += -Iast/libprettyerr/src -Ifmt/include
+CFLAGS += -Ifmt/include
 
 # add commit hash to version for now
 CFLAGS += -DGWION_VERSION="\"$(shell git log -n1 --format="%h%m%cs")\""
@@ -64,7 +64,7 @@ include embed/embed.mk
 endif
 
 ALMOST_LIBS := fmt/libgwion_fmt.a
-ALMOST_LIBS += ast/libgwion_ast.a ast/libprettyerr/libprettyerr.a
+ALMOST_LIBS += ast/libgwion_ast.a
 ALMOST_LIBS += util/libgwion_util.a
 GWLIBS := lib${PRG}.a ${ALMOST_LIBS}
 LDFLAGS := ${GWLIBS} ${LDFLAGS}
@@ -114,9 +114,6 @@ ast/libgwion_ast.a: util/libgwion_util.a
 fmt/libgwion_fmt.a: ast/libgwion_ast.a
 	@+${MAKE} -s -C fmt libgwion_fmt.a
 
-ast/libprettyerr/libprettyerr.a: options-show
-	@+CFLAGS=-I$(shell pwd)/util/include ${MAKE} -s -C ast/libprettyerr static
-
 ast: ast/libgwion_ast.a
 	@(info build ast)
 
@@ -133,7 +130,6 @@ clean_core:
 clean-all: clean
 		${MAKE} -s -C fmt clean
 		${MAKE} -s -C ast clean
-		${MAKE} -s -C ast/libprettyerr clean
 		${MAKE} -s -C util clean
 
 update: clean-all

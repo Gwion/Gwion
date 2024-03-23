@@ -1,6 +1,9 @@
 #ifndef __SPECIALID
 #define __SPECIALID
 
+ANN struct SpecialId_ *specialid_get(const Gwion, const Symbol);
+#ifndef __NO_EMIT
+
 typedef Type (*idck)(const Env, const Exp_Primary *);
 typedef bool (*idem)(const Emitter, const Exp_Primary *);
 
@@ -25,4 +28,5 @@ ANN static inline Type specialid_type(const Env env, struct SpecialId_ *spid,
 }
 
 ANN struct SpecialId_ *specialid_get(const Gwion, const Symbol);
+#endif
 #endif

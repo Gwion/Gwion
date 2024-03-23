@@ -189,7 +189,7 @@ ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
     env_pop(env, scope);
     set_vflag(decl->var.vd.value, vflag_direct);
   }
-  env_weight(env, 1 + isa(decl->type, env->gwion->type[et_object]));
+  env_weight(env, 1 + is_object(env->gwion, decl->type));
   return ret ? decl->var.vd.value->type : NULL;
 }
 
@@ -709,9 +709,9 @@ static void function_alternative(const Env env, const Type t, Exp* args,
   gwlog_error("Argument type mismatch", "call site",
               env->name, loc, 0);
   // TODO: hint valid alternatives
-  do print_signature(f);
+  do print_signature(env->gwion, f);
   while ((f = f->next));
-  gw_err(_("and not\n  "));
+  gw_err(_("and not:\n  "));
   if (args)
     print_current_args(args);
   else
@@ -1144,7 +1144,7 @@ ANN static Type check_exp_post(const Env env, const Exp_Postfix *post) {
   CHECK_O(opi.lhs);
   exp_setuse(post->exp, 1);
   const Type t = op_check(env, &opi);
-  if (t && !isa(t, env->gwion->type[et_object]))
+  if (t && !is_object(env->gwion, t))
     exp_setmeta(exp_self(post), 1);
   return t;
 }

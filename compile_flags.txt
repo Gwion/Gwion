@@ -1,3 +1,5 @@
+-Wall
+-Wextra
 -Iutil/include
 -Iast/include
 -Iast/libprettyerr/src

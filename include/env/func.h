@@ -50,4 +50,6 @@ ANN static inline m_uint captures_sz(const Capture_List captures) {
 ANN static inline bool is_ctor(const Func_Def fdef) {
   return !strcmp(s_name(fdef->base->tag.sym), "@ctor");
 }
+
+ANN void print_signature(const Gwion gwion, const Func f);
 #endif

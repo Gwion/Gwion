@@ -26,7 +26,8 @@ ANN static void mk_dtor(MemPool p, const Type t, const m_uint d) {
 ANN2(1, 2) static void import_class_ini(const Env env, const Type t) {
   t->nspc         = new_nspc(env->gwion->mp, t->name);
   t->nspc->parent = env->curr;
-  if (isa(t, env->gwion->type[et_object])) inherit(t);
+  if (is_object(env->gwion, t))
+    inherit(t);
   env_push_type(env, t);
 }
 
