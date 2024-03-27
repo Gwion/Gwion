@@ -21,7 +21,14 @@ ANN static bool gwi_item_tmpl(const Gwi gwi) {
   Stmt_List slist = new_mp_vector(gwi->gwion->mp, Stmt, 1);
   mp_vector_set(slist, Stmt, 0, MK_STMT_EXP(gwi->loc, gwi->ck->exp));
   Section section = MK_SECTION(stmt, stmt_list, slist, gwi->loc);
-  gwi_body(gwi, &section);
+  const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
+  Section *former = cdef->body
+    ? mp_vector_back(cdef->body, Section)
+    : NULL;
+  if(!former || former->section_type != ae_section_stmt)
+    gwi_body(gwi, &section);
+  else
+    mp_vector_add(gwi->gwion->mp, &cdef->body, Section, section);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;
   return true;
@@ -39,7 +46,7 @@ bool gwi_item_end(const Gwi gwi, const ae_flag flag, union value_data addr) {
     gwfmt_sc(gwi->gwfmt);
     gwfmt_nl(gwi->gwfmt);
   }
-  if (env->class_def && tflag(env->class_def, tflag_tmpl))
+  if (safe_tflag(env->class_def, tflag_tmpl))
     return gwi_item_tmpl(gwi);
   CHECK_B(traverse_exp(env, gwi->ck->exp));
   const Value value = gwi->ck->exp->d.exp_decl.var.vd.value;
