@@ -117,8 +117,9 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
   return !array ? ret : array_type(env, ret, array->depth, td->tag.loc);
 }
 
-ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td, bool no_color) {
-  struct GwfmtState ls     = {};
+ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td,
+               const bool no_color, const bool minimize) {
+  struct GwfmtState ls     = { .minimize = minimize,};
   text_init(&ls.text, mp);
   Gwfmt gwfmter = {.mp = mp, .ls = &ls, .st = st };
   bool has_color = tcol_has_color();
@@ -129,7 +130,7 @@ ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td, bool no_color) {
 }
 
 ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
-  m_str str = tdpp(env->gwion->mp, env->gwion->st, td, false);
+  m_str str = tdpp(env->gwion->mp, env->gwion->st, td, false, tcol_has_color());
   env_err(env, td->tag.loc, _("unknown type '%s'"), str);
   free_mstr(env->gwion->mp, str);
   return NULL;

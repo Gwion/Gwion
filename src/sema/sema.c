@@ -219,6 +219,7 @@ ANN static bool sema_exp_call(Sema *a, Exp_Call *b) {
 
 ANN static bool sema_exp_array(Sema *a, Exp_Array *b) {
   const bool ok = sema_exp(a, b->base);
+  CHECK_B(array_not_empty(a, b->array, "in array expression", exp_self(b)->loc));
   return sema_array_sub(a, b->array) && ok;
 }
 
@@ -448,7 +449,7 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector *
     const Type_Decl *td = *mp_vector_at(a->tmpls, Type_Decl*, i);
     fseek(f, 0, SEEK_SET);
 
-    const m_str type = tdpp(a->mp, a->st, td, true);
+    const m_str type = tdpp(a->mp, a->st, td, true, true);
     sprintf(c, "%s=%s", s_name(spread->tag.sym), type);
     pparg_add(a->ppa, c);
     free_mstr(a->mp, type);
