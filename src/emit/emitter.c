@@ -5,7 +5,6 @@
 #include "gwion.h"
 #include "instr.h"
 #include "emit.h"
-#include "escape.h"
 
 static ANEW ANN VM_Code emit_code(const Emitter emit) {
   Code *const   c          = emit->code;
@@ -22,7 +21,6 @@ ANEW Emitter new_emitter(MemPool p) {
   vector_init(&emit->stack);
   emit->info = (struct EmitterInfo_ *)mp_calloc(p, EmitterInfo);
   vector_init(&emit->info->pure);
-  emit->info->escape    = escape_table(p);
   emit->info->emit_code = emit_code;
   return emit;
 }
@@ -30,7 +28,6 @@ ANEW Emitter new_emitter(MemPool p) {
 ANN void free_emitter(MemPool p, Emitter a) {
   vector_release(&a->stack);
   vector_release(&a->info->pure);
-  mp_free2(p, 256, a->info->escape);
   mp_free(p, EmitterInfo, a->info);
   mp_free(p, Emitter, a);
 }

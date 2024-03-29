@@ -37,7 +37,6 @@ typedef struct Code_ {
 
 struct EmitterInfo_ {
   struct Vector_ pure;
-  char *         escape;
   VM_Code (*emit_code)(const Emitter);
   VM_Code  code;
   bool     debug;

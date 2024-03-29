@@ -6,24 +6,22 @@
 #include "emit.h"
 #include "escape.h"
 
-char *escape_table(MemPool p) {
-  char *escape = (char *)mp_calloc2(p, 256);
-  escape['0']  = '0';
-  escape['\''] = '\'';
-  escape['"']  = '"';
-  escape['\\'] = '\\';
-  escape['a']  = (char)7;  // audible bell
-  escape['b']  = (char)8;  // back space
-  escape['f']  = (char)12; // form feed
-  escape['n']  = (char)10; // new line
-  escape['r']  = (char)13; // carriage return
-  escape['t']  = (char)9;  // horizontal tab
-  escape['v']  = (char)11; // vertical tab
-  return escape;
-}
+char escape_table[256] = {
+  ['0']  = '0',
+  ['\''] = '\'',
+  ['"']  = '"',
+  ['\\'] = '\\',
+  ['a']  = (char)7,  // audible bell
+  ['b']  = (char)8,  // back space
+  ['f']  = (char)12, // form feed
+  ['n']  = (char)10, // new line
+  ['r']  = (char)13, // carriage return
+  ['t']  = (char)9,  // horizontal tab
+  ['v']  = (char)11, // vertical tab
+};
 
 static bool get_escape(const Emitter emit, const char c, char *out, const loc_t loc) {
-  *out = emit->info->escape[(int)c];
+  *out = escape_table[(int)c];
   if(out) return true;
   env_err(emit->env, loc, _("unrecognized escape sequence '\\%c'"), c);
   return false;

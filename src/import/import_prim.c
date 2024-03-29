@@ -225,7 +225,7 @@ ANN bool gwi_primitive(const Gwi gwi, const m_str name, const m_uint size, const
   const Env env = gwi->gwion->env;
   const Prim_Def pdef = new_prim_def(gwi->gwion->mp, insert_symbol(gwi->gwion->st, name), size, gwi->loc, flag);
   if(gwi->gwion->data->cdoc) gwfmt_prim_def(gwi->gwfmt, pdef);
-  if(!env->class_def || !tflag(env->class_def, tflag_tmpl)) {
+  if(!safe_tflag(env->class_def, tflag_tmpl)) {
     const bool ret = scan0_prim_def(gwi->gwion->env, pdef);
     free_prim_def(gwi->gwion->mp, pdef);
     return ret;
