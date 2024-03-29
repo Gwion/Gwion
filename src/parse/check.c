@@ -166,6 +166,8 @@ ANN Type check_exp_decl(const Env env, Exp_Decl *const decl) {
   if (decl->args) {
     Exp* e = new_exp_unary2(env->gwion->mp, insert_symbol("new"), cpy_type_decl(env->gwion->mp, decl->var.td), decl->args, decl->var.td->tag.loc);
     CHECK_O(check_exp(env, e));
+    decl->type = e->type;
+    decl->var.vd.value->type = e->type; // TODO: beware rc shenanigans
     decl->args = e;
     e->ref = exp_self(decl);
   }
@@ -379,11 +381,13 @@ ANN static Type prim_owned(const Env env, const Symbol *data) {
 //  if(v->from->owner_class && is_func(env->gwion, v->from->owner_class))
 //    return v->type;
   const m_str name = !GET_FLAG(v, static) ? "this" : v->from->owner_class->name;
-  Exp*   base =
+  Exp* base =
       new_prim_id(env->gwion->mp, insert_symbol(name), prim_pos(data));
   exp_setuse(base, 1);
-  exp->exp_type       = ae_exp_dot;
+  exp->exp_type = ae_exp_dot;
   exp->d.exp_dot.base = base;
+  base->d.prim.value = v->from->owner_class->info->value;
+//  base->type = v->from->owner_class;
   exp->d.exp_dot.xid  = *data;
   return check_exp(env, exp);
 }
@@ -2225,9 +2229,12 @@ ANN static bool recursive_type_base(const Env env, const Type t) {
   return !error;
 }
 
-ANN static bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nspc) {
+ANN static bool check_class_tmpl(const Env env, const Class_Def cdef) {
   bool ok = true;
+  const Type t = cdef->base.type;
+  const Tmpl *tmpl = cdef->base.tmpl;
   if(tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
+    env_push_type(env, t);
     for(uint32_t i = 0; i < tmpl->list->len; i++) {
       const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
       if(likely(targ.type == tmplarg_td)) continue;
@@ -2239,10 +2246,12 @@ ANN static bool check_class_tmpl(const Env env, const Tmpl *tmpl, const Nspc nsp
       const Value v = new_value(env, targ.d.exp->type, MK_TAG(spec.tag.sym, targ.d.exp->loc));
       valuefrom(env, v->from);
       set_vflag(v, vflag_valid);
-      nspc_add_value(nspc, spec.tag.sym, v);
+      //nspc_add_value(nspc, spec.tag.sym, v);
+      nspc_add_value_front(t->nspc, spec.tag.sym, v);
       SET_FLAG(v, const| ae_flag_static);
       set_vflag(v, vflag_builtin);
     }
+    env_pop(env, 0);
   }
   return ok;
 }
@@ -2251,7 +2260,7 @@ ANN static bool _check_class_def(const Env env, const Class_Def cdef) {
   const Type t = cdef->base.type;
   if (cdef->base.ext) CHECK_B(cdef_parent(env, cdef));
   if (!tflag(t, tflag_struct)) inherit(t);
-  if(cdef->base.tmpl) CHECK_B(check_class_tmpl(env, cdef->base.tmpl, cdef->base.type->nspc));
+  if(cdef->base.tmpl) CHECK_B(check_class_tmpl(env, cdef));
   if (cdef->body) {
     if(env_body(env, cdef, check_section)) {
       if (cflag(cdef, cflag_struct) || class_def_has_body(cdef->body))
