@@ -2917,10 +2917,6 @@ ANN static bool emit_class_tmpl(const Emitter emit, const Tmpl *tmpl, const Nspc
   return true;
 }
 
-ANN static bool emit_section_b(const Emitter emit, Section *b) {
-  return emit_section(emit, b) > 0;
-}
-
 ANN static bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
   const Type      t = cdef->base.type;
   set_tflag(t, tflag_emit);
@@ -2930,7 +2926,7 @@ ANN static bool _emit_class_def(const Emitter emit, const Class_Def cdef) {
     CHECK_B(cdef_parent(emit, c));
   if (c->base.tmpl) CHECK_B(emit_class_tmpl(emit, c->base.tmpl, c->base.type->nspc));
   if (c->body)
-    return scanx_body(emit->env, c, (_envset_func)emit_section_b, emit);
+    return scanx_body(emit->env, c, (_envset_func)emit_section, emit);
   return true;
 }
 
