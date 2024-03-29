@@ -17,7 +17,7 @@
 #include "specialid.h"
 #include "template.h"
 
-ANN static void mk_dtor(MemPool p, const Type t, const m_uint d) {
+ANN void mk_dtor(MemPool p, const Type t, const f_xtor d) {
   VM_Code code = t->nspc->dtor = new_vmcode(p, NULL, NULL, t->name, SZ_INT, true, false);
   code->native_func = (m_uint)d;
   set_tflag(t, tflag_dtor);
@@ -43,7 +43,7 @@ ANN2(1) void add_template(const Env env, const Type t) {
 ANN2(1)
 void gwi_class_xtor(const Gwi gwi, const f_xtor ctor, const f_xtor dtor) {
   const Type t = gwi->gwion->env->class_def;
-  if (dtor) mk_dtor(gwi->gwion->mp, t, (m_uint)dtor);
+  if (dtor) mk_dtor(gwi->gwion->mp, t, dtor);
   if (ctor) {
     gwi_func_ini(gwi, "void", "@ctor");
     gwi_func_end(gwi, ctor, ae_flag_none);

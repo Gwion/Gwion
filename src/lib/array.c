@@ -861,12 +861,8 @@ static OP_CHECK(opck_array_scan) {
   array_func(env, t, "foldl", vm_vector_foldl);
   array_func(env, t, "foldr", vm_vector_foldr);
 
-  if (tflag(base, tflag_compound)) {
-    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL,
-                               "array component dtor", SZ_INT, true, false);
-    set_tflag(t, tflag_dtor);
-    t->nspc->dtor->native_func = (m_uint)get_dtor(base);
-  }
+  if (tflag(base, tflag_release))
+    mk_dtor(env->gwion->mp, t, get_dtor(base));
   return t;
 }
 

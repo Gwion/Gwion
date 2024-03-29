@@ -584,11 +584,8 @@ static OP_CHECK(opck_dict_scan) {
   }
   HMapInfo *const hinfo = (HMapInfo*)t->nspc->class_data;
   hmapinfo_init(hinfo, key, val);
-  if(tflag(key, tflag_release) || tflag(val, tflag_release)) {
-    t->nspc->dtor = new_vmcode(env->gwion->mp, NULL, NULL, "@dtor", SZ_INT, true, false);
-    t->nspc->dtor->native_func = (m_uint)dict_clear_dtor;
-    set_tflag(t, tflag_dtor);
-  }
+  if(tflag(key, tflag_release) || tflag(val, tflag_release))
+    mk_dtor(env->gwion->mp, t, dict_clear_dtor);
   struct Op_Func opfunc = { .ck = opck_dict_access, .em = opem_dict_access };
   struct Op_Import opi = { .lhs = key, .rhs = t, .ret = val, .op = insert_symbol("[]"), .func = &opfunc };
   add_op(env->gwion, &opi);
