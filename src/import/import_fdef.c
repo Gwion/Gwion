@@ -14,6 +14,7 @@
 #include "import.h"
 #include "gwi.h"
 #include "clean.h"
+#include "gwion_parse.h"
 
 ANN2(1, 2, 3)
 static bool dl_func_init(const Gwi gwi, const restrict m_str t,
@@ -69,27 +70,35 @@ ANN static bool error_fdef(const Gwi gwi, const Func_Def fdef) {
   return false;
 }
 
-ANN bool gwi_func_valid(const Gwi gwi, ImportCK *ck) {
+ANN static bool gwi_func_valid(const Gwi gwi, const f_xfun addr, ImportCK *ck) {
   const Func_Def fdef = import_fdef(gwi, ck);
   fdef->builtin = true;
   if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
     section_fdef(gwi, fdef);
-    fdef->d.dl_func_ptr = ck->addr;
+    fdef->d.dl_func_ptr = addr;
     return true;
   }
   if (!traverse_func_def(gwi->gwion->env, fdef))
     return error_fdef(gwi, fdef);
-  builtin_func(gwi->gwion, fdef->base->func, ck->addr);
+  builtin_func(gwi->gwion, fdef->base->func, addr);
   return true;
 }
 
 ANN bool gwi_func_end(const Gwi gwi, const f_xfun addr, const ae_flag flag) {
   CHECK_B(ck_ok(gwi, ck_fdef));
-  gwi->ck->addr    = addr;
   gwi->ck->flag    = flag;
-  const bool ret = gwi_func_valid(gwi, gwi->ck);
+  const bool ret = gwi_func_valid(gwi, addr, gwi->ck);
   ck_end(gwi);
   return ret;
+}
+
+ANN bool gwi_func_code(const Gwi gwi, const char *data) {
+  Func_Def fdef = gwion_parse_func_def(gwi->gwion, data, gwi->loc);
+  if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl))
+    return section_fdef(gwi, fdef);
+  if (!traverse_func_def(gwi->gwion->env, fdef))
+    return error_fdef(gwi, fdef);
+  return true;
 }
 
 ANN bool gwi_func_arg(const Gwi gwi, const restrict m_str t,

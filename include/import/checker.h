@@ -13,7 +13,7 @@ typedef struct ImportCK { // name_checker ?
   };
   union {
     Symbol xid; // union name
-    f_xfun addr;
+    Exp *when; // typedef when
   };
   union {
     Variable_List     list; // union

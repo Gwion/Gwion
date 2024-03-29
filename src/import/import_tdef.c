@@ -10,6 +10,7 @@
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
+#include "gwion_parse.h"
 
 ANN bool gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
                           const restrict m_str name) {
@@ -19,12 +20,18 @@ ANN bool gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
   return !!(gwi->ck->td = gwi_str2td(gwi, type));
 }
 
+ANN bool gwi_typedef_exp(const Gwi gwi, const restrict m_str data) {
+  CHECK_B((gwi->ck->when = gwion_parse_expression(gwi->gwion, data, gwi->loc)));
+  return true;
+}
+
 ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   CHECK_O(ck_ok(gwi, ck_tdef));
   Type_Decl *td = gwi->ck->td;
   td->flag |= flag;
   const Type_Def tdef =
       new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);
+  if (gwi->ck->when) tdef->when = gwi->ck->when;
   if (gwi->ck->tmpl) tdef->tmpl = gwi_tmpl(gwi);
   gwi->ck->td      = NULL;
   gwi->ck->tmpl    = NULL;
@@ -44,5 +51,6 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
 
 ANN void ck_clean_tdef(MemPool mp, ImportCK *ck) {
   if (ck->td) free_type_decl(mp, ck->td);
+  if (ck->when) free_exp(mp, ck->when);
   if (ck->tmpl) free_id_list(mp, ck->tmpl);
 }
