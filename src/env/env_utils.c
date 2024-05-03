@@ -60,7 +60,19 @@ ANN Type find_type(const Env env, Type_Decl *td) {
     const Nspc nspc  = type->nspc;
     if(!(type = find_in_parent(type, td->tag.sym)))
       ERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
+s_name(td->tag.sym), nspc->name);
+
+/*
+    if(!type)
+      ERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
             s_name(td->tag.sym), nspc->name);
+    Type_Decl *next = td->next;
+    td->next = NULL;
+env_push_type(env, type);
+    type = known_type(env, td);
+env_pop(env, 0); // respect scope depth // use env scope
+    td->next = next;
+*/
   }
   return type;
 }

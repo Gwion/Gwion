@@ -107,7 +107,8 @@ ANN static bool import_core_libs(const Gwi gwi) {
 
   GWI_B(gwimport_enum(gwi));
 
-  const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
+  //const Type t_compound = gwi_mk_type(gwi, "@Compound", SZ_INT, NULL);
+  const Type t_compound = gwi_mk_type(gwi, "Compound", SZ_INT, NULL);
   GWI_B(gwi_gack(gwi, t_compound, gack_compound))
   GWI_B(gwi_set_global_type(gwi, t_compound, et_compound))
 
@@ -120,6 +121,7 @@ ANN static bool import_core_libs(const Gwi gwi) {
   GWI_B(gwimport_union(gwi))
 
   GWI_B(gwimport_array(gwi))
+  GWI_B(gwimport_vector(gwi))
   GWI_B(gwimport_event(gwi))
   GWI_B(gwimport_ugen(gwi))
   GWI_B(gwimport_xork(gwi))
@@ -133,13 +135,14 @@ ANN static bool import_core_libs(const Gwi gwi) {
   GWI_B(gwimport_modules(gwi))
 
   gwidoc(gwi, "allow member access.");
-   GWI_B(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
+   //GWI_B(gwi_oper_ini(gwi, "@Compound", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_ini(gwi, "Compound", (m_str)OP_ANY_TYPE, NULL))
    GWI_B(gwi_oper_add(gwi, opck_object_dot))
    GWI_B(gwi_oper_emi(gwi, opem_object_dot))
    GWI_B(gwi_oper_end(gwi, ".", NULL))
 
   // allow const generics in functions
-   GWI_B(gwi_oper_ini(gwi, "function", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_ini(gwi, "Function", (m_str)OP_ANY_TYPE, NULL))
    GWI_B(gwi_oper_add(gwi, opck_object_dot))
    GWI_B(gwi_oper_emi(gwi, opem_object_dot))
    GWI_B(gwi_oper_end(gwi, ".", NULL))

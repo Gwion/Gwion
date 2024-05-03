@@ -19,6 +19,11 @@ struct td_checker {
   m_str       str;
   const loc_t loc;
 };
+ANN static void eat_space(struct td_checker *tdc) {
+  while(isspace(*tdc->str)) {
+    tdc->str++;
+  }
+}
 
 struct AC {
   m_str  str;
@@ -79,23 +84,35 @@ ANN bool str2var(const Gwion gwion, Var_Decl *vd, const m_str path, const loc_t 
   vd->value = NULL;
   return true;
 }
-
+ANN static Type_Decl *_str2td(const Gwion, struct td_checker *tdc);
 #define ARG_ERROR     (Arg_List)         -1
 #define SPEC_ERROR    (Specialized_List) -1
 #define TMPLARG_ERROR (TmplArg_List)     -1
 
 ANN static bool _tmpl_list(const Gwion        gwion,
                                        struct td_checker *tdc, Specialized_List *sl) {
+  eat_space(tdc);
   if(unlikely(!strncmp(tdc->str, "...", 3))) {
     tdc->str += 3;
     Specialized spec = { .tag = MK_TAG(insert_symbol(gwion->st, "..."), tdc->loc) };
     mp_vector_add(gwion->mp, sl, Specialized, spec);
     return true;
   }
-  DECL_O(const Symbol, sym, = __str2sym(gwion, tdc));
-  // TODO: handle traits?
-  Specialized spec = { .tag = MK_TAG(sym, tdc->loc) };
-  mp_vector_add(gwion->mp, sl, Specialized, spec);
+  if(unlikely(!strncmp(tdc->str, "const ", 6))) {
+    tdc->str += 6;
+    // eat space?
+    eat_space(tdc);
+    Type_Decl *td = _str2td(gwion, tdc);
+    eat_space(tdc);
+    DECL_O(const Symbol, sym, = __str2sym(gwion, tdc));
+    Specialized spec = { .td = td, .tag = MK_TAG(sym, tdc->loc)  };
+    mp_vector_add(gwion->mp, sl, Specialized, spec);
+  } else {
+    DECL_O(const Symbol, sym, = __str2sym(gwion, tdc));
+    // TODO: handle traits?
+    Specialized spec = { .tag = MK_TAG(sym, tdc->loc) };
+    mp_vector_add(gwion->mp, sl, Specialized, spec);
+  }
   if (*tdc->str == ',') {
     ++tdc->str;
     if (!_tmpl_list(gwion, tdc, sl))
@@ -142,7 +159,7 @@ ANN bool str2tl(const Gwion gwion, struct td_checker *tdc, TmplArg_List *tl) {
       if (!str2tl(gwion, tdc, tl))
         return false;
     }
-  } else GWION_ERR_B(tdc->loc, "invalid character in template list");
+  } else GWION_ERR_B(tdc->loc, "invalid character %c in template list", *tdc->str);
   return true;
 }
 
@@ -264,7 +281,11 @@ ANN static Type_Decl *_str2td(const Gwion gwion, struct td_checker *tdc) {
   return td;
 }
 
+#include "gwion_parse.h"
 ANN Type_Decl *str2td(const Gwion gwion, const m_str str, const loc_t loc) {
+  return gwion_parse_type_decl(gwion, str, loc);
+
+
   struct td_checker tdc = {.str = str, .loc = loc};
   DECL_O(Type_Decl *, td, = _str2td(gwion, &tdc));
   if(*tdc.str) {

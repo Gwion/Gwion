@@ -140,7 +140,8 @@ static ID_EMIT(opem_super) {
 }
 
 GWION_IMPORT(object) {
-  const Type t_object = gwi_mk_type(gwi, "Object", SZ_INT, "@Compound");
+  //const Type t_object = gwi_mk_type(gwi, "Object", SZ_INT, "@Compound");
+  const Type t_object = gwi_mk_type(gwi, "Object", SZ_INT, "Compound");
   gwi_set_global_type(gwi, t_object, et_object);
   set_tflag(t_object, tflag_compound);
   t_object->nspc = new_nspc(gwi->gwion->mp, "Object");

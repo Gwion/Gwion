@@ -33,6 +33,16 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
       new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);
   if (gwi->ck->when) tdef->when = gwi->ck->when;
   if (gwi->ck->tmpl) tdef->tmpl = gwi_tmpl(gwi);
+
+  if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
+    Section section = MK_SECTION(
+      type, type_def, tdef, gwi->loc 
+    );
+    gwi_body(gwi, &section);
+    ck_end(gwi);
+    return 1;
+  }
+  
   gwi->ck->td      = NULL;
   gwi->ck->tmpl    = NULL;
   const bool ret = traverse_type_def(gwi->gwion->env, tdef);
