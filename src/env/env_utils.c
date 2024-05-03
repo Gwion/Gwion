@@ -57,10 +57,23 @@ ANN Type find_initial(const Env env, const Symbol xid) {
 ANN Type find_type(const Env env, Type_Decl *td) {
   DECL_O(Type, type, = find_initial(env, td->tag.sym));
   while ((td = td->next) && type && type->nspc) {
-    const Nspc nspc  = type->nspc;
-    if(!(type = find_in_parent(type, td->tag.sym)))
+//    const Nspc nspc  = type->nspc;
+//    if(!(type = find_in_parent(type, td->tag.sym)))
+//
+    //enERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
+//s_name(td->tag.sym), nspc->name);
+
+
+    Type_Decl *next = td->next;
+    td->next = NULL;
+env_push_type(env, type);
+    type = known_type(env, td);
+    if(!type)
       ERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
-            s_name(td->tag.sym), nspc->name);
+            s_name(td->tag.sym), env->class_def->name);
+env_pop(env, 0); // respect scope depth // use env scope
+    td->next = next;
+
   }
   return type;
 }

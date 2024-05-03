@@ -151,5 +151,5 @@ ANN bool gwi_class_end(const Gwi gwi) {
   }
 */
   env_pop(gwi->gwion->env, 0);
-  return false;
+  return true;
 }

@@ -156,7 +156,10 @@ ANN VM_Code finalyze(const Emitter emit, const f_instr exec);
 ANN static inline void emit_push_code(const Emitter emit, const m_str name) {
   vector_add(&emit->stack, (vtype)emit->code);
   emit->code = new_code(emit, name);
-  if (emit->info->debug) emit_add_instr(emit, DebugLine);
+  if (emit->info->debug) {
+    const Instr instr = emit_add_instr(emit, DebugLine);
+    instr->m_val = emit->status.line;
+  }
 }
 
 ANN static inline void emit_pop_code(const Emitter emit) {

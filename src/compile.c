@@ -12,11 +12,11 @@
 enum compile_type { COMPILE_NAME, COMPILE_MSTR, COMPILE_FILE };
 
 struct Compiler {
-  const m_str       base;
+  const char       *base;
   m_str             name;
   union {
-    m_str             data;
-    FILE *            file;
+    const char*     data;
+    FILE *          file;
   };
   Ast               ast;
   struct Vector_    args;
@@ -57,7 +57,7 @@ ANN static bool _compiler_open(struct Compiler *c) {
     xfree(name);
     return c->name ? !!(c->file = fopen(c->name, "r")) : false;
   } else if (c->type == COMPILE_MSTR) {
-    c->file = c->data ? fmemopen(c->data, strlen(c->data), "r") : NULL;
+    c->file = c->data ? fmemopen((void*)c->data, strlen(c->data), "r") : NULL;
     return !!c->file;
   }
   return true;
@@ -114,7 +114,7 @@ ANN static inline bool passes(struct Gwion_ *gwion, struct Compiler *c) {
   load_context(ctx, env);
   for(uint32_t i = 0; i < mp_vector_len(c->values); i++) {
     const Value v = *mp_vector_at(c->values, Value, i);
-    set_vflag(v, vflag_builtin);
+    set_vflag(v, vflag_builtin); // TODO: we should copy the values, maybe
     if(isa(v->type, gwion->type[et_class])) {
       const Type t = (Type)v->d.ptr;
       type_addref(t);
@@ -165,24 +165,24 @@ ANN static m_uint compile(struct Gwion_ *gwion, struct Compiler *c) {
   return ret;
 }
 
-ANN m_uint compile_filename_values(struct Gwion_ *gwion, const m_str filename, MP_Vector *values) {
+ANN m_uint compile_filename_values(struct Gwion_ *gwion, const char *filename, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_NAME, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_string_values(struct Gwion_ *gwion, const m_str filename,
-                          const m_str data, MP_Vector *values) {
+ANN m_uint compile_string_values(struct Gwion_ *gwion, const char *filename,
+                          const char *data, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_file_values(struct Gwion_ *gwion, const m_str filename,
+ANN m_uint compile_file_values(struct Gwion_ *gwion, const char *filename,
                         FILE *file, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file, .values=values};
   return compile(gwion, &c);
 }
 
-ANN m_uint compile_filename_xid_values(struct Gwion_ *gwion, const m_str filename,
+ANN m_uint compile_filename_xid_values(struct Gwion_ *gwion, const char* filename,
                                 const m_uint xid, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_NAME, .values=values};
   if (!compile(gwion, &c)) return 0;
@@ -190,8 +190,8 @@ ANN m_uint compile_filename_xid_values(struct Gwion_ *gwion, const m_str filenam
   return c.shred->tick->xid = xid;
 }
 
-ANN m_uint compile_string_xid_values(struct Gwion_ *gwion, const m_str filename,
-                              const m_str data, const m_uint xid, MP_Vector *values) {
+ANN m_uint compile_string_xid_values(struct Gwion_ *gwion, const char *filename,
+                              const char *data, const m_uint xid, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data, .values=values};
   if (!compile(gwion, &c)) return 0;
   assert(c.shred);
@@ -199,7 +199,7 @@ ANN m_uint compile_string_xid_values(struct Gwion_ *gwion, const m_str filename,
   return c.shred->tick->xid = xid;
 }
 
-ANN m_uint compile_file_xid_values(struct Gwion_ *gwion, const m_str filename,
+ANN m_uint compile_file_xid_values(struct Gwion_ *gwion, const char * filename,
                             FILE *file, const m_uint xid, MP_Vector *values) {
   struct Compiler c = {.base = filename, .type = COMPILE_FILE, .file = file, .values=values};
   if (!compile(gwion, &c)) return 0;

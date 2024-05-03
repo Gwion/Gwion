@@ -25,7 +25,7 @@ ANN bool gwi_typedef_exp(const Gwi gwi, const restrict m_str data) {
   return true;
 }
 
-ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
+ANN bool gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   CHECK_O(ck_ok(gwi, ck_tdef));
   Type_Decl *td = gwi->ck->td;
   td->flag |= flag;
@@ -33,6 +33,16 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
       new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);
   if (gwi->ck->when) tdef->when = gwi->ck->when;
   if (gwi->ck->tmpl) tdef->tmpl = gwi_tmpl(gwi);
+
+  if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
+    Section section = MK_SECTION(
+      type, type_def, tdef, gwi->loc 
+    );
+    gwi_body(gwi, &section);
+    ck_end(gwi);
+    return true;
+  }
+  
   gwi->ck->td      = NULL;
   gwi->ck->tmpl    = NULL;
   const bool ret = traverse_type_def(gwi->gwion->env, tdef);
@@ -46,7 +56,7 @@ ANN Type gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
                      tflag_emit);
   free_type_def(gwi->gwion->mp, tdef);
   ck_end(gwi);
-  return ret ? t : NULL;
+  return ret;
 }
 
 ANN void ck_clean_tdef(MemPool mp, ImportCK *ck) {

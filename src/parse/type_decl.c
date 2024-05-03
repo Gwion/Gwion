@@ -120,6 +120,7 @@ ANN static Type resolve(const Env env, Type_Decl *td) {
 ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td,
                const bool no_color, const bool minimize) {
   struct GwfmtState ls     = { .minimize = minimize,};
+//  gwfmt_state_init(&ls);
   text_init(&ls.text, mp);
   Gwfmt gwfmter = {.mp = mp, .ls = &ls, .st = st };
   bool has_color = tcol_has_color();

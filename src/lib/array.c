@@ -378,6 +378,7 @@ static OP_CHECK(opck_array) {
   const Array_Sub array = (Array_Sub)data;
   const Type      t_int = env->gwion->type[et_int];
   Exp*             e     = array->exp;
+  // FIX: we should only take up to *depth* expressions
   do CHECK_ON(check_implicit(env, e, t_int));
   while ((e = e->next));
   const Type t = get_array_type(array->type);

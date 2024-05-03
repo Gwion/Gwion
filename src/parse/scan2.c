@@ -414,7 +414,7 @@ ANN static bool scan2_func_def_op(const Env env, const Func_Def f) {
                           .func = &opfunc};
   func_operator(f, &opi);
   CHECK_B(add_op(env->gwion, &opi));
-  operator_set_func(&opi);
+  operator_set_func(env, &opi);
   return true;
 }
 

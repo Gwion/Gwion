@@ -215,7 +215,6 @@ enum {
   ePerformEffect,
   eNoOp,
   eDebugLine,
-  eDebugValue,
   eDebugPush,
   eDebugPop,
   eEOC,
@@ -437,7 +436,6 @@ enum {
 #define  PerformEffect         (f_instr)ePerformEffect
 #define  NoOp                  (f_instr)eNoOp
 #define  DebugLine             (f_instr)eDebugLine
-#define  DebugValue            (f_instr)eDebugValue
 #define  DebugPush             (f_instr)eDebugPush
 #define  DebugPop              (f_instr)eDebugPop
 #define  EOC                   (f_instr)eEOC
@@ -1447,10 +1445,6 @@ ANN static inline void dump_opcodes(const VM_Code code) {
       case eDebugLine:
         gw_out("{Y}┃{0}{-}% 4lu{0}: DebugLine   ", j);
         gw_out(" {-R}%-14"UINT_F"{0}", instr->m_val);
-        gw_out("\n");
-        break;
-      case eDebugValue:
-        gw_out("{Y}┃{0}{-}% 4lu{0}: DebugValue  ", j);
         gw_out("\n");
         break;
       case eDebugPush:

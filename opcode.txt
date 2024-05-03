@@ -212,7 +212,6 @@ HandleEffect~pc
 PerformEffect
 NoOp
 DebugLine~u
-DebugValue
 DebugPush
 DebugPop
 EOC

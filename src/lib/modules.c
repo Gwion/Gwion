@@ -278,7 +278,7 @@ static GWION_IMPORT(usrugen) {
   GWI_B(gwi_func_ini(gwi, "int", "default_tick"))
   GWI_B(gwi_func_end(gwi, default_tick, 0))
   GWI_B(gwi_class_end(gwi))
-   GWI_B(gwi_oper_ini(gwi, "function", "UsrUGen", "UsrUGen"))
+   GWI_B(gwi_oper_ini(gwi, "Function", "UsrUGen", "UsrUGen"))
    GWI_B(gwi_oper_add(gwi, opck_usrugen))
    GWI_B(gwi_oper_emi(gwi, opem_usrugen))
    GWI_B(gwi_oper_end(gwi, "~=>", NULL))

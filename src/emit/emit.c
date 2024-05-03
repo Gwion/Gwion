@@ -55,11 +55,6 @@ static inline m_uint emit_push_global(const Emitter emit) {
   return env_push_global(emit->env);
 }
 
-static inline void emit_debug(const Emitter emit, const Value v) {
-  if (!emit->info->debug) return;
-  const Instr instr = emit_add_instr(emit, DebugValue);
-  instr->m_val      = (m_uint)v;
-}
 
 ANEW static Frame *new_frame(MemPool p) {
   Frame *frame = mp_calloc(p, Frame);
@@ -260,7 +255,12 @@ ANN void emit_pop_scope(const Emitter emit) {
 ANN void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
   vector_add(&emit->info->pure, 0);
-  if (emit->info->debug) emit_add_instr(emit, DebugPush);
+  //if (emit->info->debug) emit_add_instr(emit, DebugPush);
+  if (emit->info->debug) {
+
+    const Instr instr = emit_add_instr(emit, DebugPush);
+    instr->m_val = emit->status.line;
+  }
 }
 
 ANN m_uint emit_code_offset(const Emitter emit) {
@@ -978,15 +978,22 @@ static INSTR(UsedBy) {
   const MP_Vector *v =(MP_Vector*)instr->m_val;
   for(uint32_t i = 0; i < v->len; i++) {
     const Func f = *mp_vector_at(v, Func, i);
-    const Instr instr = (Instr)vector_front(&f->code->instr);
-    instr->m_val2++;
+    for(m_uint j = 0; i < vector_size(&f->code->instr); j++) {
+      const Instr instr = (Instr)vector_at(&f->code->instr, j);
+      if(instr->execute == FuncWait) {
+        instr->m_val2++;
+        break;
+      }
+    }
   }
 }
 
 ANN static void used_by(const Emitter emit, const Value v) {
+puts("emit used by");
   MP_Vector *vec = new_mp_vector(emit->gwion->mp, Func, 0);
   for(uint32_t i = 0; i < v->used_by->len; i++) {
     const Func f = *mp_vector_at(v->used_by, Func, i);
+    if(f->_wait) puts("Adding to wait list");
     if(f->_wait) mp_vector_add(emit->gwion->mp, &vec, Func, f);
   }
   free_mp_vector(emit->gwion->mp, Func, v->used_by);
@@ -1010,7 +1017,6 @@ ANN static bool emit_exp_decl_non_static(const Emitter   emit,
     else CHECK_B(emit_exp(emit, decl->args));
   }
   f_instr *exec = (f_instr *)allocmember;
-  if (!emit->env->scope->depth) emit_debug(emit, v);
   if (!vflag(v, vflag_member)) {
     if(v->used_by) used_by(emit, v);
     v->from->offset = decl_non_static_offset(emit, decl, type);
@@ -1915,9 +1921,14 @@ DECL_EXP_FUNC(emit, bool, Emitter)
 ANN2(1) /*static */ bool emit_exp(const Emitter emit, /* const */ Exp* e) {
   Exp* exp = e;
   do {
-    if (emit->info->debug && emit->status.line < e->loc.first.line) {
+    if (emit->info->debug){
+
+printf("debug line: %i\n", e->loc.first.line);
+      if(emit->status.line < e->loc.first.line) {
       const Instr instr = emit_add_instr(emit, DebugLine);
       instr->m_val = emit->status.line = e->loc.first.line;
+    }
+ emit->status.line = e->loc.first.line;
     }
     CHECK_B(emit_exp_func[exp->exp_type](emit, &exp->d));
     if (exp->cast_to) CHECK_B(emit_implicit_cast(emit, exp, exp->cast_to));
@@ -2207,12 +2218,10 @@ ANN static bool _emit_stmt_each(const Emitter emit, const Stmt_Each stmt,
   stmt->var.value->from->offset = val_offset;
 //value_addref(stmt->v);
   _nspc_add_value(emit->env->curr, stmt->var.tag.sym, stmt->var.value);
-  emit_debug(emit, stmt->var.value);
   if (stmt->idx.tag.sym) {
     stmt->idx.value->from->offset = key_offset;
 _nspc_add_value(emit->env->curr, stmt->idx.tag.sym, stmt->var.value);
 //value_addref(stmt->idx->v);
-    emit_debug(emit, stmt->idx.value);
   }
   struct Looper loop   = {.exp  = stmt->exp,
                         .stmt   = stmt->body,
@@ -2606,6 +2615,7 @@ ANN static bool emit_exp_dot(const Emitter emit, const Exp_Dot *member) {
 ANN static inline void emit_func_def_init(const Emitter emit, const Func func) {
   emit_push_code(emit, func->name);
   if(mp_vector_len(func->_wait)) {
+puts("wait");
     const Instr instr = emit_add_instr(emit, FuncWait);
     instr->m_val = (m_uint) func;
   }
@@ -2617,7 +2627,6 @@ ANN static void emit_func_def_args(const Emitter emit, Arg_List args) {
     const Type type = arg->var.vd.value->type;
     emit->code->stack_depth += type->size;
     arg->var.vd.value->from->offset = emit_localn(emit, type);
-    emit_debug(emit, arg->var.vd.value);
     _nspc_add_value(emit->env->curr, insert_symbol(arg->var.vd.value->name), arg->var.vd.value);
   }
 }

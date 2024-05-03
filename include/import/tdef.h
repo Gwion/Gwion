@@ -4,7 +4,7 @@
 ANN bool gwi_typedef_ini(const Gwi gwi, const restrict m_str type,
                           const restrict m_str name);
 ANN bool gwi_typedef_exp(const Gwi gwi, const restrict m_str data);
-ANN Type  gwi_typedef_end(const Gwi gwi, const ae_flag flag);
+ANN bool gwi_typedef_end(const Gwi gwi, const ae_flag flag);
 ANN void  ck_clean_tdef(MemPool, ImportCK *);
 
 ANN Type mk_primitive(const Env env, const m_str name, const m_uint size);

@@ -31,6 +31,7 @@ ANN void gwi_reset(const Gwi gwi) {
 
 ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
   struct GwfmtState ls     = {.builtin = true, .nindent = 4};
+//  gwfmt_state_init(&ls);
   text_init(&ls.text, gwi->gwion->mp);
   Gwfmt             gwfmter = {.mp = gwi->gwion->mp, .ls = &ls, .st = gwi->gwion->st };
   gwfmt_indent(&gwfmter);

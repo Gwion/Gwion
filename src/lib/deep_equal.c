@@ -247,7 +247,8 @@ GWION_IMPORT(deep_equal) {
      GWI_B(gwi_oper_emi(gwi, opem_deep_ne_any))
      GWI_B(gwi_oper_end(gwi, "<>", NULL))
 
-   GWI_B(gwi_oper_ini(gwi, "@Compound", "@Compound", "bool"))
+   //GWI_B(gwi_oper_ini(gwi, "@Compound", "@Compound", "bool"))
+   GWI_B(gwi_oper_ini(gwi, "Compound", "Compound", "bool"))
 
     gwidoc(gwi, "Deep Equality");
      GWI_B(gwi_oper_add(gwi, opck_deep_equal))

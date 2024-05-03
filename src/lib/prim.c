@@ -518,7 +518,7 @@ static GWION_IMPORT(time) {
    GWI_B(gwi_oper_ini(gwi, "dur", "time", "time"))
   CHECK_FF(":=>", rassign, r_assign)
    GWI_B(gwi_oper_end(gwi, "+", float_add))
-   GWI_B(gwi_oper_ini(gwi, "dur", "@now", "time"))
+   GWI_B(gwi_oper_ini(gwi, "dur", "Now", "time"))
   _CHECK_OP("=>", now, Dur_Advance)
    GWI_B(gwi_oper_ini(gwi, "time", "time", "bool"))
    GWI_B(gwi_oper_end(gwi, "=>", Time_Advance))

@@ -120,8 +120,12 @@ ANN static void trace(VM_Shred shred, const m_uint size) {
   }
   loc_t loc = {.first = {.line = line, .column = 1},
                .last  = {.line = line, .column = 1}};
-  gwlog_related("called from here", code_name(shred->code->name, true), loc);
-  gw_err("      {M}┗━╸{0} {-}in code{0} {+W}%s{0}{-}:{0}\n", shred->code->name);
+  char *filename = strrchr(shred->code->name, '@');
+  char *better_name = filename ? filename + 1: code_name(shred->code->name, true);
+  puts(better_name);
+  //gwlog_related("called from here", code_file(shred->code->name, true), loc);
+  gwlog_related("called from here", better_name, loc);
+  gw_err("      {+B}┗━╸{0} {-}in code{0} {+W}%s{0}{-}:{0}\n", better_name);
   if (shred->mem == (m_bit *)shred + sizeof(struct VM_Shred_) + SIZEOF_REG)
     return;
   shred_unwind(shred);
@@ -474,7 +478,7 @@ vm_prepare(const VM *vm, m_bit *prepare_code) { // lgtm [cpp/use-of-goto]
       &&unionother, &&unionaddr, &&staticint, &&staticfloat, &&staticother,
       &&dotfunc, &&gacktype, &&gackend, &&gack, &&try_ini,
       &&try_end, &&handleeffect, &&performeffect, &&noop, &&debugline,
-      &&debugvalue, &&debugpush, &&debugpop, &&eoc, &&vmin, &&other};
+      &&debugpush, &&debugpop, &&eoc, &&vmin, &&other};
 //      &&regpushimm};
 
   if(!prepare_code) {
@@ -1294,8 +1298,6 @@ DISPATCH();
         vector_set(&shred->info->line, sz - 1, VAL);
       }
       DISPATCH();
-    debugvalue:
-      DISPATCH();
     debugpush:
       if (!shred->info->line.ptr) vector_init(&shred->info->line);
       vector_add(&shred->info->line, 0);
@@ -1362,7 +1364,7 @@ static void *_dispatch[] = {
       &&_unionother, &&_unionaddr, &&_staticint, &&_staticfloat, &&_staticother,
       &&_dotfunc, &&_gacktype, &&_gackend, &&_gack, &&_try_ini,
       &&_try_end, &&_handleeffect, &&_performeffect, &&_noop, &&_debugline,
-      &&_debugvalue, &&_debugpush, &&_debugpop, &&_eoc, &&_vmin, &&_other};
+      &&_debugpush, &&_debugpop, &&_eoc, &&_vmin, &&_other};
 
 #define PREPARE(a) \
 _##a: \
@@ -1625,7 +1627,6 @@ _other:
 }
     PREPARE(vmin);
     PREPARE(debugline);
-    PREPARE(debugvalue);
     PREPARE(debugpush);
     PREPARE(debugpop);
 _eoc:
@@ -1652,6 +1653,12 @@ ANN void next_bbq_pos(const VM *vm) {
 ANN void vm_run_audio(const VM *vm) {
   vm_run(vm);
   compute_audio(vm);
+}
+
+void vm_force_run(const VM *vm) {
+  const bool is_running = vm->shreduler->bbq->is_running;
+  vm_run(vm);
+  vm->shreduler->bbq->is_running = is_running;
 }
 
 VM *new_vm(MemPool p, const bool audio) {

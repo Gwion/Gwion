@@ -52,7 +52,7 @@ emit_add_instr(const Emitter emit, const f_instr f) {
 
 ANN2(1) void emit_fast_except(const Emitter emit, const ValueFrom *vf, const loc_t loc) {
   const Instr instr = emit_add_instr(emit, fast_except);
-  if(vf) {
+  if(!emit->info->debug && vf) {
     struct FastExceptInfo *info = mp_malloc2(emit->gwion->mp, sizeof(struct FastExceptInfo));
     info->file = emit->env->name;
     info->loc = loc;

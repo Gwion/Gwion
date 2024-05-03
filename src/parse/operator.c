@@ -79,7 +79,30 @@ static M_Operator *operator_find2(const Vector v, const restrict Type lhs,
   return NULL;
 }
 
-ANN void operator_suspend(const Nspc n, struct Op_Import *opi) {
+ANN Nspc get_nspc(const Env env) {
+  if(SAFE_FLAG(env->func, private)) // how come
+    return env->curr;
+  Type t = env->class_def;
+  while (t) {
+    if(GET_FLAG(t, private))
+      return t->nspc;
+    t = t->info->value->from->owner_class;
+  }
+  // does not take global into account tho
+  // or does it?
+  if(env->curr == env->global_nspc)
+    return env->curr;
+  return env->context
+     ? env->context->nspc
+     : env->curr;
+}
+
+// 1st arg could be Env
+ANN void operator_suspend(const Gwion gwion, struct Op_Import *opi) {
+  // Nspc n = gwion->env->context
+  //   ? gwion->env->context->nspc
+  //   : gwion->env->curr;
+  const Nspc n = get_nspc(gwion->env);
   const m_int  idx = map_index(&n->operators->map, (vtype)opi->op);
   const Vector v   = (Vector)&VVAL(&n->operators->map, idx);
   for (m_uint i = vector_size(v) + 1; --i;) {
@@ -149,12 +172,16 @@ ANN bool add_op(const Gwion gwion, const struct Op_Import *opi) {
       CHECK_B(op_exist(&ock, n));
     }
   } while ((n = n->parent));
-  if (!gwion->env->curr->operators)
-    gwion->env->curr->operators = mp_calloc(gwion->mp, NspcOp);
-  if (!gwion->env->curr->operators->map.ptr)
-    map_init(&gwion->env->curr->operators->map);
+  // Nspc nspc = gwion->env->context
+  //   ? gwion->env->context->nspc
+  //   : gwion->env->curr;
+  const Nspc nspc = get_nspc(gwion->env);
+  if (!nspc->operators)
+    nspc->operators = mp_calloc(gwion->mp, NspcOp);
+  if (!nspc->operators->map.ptr)
+    map_init(&nspc->operators->map);
   struct OpChecker ock = {
-      .env = gwion->env, .map = &gwion->env->curr->operators->map, .opi = opi};
+      .env = gwion->env, .map = &nspc->operators->map, .opi = opi};
   const Vector      v  = op_vector(&ock);
   const M_Operator *mo = new_mo(gwion->mp, opi);
   vector_add(v, (vtype)mo);
@@ -351,7 +378,7 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   if (!strcmp(op, "$") && opi->rhs == opi->lhs)
     return opi->rhs;
   if (!strcmp(op, "@func_check")) return NULL;
-  if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "@now")) {
+  if(!strcmp(op, "=>") && !strcmp(opi->rhs->name, "Now")) {
     gwlog_error(_("no match found for operator"), "expected duration", env->name, opi->loc, 0);
     gwlog_hint(_("did you try converting to `dur`?"), env->name, opi->loc);
     env_set_error(env,  true);
@@ -367,8 +394,10 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
   return NULL;
 }
 
-ANN bool operator_set_func(const struct Op_Import *opi) {
-  const Nspc   nspc = ((Func)opi->data)->value_ref->from->owner;
+ANN bool operator_set_func(const Env env, const struct Op_Import *opi) {
+  //const Nspc   nspc = ((Func)opi->data)->value_ref->from->owner;
+  //const Nspc   nspc = ((Func)opi->data)->value_ref->from->ctx->nspc;
+  const Nspc   nspc = get_nspc(env);
   const m_int  idx  = map_index(&nspc->operators->map, (vtype)opi->op);
   const Vector v    = (Vector)&VVAL(&nspc->operators->map, idx);
   DECL_B(M_Operator *, mo, = operator_find(v, opi->lhs, opi->rhs));

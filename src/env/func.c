@@ -61,6 +61,7 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
 
 ANN void print_signature(const Gwion gwion, const Func f) {
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
+//  gwfmt_state_init(&ls);
   text_init(&ls.text, gwion->mp);
   Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
   gwfmt_func_def(&l, f->def);

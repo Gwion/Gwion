@@ -134,6 +134,8 @@ INSTR(SetFunc) {
   shred->reg += SZ_INT;
 }
 
+// TODO: do not add info in debug mode
+// maybe
 INSTR(FuncWait) {
   const Func f = (Func)instr->m_val;
   if(f->_wait->len - instr->m_val2) {

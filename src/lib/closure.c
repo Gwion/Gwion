@@ -723,34 +723,34 @@ static GACK(gack_function) { INTERP_PRINTF("%s", t->name); }
 
 GWION_IMPORT(func) {
   gwidoc(gwi, "the base of all functions.");
-  const Type t_function = gwi_mk_type(gwi, "function", SZ_INT, NULL);
+  const Type t_function = gwi_mk_type(gwi, "Function", SZ_INT, NULL);
   GWI_B(gwi_gack(gwi, t_function, gack_function))
   GWI_B(gwi_set_global_type(gwi, t_function, et_function))
 
   gwidoc(gwi, "the base of decayed operators.");
-  const Type t_op = gwi_mk_type(gwi, "operator", SZ_INT, "function");
+  const Type t_op = gwi_mk_type(gwi, "Operator", SZ_INT, "Function");
   GWI_B(gwi_set_global_type(gwi, t_op, et_op))
 
   gwidoc(gwi, "the base of function pointers.");
-  const Type t_closure = gwi_class_ini(gwi, "funptr", "Object");
+  const Type t_closure = gwi_class_ini(gwi, "Funptr", "Object");
   t_closure->nspc->offset = SZ_INT*3;
   gwi_class_xtor(gwi, fptr_ctor, fptr_dtor);
   GWI_B(gwi_set_global_type(gwi, t_closure, et_closure))
   GWI_B(gwi_func_ini(gwi, "void", "default"));
   GWI_B(gwi_func_end(gwi, fptr_default, ae_flag_none));
-  gwi_class_end(gwi);
-
-   GWI_B(gwi_oper_ini(gwi, "funptr", NULL, NULL))
+  gwi_class_end(gwi)
+;
+   GWI_B(gwi_oper_ini(gwi, "Funptr", NULL, NULL))
    GWI_B(gwi_oper_add(gwi, opck_closure_scan))
    GWI_B(gwi_oper_end(gwi, "class", NULL))
 
-   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "function", NULL))
+   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Function", NULL))
    GWI_B(gwi_oper_add(gwi, opck_func_call))
    GWI_B(gwi_oper_end(gwi, "=>", NULL))
-   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "funptr", NULL))
+   GWI_B(gwi_oper_ini(gwi, (m_str)OP_ANY_TYPE, "Funptr", NULL))
    GWI_B(gwi_oper_add(gwi, opck_fptr_call))
    GWI_B(gwi_oper_end(gwi, "=>", NULL))
-   GWI_B(gwi_oper_ini(gwi, "function", "funptr", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Function", "Funptr", NULL))
    GWI_B(gwi_oper_add(gwi, opck_fptr_assign))
    GWI_B(gwi_oper_emi(gwi, opem_fptr_assign))
    GWI_B(gwi_oper_end(gwi, ":=>", NULL))
@@ -759,16 +759,16 @@ GWION_IMPORT(func) {
    GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
    GWI_B(gwi_oper_add(gwi, opck_fptr_cast))
    GWI_B(gwi_oper_end(gwi, "$", NULL))
-   GWI_B(gwi_oper_ini(gwi, "operator", "funptr", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Operator", "Funptr", NULL))
    GWI_B(gwi_oper_add(gwi, opck_op_impl))
    GWI_B(gwi_oper_emi(gwi, opem_op_impl))
    GWI_B(gwi_oper_end(gwi, "@implicit", NULL))
    GWI_B(gwi_oper_add(gwi, opck_op_cast))
    GWI_B(gwi_oper_end(gwi, "$", NULL))
-   GWI_B(gwi_oper_ini(gwi, "function", "function", NULL))
+   GWI_B(gwi_oper_ini(gwi, "Function", "Function", NULL))
    GWI_B(gwi_oper_add(gwi, opck_auto_fptr))
    GWI_B(gwi_oper_end(gwi, ":=>", int_r_assign))
-   GWI_B(gwi_oper_ini(gwi, "function", NULL, NULL))
+   GWI_B(gwi_oper_ini(gwi, "Function", NULL, NULL))
    GWI_B(gwi_oper_add(gwi, opck_func_partial))
    GWI_B(gwi_oper_end(gwi, "@partial", NULL))
    GWI_B(gwi_oper_ini(gwi, "Class", NULL, NULL))

@@ -423,7 +423,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
 
   if (env->func && strcmp(env->func->name, "in spork")) {
 //    if(vflag(v, vflag_fglobal) /*&& !vflag(v, vflag_builtin) */&& !is_func(env->gwion, v->type)) {
-    if((GET_FLAG(v, global) || vflag(v, vflag_fglobal)) && !vflag(v, vflag_builtin) && !is_func(env->gwion, v->type)) {
+    if(GET_FLAG(v, global) && !vflag(v, vflag_builtin) && !is_func(env->gwion, v->type)) {
       if(!env->func->_wait)
         env->func->_wait = new_mp_vector(env->gwion->mp, Value, 0);
       if (!v->used_by) {
@@ -1977,7 +1977,7 @@ ANN bool _check_func_def(const Env env, const Func_Def f) {
   struct Op_Import opi = {};
   if (fbflag(fdef->base, fbflag_op)) {
     func_operator(f, &opi);
-    operator_suspend(env->curr, &opi);
+    operator_suspend(env->gwion, &opi);
   }
   if(fdef->captures) {
     uint32_t offset = fdef->stack_depth;
@@ -2246,8 +2246,7 @@ ANN static bool check_class_tmpl(const Env env, const Class_Def cdef) {
       const Value v = new_value(env, targ.d.exp->type, MK_TAG(spec.tag.sym, targ.d.exp->loc));
       valuefrom(env, v->from);
       set_vflag(v, vflag_valid);
-      //nspc_add_value(nspc, spec.tag.sym, v);
-      nspc_add_value_front(t->nspc, spec.tag.sym, v);
+      nspc_add_value(t->nspc, spec.tag.sym, v);
       SET_FLAG(v, const| ae_flag_static);
       set_vflag(v, vflag_builtin);
     }
@@ -2282,7 +2281,8 @@ ANN static bool _check_class_def(const Env env, const Class_Def cdef) {
 }
 
 ANN bool check_class_def(const Env env, const Class_Def cdef) {
-  if (tmpl_base(cdef->base.tmpl)) return true;
+  if (tmpl_base(cdef->base.tmpl))
+    return true;
   const Type       t   = cdef->base.type;
   if (tflag(t, tflag_check)) return true;
   set_tflag(t, tflag_check);

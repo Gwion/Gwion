@@ -170,7 +170,7 @@ ANN GWION_IMPORT(union) {
    GWI_B(gwi_oper_emi(gwi, opem_none))
    GWI_B(gwi_oper_end(gwi, ":=>", NoOp))
 
-  const Type t_union = gwi_struct_ini(gwi, "union");
+  const Type t_union = gwi_struct_ini(gwi, "Union");
   //gwi_class_xtor(gwi, NULL, UnionDtor);
   gwi->gwion->type[et_union] = t_union;
 
@@ -197,7 +197,7 @@ ANN GWION_IMPORT(union) {
   const struct Op_Func   opfunc1 = {.ck = opck_union_new};
   CHECK_B(add_op_func_check(gwi->gwion->env, t_union, &opfunc1, 1));
 
-   GWI_B(gwi_oper_ini(gwi, "union", (m_str)OP_ANY_TYPE, NULL))
+   GWI_B(gwi_oper_ini(gwi, "Union", (m_str)OP_ANY_TYPE, NULL))
    GWI_B(gwi_oper_emi(gwi, opem_union_dot))
    GWI_B(gwi_oper_end(gwi, ".", NULL))
 

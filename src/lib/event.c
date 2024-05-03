@@ -59,7 +59,7 @@ GWION_IMPORT(event) {
   GWI_B(gwi_func_ini(gwi, "void", "broadcast"))
   GWI_B(gwi_func_end(gwi, event_broadcast, ae_flag_none))
   GWI_B(gwi_class_end(gwi))
-   GWI_B(gwi_oper_ini(gwi, "Event", "@now", "int"))
+   GWI_B(gwi_oper_ini(gwi, "Event", "Now", "int"))
    GWI_B(gwi_oper_end(gwi, "=>", EventWait))
   return true;
 }

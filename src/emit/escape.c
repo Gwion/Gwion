@@ -6,7 +6,7 @@
 #include "emit.h"
 #include "escape.h"
 
-char escape_table[256] = {
+static char escape_table[256] = {
   ['0']  = '0',
   ['\''] = '\'',
   ['"']  = '"',
@@ -63,7 +63,8 @@ bool escape_str(const Emitter emit, const m_str base, const loc_t loc) {
         }
       } else {
         char out;
-        CHECK_B((*str++ = (char)get_escape(emit, (char)c, &out, loc)));
+        CHECK_B(get_escape(emit, (char)c, &out, loc));
+        *str++ = out;
       }
     } else
       *str++ = (char)*str_lit;
