@@ -255,12 +255,7 @@ ANN void emit_pop_scope(const Emitter emit) {
 ANN void emit_push_scope(const Emitter emit) {
   frame_push(emit->code->frame);
   vector_add(&emit->info->pure, 0);
-  //if (emit->info->debug) emit_add_instr(emit, DebugPush);
-  if (emit->info->debug) {
-
-    const Instr instr = emit_add_instr(emit, DebugPush);
-    instr->m_val = emit->status.line;
-  }
+  if (emit->info->debug) emit_add_instr(emit, DebugPush);
 }
 
 ANN m_uint emit_code_offset(const Emitter emit) {
@@ -989,11 +984,9 @@ static INSTR(UsedBy) {
 }
 
 ANN static void used_by(const Emitter emit, const Value v) {
-puts("emit used by");
   MP_Vector *vec = new_mp_vector(emit->gwion->mp, Func, 0);
   for(uint32_t i = 0; i < v->used_by->len; i++) {
     const Func f = *mp_vector_at(v->used_by, Func, i);
-    if(f->_wait) puts("Adding to wait list");
     if(f->_wait) mp_vector_add(emit->gwion->mp, &vec, Func, f);
   }
   free_mp_vector(emit->gwion->mp, Func, v->used_by);
@@ -1922,13 +1915,11 @@ ANN2(1) /*static */ bool emit_exp(const Emitter emit, /* const */ Exp* e) {
   Exp* exp = e;
   do {
     if (emit->info->debug){
-
-printf("debug line: %i\n", e->loc.first.line);
       if(emit->status.line < e->loc.first.line) {
-      const Instr instr = emit_add_instr(emit, DebugLine);
-      instr->m_val = emit->status.line = e->loc.first.line;
-    }
- emit->status.line = e->loc.first.line;
+        const Instr instr = emit_add_instr(emit, DebugLine);
+        instr->m_val = emit->status.line = e->loc.first.line;
+      }
+      emit->status.line = e->loc.first.line;
     }
     CHECK_B(emit_exp_func[exp->exp_type](emit, &exp->d));
     if (exp->cast_to) CHECK_B(emit_implicit_cast(emit, exp, exp->cast_to));
@@ -2615,7 +2606,6 @@ ANN static bool emit_exp_dot(const Emitter emit, const Exp_Dot *member) {
 ANN static inline void emit_func_def_init(const Emitter emit, const Func func) {
   emit_push_code(emit, func->name);
   if(mp_vector_len(func->_wait)) {
-puts("wait");
     const Instr instr = emit_add_instr(emit, FuncWait);
     instr->m_val = (m_uint) func;
   }

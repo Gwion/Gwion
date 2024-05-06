@@ -359,10 +359,10 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
 ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
                       const loc_t loc NUSED) {
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
-//  gwfmt_state_init(&ls);
+  gwfmt_state_init(&ls);
   text_init(&ls.text, gwion->mp);
-  Gwfmt l = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
-  struct td_info info = {.tl = tl, .fmt = &l };
+  Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
+  struct td_info info = {.tl = tl, .fmt = &gwfmter };
   CHECK_O(td_info_run(gwion->env, &info));
   return ls.text.str;
 }
