@@ -223,7 +223,7 @@ ANN static bool scan1_exp_post(const Env env, const Exp_Postfix *post) {
 }
 
 ANN static bool scan1_exp_call(const Env env, const Exp_Call *exp_call) {
-  if (exp_call->tmpl) return true;
+//  if (exp_call->tmpl) return true;
   CHECK_B(scan1_exp(env, exp_call->func));
   Exp* args = exp_call->args;
   return args ? scan1_exp(env, args) : true;

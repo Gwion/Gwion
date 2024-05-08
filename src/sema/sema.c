@@ -230,8 +230,11 @@ ANN static bool sema_exp_slice(Sema *a, Exp_Slice *b) {
 
 ANN static bool sema_exp_if(Sema *a, Exp_If *b) {
   bool ok = unique_expression(a, b->cond, "in `if` expression condition");
-  if(b->if_exp && !unique_expression(a, b->if_exp, "in `if` expression true branch"))
-    ok = false;
+  if(b->if_exp) {
+    if(!unique_expression(a, b->if_exp, "in `if` expression true branch"))
+      ok = false;
+  } else
+    b->if_exp = cpy_exp(a->mp, b->cond);
   return unique_expression(a, b->else_exp, "in `in` expression false branch") && ok;
 }
 

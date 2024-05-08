@@ -289,18 +289,8 @@ ANN bool not_from_owner_class(const Env env, const Type t, const Value v,
 ANN static inline Value get_value(const Env env, const Symbol sym) {
   const Value value = nspc_lookup_value1(env->curr, sym);
   if(value) {
-if(value->from->owner_class && is_func(env->gwion, value->from->owner_class)) {
-/*
-
-set_tflag(value->from->owner_class, tflag_check);
-set_tflag(value->from->owner_class, tflag_scan0);
-set_tflag(value->from->owner_class, tflag_scan1);
-set_tflag(value->from->owner_class, tflag_scan2);
-set_tflag(value->from->owner_class, tflag_check);
-*/
-return value;
-}
-
+    if(value->from->owner_class && is_func(env->gwion, value->from->owner_class))
+      return value;
     if (!value->from->owner_class || isa(env->class_def, value->from->owner_class))
       return value;
     if(env->class_def) {
@@ -1263,14 +1253,11 @@ ANN static Type _flow(const Env env, Exp* e, const bool b) {
 #define check_flow(emit, b) _flow(emit, b, 1)
 
 ANN static Type check_exp_if(const Env env, Exp_If *const exp_if) {
-  if (!exp_if->if_exp) {
-    Exp* e = exp_if->if_exp = cpy_exp(env->gwion->mp, exp_if->cond);
-    scan1_exp(env, e);
-    scan2_exp(env, e);
-  }
-  DECL_O(const Type, cond, = check_flow(env, exp_if->cond));
-  DECL_O(const Type, if_exp, = check_exp(env, exp_if->if_exp));
-  DECL_O(const Type, else_exp, = check_exp(env, exp_if->else_exp));
+  const Type cond = check_flow(env, exp_if->cond);
+  const Type if_exp = check_exp(env, exp_if->if_exp);
+  const Type else_exp = check_exp(env, exp_if->else_exp);
+  if(!cond || !if_exp || !else_exp)
+    return NULL;
 
   const uint meta =
       exp_getmeta(exp_if->if_exp) || exp_getmeta(exp_if->else_exp);
