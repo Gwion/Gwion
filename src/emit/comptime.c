@@ -24,7 +24,7 @@ ANN2(1) void comptime_end(const Emitter emit, const size_t size, void *data) {
   const VM_Shred shred = new_vm_shred(emit->gwion->mp, code);
   vm_add_shred(vm, shred);
   const bool loop = vm->shreduler->loop;
-  vm_run(vm);
-  vm->bbq->is_running = true;
+  vm->shreduler->loop = false;
+  vm_force_run(vm);
   vm->shreduler->loop = loop;
 }

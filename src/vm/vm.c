@@ -1657,8 +1657,15 @@ ANN void vm_run_audio(const VM *vm) {
 
 void vm_force_run(const VM *vm) {
   const bool is_running = vm->shreduler->bbq->is_running;
+  struct ShredTick_ *curr = vm->shreduler->curr;
+  VM_Shred shred = (VM_Shred) vector_back(&vm->shreduler->active_shreds);
+  vm->shreduler->curr = shred->tick;
+  const m_uint pos = vm->shreduler->bbq->pos;
+  vm->shreduler->bbq->pos = 0;
   vm_run(vm);
+  vm->shreduler->curr = curr;
   vm->shreduler->bbq->is_running = is_running;
+  vm->shreduler->bbq->pos = pos;
 }
 
 VM *new_vm(MemPool p, const bool audio) {
