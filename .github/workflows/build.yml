@@ -25,7 +25,7 @@ jobs:
       run: bash scripts/update.sh
 
     - name: MdBook
-      uses: peaceiris/actions-mdbook@v1
+      uses: peaceiris/actions-mdbook@v2
       with:                                                                                                                                                                                 
          mdbook-version: 'latest'
 
