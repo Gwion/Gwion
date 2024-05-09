@@ -69,6 +69,9 @@ ANEW ANN struct Passes_ *new_passes(const Gwion gwion) {
   map_init(&a->map);
   for (m_uint i = 0; i < N_PASS; ++i)
     pass_register(gwion, default_passes_name[i], default_passes[i]);
+  pass_register(gwion, "scan0", scan0_ast);
+  pass_register(gwion, "scan1", scan1_ast);
+  pass_register(gwion, "scan2", scan2_ast);
   vector_init(&a->vec);
   return a;
 }

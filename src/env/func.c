@@ -63,7 +63,7 @@ ANN void print_signature(const Gwion gwion, const Func f) {
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
   gwfmt_state_init(&ls);
   text_init(&ls.text, gwion->mp);
-  Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
+  Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl};
   gwfmt_func_def(&gwfmter, f->def);
   gwlog_related_from(ls.text.str, f->value_ref->from); 
   text_release(&ls.text);
