@@ -53,7 +53,34 @@ make
 ```
 
 > Besides developer options, you migth want to check *USE_DOUBLE*, in util/config.mk, which set the floating point size (float or double).
-> Note that the option you choose must match how you built your soundpipe library (more on soundpipe later). 
+> Note that the option you choose must match how you built your soundpipe library (more on soundpipe later).
+
+## Nix - Install
+
+To get started with Gwion, use the provided default.nix file.
+
+Navigate to the main Gwion repository.
+Enter the following command:
+
+```bash
+nix-env -if default.nix
+```
+
+This should install Gwion. 
+
+Afterwards, you can run the Gwion Interpreter with the following command:
+
+```bash
+gwion <file>
+```
+
+The default.nix file includes a fixed commit hash. If you prefer to utilize the latest version, you'll need to update the commit hash accordingly. Here's how:
+
+- Go to the Gwion repository on GitHub.
+- Locate the commit hash of the latest version you want to use.
+- Update the commit hash in the default.nix file to match the desired version.
+- Save the changes.
+- Re-run the installation command mentioned earlier to install the updated version of Gwion.
 
 ## Executing your first code (hello_world.gw):
 
