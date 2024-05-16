@@ -1,0 +1,11 @@
+#! [contains] from this `using` statement
+class C {
+  class D {
+  }
+}
+
+class D {}
+
+using C;
+
+

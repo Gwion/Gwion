@@ -5,6 +5,7 @@ typedef struct NspcInfo_ {
   Scope          type;
   Scope          func;
   Scope          trait;
+  MP_Vector *using;
 } NspcInfo;
 
 typedef struct NspcOp_ {

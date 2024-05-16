@@ -248,6 +248,9 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_retry    clean_dummy
 #define clean_stmt_spread   clean_dummy
 
+// TODO: check me
+#define clean_stmt_using    clean_dummy
+
 DECL_STMT_FUNC(clean, void, Clean *)
 ANN static void clean_stmt(Clean *a, Stmt* b) {
   clean_stmt_func[b->stmt_type](a, &b->d);

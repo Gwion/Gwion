@@ -371,6 +371,9 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
 
 ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
+  const uint32_t nusing = env->curr->info->using
+    ? env->curr->info->using->len
+    : 0;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
     if(stmt->poison) { ok = false; continue; }
@@ -381,11 +384,17 @@ ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
         if(!plugin_ini(env->gwion, stmt->d.stmt_pp.data, stmt->loc))
           POISON_NODE(ok, env, stmt);
       }
+    } else if(stmt->stmt_type == ae_stmt_using) {
+      if(!env->curr->info->using)
+        env->curr->info->using = new_mp_vector(env->gwion->mp, Stmt_Using, 0);
+      mp_vector_add(env->gwion->mp, &env->curr->info->using, Stmt_Using, &stmt->d.stmt_using);
     } /*else if (stmt->stmt_type == ae_stmt_spread) {
       if(!spreadable(env)) // TODO: we can prolly get rid of this
         ERR_OK_NODE(ok, stmt, stmt->loc, "spread statement outside of variadic environment");
     }*/
   }
+  if(env->curr->info->using && env->scope->depth)
+    env->curr->info->using->len = nusing;
   return ok;
 }
 

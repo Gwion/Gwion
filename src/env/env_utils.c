@@ -50,28 +50,39 @@ ANN Type find_initial(const Env env, const Symbol xid) {
     const Nspc nspc = (Nspc)vector_at(v, i - 1);
     RETURN_TYPE(nspc_lookup_type1(nspc, xid));
   }
-  return NULL;
+  if(env->curr->info->using) {
+  for(uint32_t i = 0; i < env->curr->info->using->len; i++) {
+    Stmt_Using using = *mp_vector_at(env->curr->info->using, Stmt_Using, i);
+      if(!using->alias.sym) {
+        const Type owner = known_type(env, using->d.td);
+        if(owner) {
+          const Type ret = nspc_lookup_type0(owner->nspc, xid);
+          if(ret) return ret;
+       }
+   } else if(xid == using->alias.sym) {
+      if(!using->d.exp->type)
+        CHECK_B(traverse_exp(env, using->d.exp));
+       if(is_class(env->gwion, using->d.exp->type))
+         return using->d.exp->type->info->base_type;
+      ERR_B(using->alias.loc, "found an alias %s but it's not a type", s_name(using->alias.sym));
+   }
+}}
+   return NULL;
 }
 #undef RETURN_TYPE
 
 ANN Type find_type(const Env env, Type_Decl *td) {
   DECL_O(Type, type, = find_initial(env, td->tag.sym));
   while ((td = td->next) && type && type->nspc) {
-//    const Nspc nspc  = type->nspc;
-//    if(!(type = find_in_parent(type, td->tag.sym)))
-//
-    //enERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
-//s_name(td->tag.sym), nspc->name);
-
-
     Type_Decl *next = td->next;
     td->next = NULL;
-env_push_type(env, type);
+    const uint32_t scope = env->scope->depth;
+    env_push_type(env, type);
     type = known_type(env, td);
     if(!type)
       ERR_O(td->tag.loc, _("...(cannot find class '%s' in nspc '%s')"),
             s_name(td->tag.sym), env->class_def->name);
-env_pop(env, 0); // respect scope depth // use env scope
+    env_pop(env, scope);
     td->next = next;
 
   }

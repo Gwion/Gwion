@@ -2576,6 +2576,7 @@ ANN static bool emit_stmt_retry(const Emitter                  emit,
 #define emit_stmt_while emit_stmt_flow
 #define emit_stmt_until emit_stmt_flow
 #define emit_stmt_spread dummy_func
+#define emit_stmt_using dummy_func
 
 DECL_STMT_FUNC(emit, bool, Emitter);
 

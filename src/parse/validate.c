@@ -380,6 +380,9 @@ ANN static bool validate_stmt_defer(Validate *a, Stmt_Defer b) {
 ANN static bool validate_stmt_spread(Validate *a NUSED, Spread_Def b NUSED) {
   return true;
 }
+
+#define validate_stmt_using dummy_func
+
 DECL_STMT_FUNC(validate, bool, Validate*)
 ANN static bool validate_stmt(Validate *a, Stmt* b) {
   if(b->poison) return false;

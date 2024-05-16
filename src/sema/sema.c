@@ -567,6 +567,8 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
   return ok;
 }
 
+#define sema_stmt_using dummy_func
+
 DECL_STMT_FUNC(sema, bool, Sema*)
 ANN static bool sema_stmt(Sema *a, Stmt* b, bool in_list) {
   Stmt_List *stmt_list = a->stmt_list;

@@ -1,0 +1,9 @@
+#! [contains] already defined
+class C {
+  class D {}
+}
+class D {}
+
+using C : D;
+
+

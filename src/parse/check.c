@@ -398,6 +398,30 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
         return v->type;
       }
     }
+    if(env->curr->info->using) {
+      for(uint32_t i = 0; i < env->curr->info->using->len; i++) {
+          Stmt_Using using = *mp_vector_at(env->curr->info->using, Stmt_Using, i);
+          if(!using->alias.sym) {
+            // NOTE: we know type is valid and has nspc
+            const Type type = known_type(env, using->d.td);
+            Value value = nspc_lookup_value1(type->nspc, sym);
+            if(value) {
+            Exp *exp = prim_exp(data);
+            exp->exp_type = ae_exp_dot;
+            Type_Decl *td = cpy_type_decl(env->gwion->mp, using->d.td);
+            exp->d.exp_dot.base = new_exp_td(env->gwion->mp, td, exp->loc);
+            exp->d.exp_dot.xid = insert_symbol(value->name);
+            return check_exp(env, exp);
+          }
+        } else if(sym == using->alias.sym) {
+          Exp *exp = prim_exp(data);
+          Exp *base = cpy_exp(env->gwion->mp, using->d.exp);
+          *exp = *base;
+          mp_free2(env->gwion->mp, sizeof(Exp), base);
+          return check_exp(env, exp);
+        }
+      }
+    }
     m_str str = NULL;
     gw_asprintf(env->gwion->mp, &str, "Invalid variable {R}%s{0}\n", name);
     gwlog_error(str, _("not legit at this point."),
@@ -1724,6 +1748,38 @@ ANN static bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
   return check_stmt(env, stmt->stmt);
 }
 
+ANN static bool check_stmt_using(const Env env, const Stmt_Using stmt) {
+  if(!stmt->alias.sym) {
+    DECL_B(const Type, type, = known_type(env, stmt->d.td));
+    for(m_uint i = 0; i < map_size(&type->nspc->info->value->map); ++i) {
+      const Symbol sym = (Symbol)VKEY(&type->nspc->info->value->map, i);
+      const Value value = nspc_lookup_value1(env->curr, sym);
+      if(value) {
+        char msg[256];
+        sprintf(msg, "{Y}%s{0} is already defined", value->name);
+        gwlog_error(_(msg), "from this `using` statement", env->name, stmt->d.td->tag.loc, 0);
+        declared_here(value);
+        const Value other = nspc_lookup_value1(type->nspc, sym);
+        declared_here(other);
+        return false;
+      }
+    }
+  } else {
+    const Value value = nspc_lookup_value1(env->curr, stmt->alias.sym);
+    if(value) {
+      char msg[256];
+      sprintf(msg, "{Y}%s{0} is already defined", value->name);
+      gwlog_error(_(msg), NULL, env->name, stmt->alias.loc, 0);
+      declared_here(value);
+      return false;
+    }
+    if(!stmt->d.exp->type)
+      CHECK_B(check_exp(env, stmt->d.exp));
+  }
+  mp_vector_add(env->gwion->mp, &env->curr->info->using, Stmt_Using, stmt);
+  return true;
+}
+
 #define check_stmt_retry dummy_func
 #define check_stmt_spread dummy_func
 DECL_STMT_FUNC(check, bool, Env)
@@ -1734,12 +1790,17 @@ ANN bool check_stmt(const Env env, Stmt* stmt) {
 
 ANN bool check_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
+  const uint32_t nusing = env->curr->info->using
+    ? env->curr->info->using->len
+    : 0;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
     if(stmt->poison) { ok = false; continue;}
     if(!check_stmt(env, stmt))
       POISON_NODE(ok, env, stmt);
   }
+  if(env->curr->info->using)
+    env->curr->info->using->len = nusing;
   return ok;
 }
 

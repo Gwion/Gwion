@@ -1,0 +1,12 @@
+#! [contains] foo
+class C {
+  class D {
+    <<< "foo" >>>;
+  }
+}
+
+using C;
+#!var D d;
+class E extends D {};
+
+var E e;

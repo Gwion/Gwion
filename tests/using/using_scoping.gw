@@ -1,0 +1,11 @@
+#! [contains] not legit
+class C {
+  var static int testUsingScoping;
+}
+
+fun void test() {
+  using C;
+  <<< testUsingScoping >>>;
+}
+
+<<< testUsingScoping >>>;

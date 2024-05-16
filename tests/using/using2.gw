@@ -1,0 +1,10 @@
+#! [contains] 12
+class Foo {
+  12 :=> var static int bar;
+}
+
+12 :=> Foo.bar;
+using Foo;
+
+<<< bar >>>;
+

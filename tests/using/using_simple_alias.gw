@@ -1,0 +1,13 @@
+#! [contains] Foo.Bar ctor
+class Foo {
+  class Bar {
+     <<< "Foo.Bar ctor" >>>;
+     var int i;
+  }
+}
+
+using Bar : Foo.Bar;
+
+var Bar bar;
+
+<<< bar.i >>>;

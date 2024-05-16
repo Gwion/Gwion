@@ -1,0 +1,8 @@
+#! [contains] found an alias 
+class C {
+  var static int i;
+}
+
+using i : C.i;
+
+var i j;
