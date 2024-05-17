@@ -170,12 +170,6 @@ ANN static bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t 
   return ret;
 }
 
-ANN static void plug_name(m_str name, const m_str iname, const m_uint size) {
-  strcpy(name, iname);
-  for (size_t j = 0; j < size; j++)
-    if (name[j] == ':' || name[j] == '[' || name[j] == ']') name[j] = '_';
-}
-
 ANN static void set_parent(const Nspc nspc, const Gwion gwion ) {
   const Nspc user = (Nspc)vector_at(&gwion->env->scope->nspc_stack, 1);
   nspc->parent = user->parent;
@@ -214,10 +208,7 @@ ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
     const m_str  base = (m_str)VKEY(map, i);
-    const size_t size = strlen(iname);
-    char         name[size + 1];
-    plug_name(name, iname, size);
-    if (!strcmp(name, base)) {
+    if (!strcmp(iname, base)) {
       if (!plug->nspc) return start(plug, gwion, iname, loc);
       else return started(plug, gwion, iname);
     }
