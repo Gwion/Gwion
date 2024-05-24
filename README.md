@@ -172,6 +172,8 @@ Run gwion with the --cdoc flag and it will show you everything that Gwion has to
 
 Online documentation is a work in progress :construction_worker: You can [view it here](https://Gwion.github.io/Gwion/). Please consider contributing 🙂 
 
+there is another site with [samples](https://gwion.github.io/GwionSamples/)
+
 If you need help with anything just [talk to us on Discord](https://discord.gg/KmHqbTKSmS). In general the audio programming community is very friendly and the people involved with Gwion are no exception.
 
 ## Contributing / Reporting bugs
