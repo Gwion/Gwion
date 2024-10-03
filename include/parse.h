@@ -50,14 +50,14 @@
 
 #define RET_NSPC(exp)                                                          \
   ++env->scope->depth;                                                         \
-  const uint32_t nusing = env->curr->info->using                               \
-     ? env->curr->info->using->len                                             \
+  const uint32_t nusing = env->curr->info->gwusing                             \
+     ? env->curr->info->gwusing->len                                           \
      : 0;                                                                      \
   nspc_push_value(env->gwion->mp, env->curr);                                  \
   const bool ret = exp;                                                        \
   nspc_pop_value(env->gwion->mp, env->curr);                                   \
   if(nusing)                                                                   \
-    env->curr->info->using->len = nusing;                                      \
+    env->curr->info->gwusing->len = nusing;                                    \
   --env->scope->depth;                                                         \
   return ret;
 

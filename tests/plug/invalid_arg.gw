@@ -1,2 +1,2 @@
-#import invalid_arg
+import invalid_arg;
 <<< __file__ >>>;

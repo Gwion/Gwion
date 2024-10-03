@@ -1,2 +1,2 @@
-#import end_class
+import end_class;
 <<< __file__ >>>;

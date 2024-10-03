@@ -1,2 +1,2 @@
-#import func_fail3
+import func_fail3;
 <<< __file__ >>>;

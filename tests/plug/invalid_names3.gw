@@ -1,2 +1,2 @@
-#import invalid_names3
+import invalid_names3;
 <<< __file__ >>>;

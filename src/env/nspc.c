@@ -48,8 +48,8 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   nspc_free_trait(a, gwion);
   if(a->operators) free_operators(a->operators, gwion);
   nspc_free_type(a, gwion);
-  if (a->info->using)
-    free_mp_vector(gwion->mp, Stmt_Using, a->info->using);
+  if (a->info->gwusing)
+    free_mp_vector(gwion->mp, Stmt_Using, a->info->gwusing);
   if (a->class_data && a->class_data_size)
     mp_free2(gwion->mp, a->class_data_size, a->class_data);
   if (a->vtable.ptr) vector_release(&a->vtable);

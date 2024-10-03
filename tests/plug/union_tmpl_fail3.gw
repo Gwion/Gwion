@@ -1,2 +1,2 @@
-#import union_tmpl_fail3
+import union_tmpl_fail3;
 <<< __file__ >>>;

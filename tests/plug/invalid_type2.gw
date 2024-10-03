@@ -1,2 +1,2 @@
-#import invalid_type2
+import invalid_type2;
 <<< __file__ >>>;

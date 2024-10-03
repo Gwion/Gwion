@@ -1,2 +1,2 @@
-#import typedef_fail
+import typedef_fail;
 <<< __file__ >>>;

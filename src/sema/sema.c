@@ -568,6 +568,7 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
 }
 
 #define sema_stmt_using dummy_func
+#define sema_stmt_import dummy_func
 
 DECL_STMT_FUNC(sema, bool, Sema*)
 ANN static bool sema_stmt(Sema *a, Stmt* b, bool in_list) {
@@ -626,6 +627,28 @@ ANN static bool sema_stmt_list(Sema *a, Stmt_List *b) {
     Stmt* c = mp_vector_at(*b, Stmt, i);
     if(!sema_stmt(a, c, true))
       POISON_OK(a, c, ok);
+    
+    if(c->stmt_type == ae_stmt_import &&
+       c->d.stmt_import.selection) {
+      const uint32_t len = (*b)->len;
+      ImportList selection = c->d.stmt_import.selection;
+      c->d.stmt_import.selection = NULL;
+      mp_vector_resize(a->mp, b, sizeof(Stmt), len + selection->len);
+        memmove((*b)->ptr + (i + 1 + selection->len) * sizeof(Stmt), 
+                (*b)->ptr + (i + 1) * sizeof(Stmt),
+                (len - i) * sizeof(Stmt));
+      for(uint32_t j = 0; j < selection->len; j++) {
+        Stmt *stmt = mp_vector_at(*b, Stmt, i + j + 1);
+        struct Stmt_Using_ using = *mp_vector_at(selection, struct Stmt_Using_, j);
+        stmt->d.stmt_using = using;
+        stmt->stmt_type = ae_stmt_using;
+        stmt->loc = using.tag.loc;
+        stmt->poison = false;
+      }
+      stmt_list = b;
+      free_mp_vector(a->mp, struct Stmt_Using_, selection);
+    }
+    
   }
   a->stmt_list = stmt_list;
   return ok;

@@ -1,2 +1,2 @@
-#import invalid_func
+import invalid_func;
 <<< __file__ >>>;

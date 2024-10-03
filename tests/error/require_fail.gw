@@ -1,4 +1,4 @@
-#import NonExisting
+import NonExisting;
 
 var ftbl f;
 <<< var SinOsc s >>>;

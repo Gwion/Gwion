@@ -1,2 +1,2 @@
-#import array
+import array;
 <<< __file__ >>>;

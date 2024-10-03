@@ -1,2 +1,2 @@
-#import compile_string
+import compile_string;
 <<< __file__ >>>;

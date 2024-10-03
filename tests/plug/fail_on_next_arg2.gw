@@ -1,2 +1,2 @@
-#import fail_on_next_arg2
+import fail_on_next_arg2;
 <<< __file__ >>>;

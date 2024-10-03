@@ -1,4 +1,4 @@
-#import enum
+import enum;
 
 #! typed global enum
 <<< TYPED_ENUM0 >>>;

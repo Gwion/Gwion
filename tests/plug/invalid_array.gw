@@ -1,2 +1,2 @@
-#import invalid_array
+import invalid_array;
 <<< __file__ >>>;

@@ -153,6 +153,8 @@ ANN bool plug_run(const struct Gwion_ *gwion, const Map mod) {
   return true;
 }
 
+ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc, const bool initial);
+
 ANN static bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t loc) {
   const gwdepend_t dep = plug->depend;
   bool ret = true;
@@ -160,8 +162,8 @@ ANN static bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t 
     m_str *const base = dep();
     m_str *      deps = base;
     while (*deps) {
-      if(!plugin_ini(gwion, *deps, loc)) {
-        gw_err("%s: no such plugin (dependency)\n", *deps);
+      if(!_plugin_ini(gwion, *deps, loc, false)) {
+        env_err(gwion->env, loc, "%s: no such plugin (dependency)\n", *deps);
         ret = false;
       }
       ++deps;
@@ -177,7 +179,10 @@ ANN static void set_parent(const Nspc nspc, const Gwion gwion ) {
 }
 
 ANN static bool start(const Plug plug, const Gwion gwion, const m_str iname, const loc_t loc) {
-  if(!plug->plugin) return false;
+  if(!plug->plugin) {
+    env_err(gwion->env, loc, "%s: file exist but does not contain plugin\n", iname);
+    return false;
+  }
   const bool cdoc = gwion->data->cdoc;
   gwion->data->cdoc = 0; // check cdoc
   CHECK_B(dependencies(gwion, plug, loc));
@@ -203,14 +208,16 @@ ANN static bool started(const Plug plug, const Gwion gwion, const m_str iname) {
   return true;
 }
 
-ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
+ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc, const bool initial) {
   const Map map = &gwion->data->plugs->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
     const Plug   plug = (Plug)VVAL(map, i);
     const m_str  base = (m_str)VKEY(map, i);
     if (!strcmp(iname, base)) {
       if (!plug->nspc) return start(plug, gwion, iname, loc);
-      else return started(plug, gwion, iname);
+      if(initial)
+        env_warn(gwion->env, loc, "%s already loaded", iname); // should be warning
+      return started(plug, gwion, iname);
     }
   }
   return false;
@@ -218,7 +225,7 @@ ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t
 
 ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Env env = gwion->env;
-  if(!_plugin_ini(gwion, iname, loc)) {
+  if(!_plugin_ini(gwion, iname, loc, true)) {
     env_err(env, loc, "%s: no such plugin\n", iname);
     return false;
   }
@@ -227,7 +234,11 @@ ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
 
 ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
   const Map  map   = &gwion->data->plugs->map;
-  m_str      dname = strdup(si->arg);
+  // NOTE: we can do better
+  // calculate lenght of the string til `=` if it exists
+  // maybe implement some mstrndup function?
+  // or even an mstr function that returns a string up to char
+  m_str      dname = mstrdup(gwion->mp, si->arg);
   m_str      opt   = strchr(dname, '=');
   if (opt) *opt = '\0';
   for (m_uint i = 0; i < map_size(map); ++i) {
@@ -235,12 +246,12 @@ ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
     if (!strcmp(name, dname)) {
       const Plug     plug = (Plug)VVAL(map, i);
       const gwdriver_t drv  = plug->driver;
-      free(dname);
+      free_mstr(gwion->mp, dname);
       return drv;
     }
   }
   gw_err("%s: no such driver\n", dname);
-  free(dname);
+  free_mstr(gwion->mp, dname);
   return NULL;
 }
 
@@ -254,3 +265,16 @@ ANN void *get_module(const struct Gwion_ *gwion, const m_str name) {
   }
   return NULL;
 }
+
+// TODO: make some error API from this
+// NOTE: warn when a plugin is already loaded (but not when it's a dependency)
+// NOTE: warn when a dependency is already loaded
+// some question arises from the use of :[] in plug names
+//
+//
+// NOTE: plugs could use args just like modules
+//
+// NOTE: we need gwerr gwwarn gwout
+// also to set in gwiond?
+// or just set one
+// maybe have the message be [Foo] prefixed

@@ -240,6 +240,24 @@ ANN static void clean_stmt_defer(Clean *a, Stmt_Defer b) {
   clean_stmt(a, b->stmt);
 }
 
+ANN static void clean_stmt_using(Clean *a, Stmt_Using b) {
+  if(b->tag.sym)
+    clean_exp(a, b->d.exp);
+  else
+    clean_type_decl(a, b->d.td);
+}
+
+ANN static void clean_stmt_import(Clean *a, Stmt_Import b) {
+  if(b->selection) {
+    for(uint32_t i = 0; i < b->selection->len; i++) {
+      Stmt_Using item = mp_vector_at(b->selection, struct Stmt_Using_, i);
+      if(item->d.exp)
+        clean_exp(a, item->d.exp);
+    }
+  }
+}
+
+
 ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_jump     clean_dummy
 #define clean_stmt_pp       clean_dummy
@@ -247,9 +265,6 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_continue clean_dummy
 #define clean_stmt_retry    clean_dummy
 #define clean_stmt_spread   clean_dummy
-
-// TODO: check me
-#define clean_stmt_using    clean_dummy
 
 DECL_STMT_FUNC(clean, void, Clean *)
 ANN static void clean_stmt(Clean *a, Stmt* b) {

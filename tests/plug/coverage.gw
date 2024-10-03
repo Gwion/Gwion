@@ -1,5 +1,5 @@
-#import coverage
-#import coverage
+import coverage;
+import coverage;
 
 <<< var float f >>>;
 var Coverage c;

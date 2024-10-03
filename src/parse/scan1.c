@@ -266,13 +266,15 @@ ANN static inline bool scan1_stmt_match_case(const restrict Env env,
 
 ANN static inline bool scan1_stmt_using(const restrict Env env,
                                         const Stmt_Using stmt) {
-  if(stmt->alias.sym)
+  if(stmt->tag.sym)
     CHECK_B(scan1_exp(env, stmt->d.exp));
-  if(!env->curr->info->using)
-    env->curr->info->using = new_mp_vector(env->gwion->mp, Stmt_Using, 0);
-  mp_vector_add(env->gwion->mp, &env->curr->info->using, Stmt_Using, stmt);
+  if(!env->curr->info->gwusing)
+    env->curr->info->gwusing = new_mp_vector(env->gwion->mp, Stmt_Using, 0);
+  mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, stmt);
   return true;
 }
+
+#define scan1_stmt_import dummy_func
 
 ANN static inline bool
     _scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
@@ -652,8 +654,8 @@ ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
 ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
   uint32_t i;
   bool ok = true;
-  const uint32_t nusing = env->curr->info->using
-    ? env->curr->info->using->len
+  const uint32_t nusing = env->curr->info->gwusing
+    ? env->curr->info->gwusing->len
     : 0;
   for(i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
@@ -664,8 +666,8 @@ ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
     }
     if(end_flow(stmt)) break;
   }
-  if(env->curr->info->using)
-    env->curr->info->using->len = nusing;
+  if(env->curr->info->gwusing)
+    env->curr->info->gwusing->len = nusing;
   if(++i < l->len) dead_code(env, l, i);
   return ok;
 }

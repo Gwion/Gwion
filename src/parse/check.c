@@ -398,10 +398,10 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
         return v->type;
       }
     }
-    if(env->curr->info->using) {
-      for(uint32_t i = 0; i < env->curr->info->using->len; i++) {
-          Stmt_Using using = *mp_vector_at(env->curr->info->using, Stmt_Using, i);
-          if(!using->alias.sym) {
+    if(env->curr->info->gwusing) {
+      for(uint32_t i = 0; i < env->curr->info->gwusing->len; i++) {
+          Stmt_Using using = *mp_vector_at(env->curr->info->gwusing, Stmt_Using, i);
+          if(!using->tag.sym) {
             // NOTE: we know type is valid and has nspc
             const Type type = known_type(env, using->d.td);
             Value value = nspc_lookup_value1(type->nspc, sym);
@@ -413,10 +413,12 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
             exp->d.exp_dot.xid = insert_symbol(value->name);
             return check_exp(env, exp);
           }
-        } else if(sym == using->alias.sym) {
+        } else if(sym == using->tag.sym) {
           Exp *exp = prim_exp(data);
+          const loc_t loc = exp->loc;
           Exp *base = cpy_exp(env->gwion->mp, using->d.exp);
           *exp = *base;
+          exp->loc = loc;
           mp_free2(env->gwion->mp, sizeof(Exp), base);
           return check_exp(env, exp);
         }
@@ -1749,7 +1751,7 @@ ANN static bool check_stmt_defer(const Env env, const Stmt_Defer stmt) {
 }
 
 ANN static bool check_stmt_using(const Env env, const Stmt_Using stmt) {
-  if(!stmt->alias.sym) {
+  if(!stmt->tag.sym) {
     DECL_B(const Type, type, = known_type(env, stmt->d.td));
     for(m_uint i = 0; i < map_size(&type->nspc->info->value->map); ++i) {
       const Symbol sym = (Symbol)VKEY(&type->nspc->info->value->map, i);
@@ -1765,20 +1767,22 @@ ANN static bool check_stmt_using(const Env env, const Stmt_Using stmt) {
       }
     }
   } else {
-    const Value value = nspc_lookup_value1(env->curr, stmt->alias.sym);
+    const Value value = nspc_lookup_value1(env->curr, stmt->tag.sym);
     if(value) {
       char msg[256];
       sprintf(msg, "{Y}%s{0} is already defined", value->name);
-      gwlog_error(_(msg), NULL, env->name, stmt->alias.loc, 0);
+      gwlog_error(_(msg), NULL, env->name, stmt->tag.loc, 0);
       declared_here(value);
       return false;
     }
     if(!stmt->d.exp->type)
       CHECK_B(check_exp(env, stmt->d.exp));
   }
-  mp_vector_add(env->gwion->mp, &env->curr->info->using, Stmt_Using, stmt);
+  mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, stmt);
   return true;
 }
+
+#define check_stmt_import dummy_func
 
 #define check_stmt_retry dummy_func
 #define check_stmt_spread dummy_func
@@ -1790,8 +1794,8 @@ ANN bool check_stmt(const Env env, Stmt* stmt) {
 
 ANN bool check_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
-  const uint32_t nusing = env->curr->info->using
-    ? env->curr->info->using->len
+  const uint32_t nusing = env->curr->info->gwusing
+    ? env->curr->info->gwusing->len
     : 0;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
@@ -1799,8 +1803,8 @@ ANN bool check_stmt_list(const Env env, Stmt_List l) {
     if(!check_stmt(env, stmt))
       POISON_NODE(ok, env, stmt);
   }
-  if(env->curr->info->using)
-    env->curr->info->using->len = nusing;
+  if(env->curr->info->gwusing)
+    env->curr->info->gwusing->len = nusing;
   return ok;
 }
 

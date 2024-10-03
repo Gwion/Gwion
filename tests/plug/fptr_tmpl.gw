@@ -1,2 +1,2 @@
-#import fptr_tmpl
+import fptr_tmpl;
 <<< __file__ >>>;

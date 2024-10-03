@@ -1,2 +1,2 @@
-#import str2td
+import str2td;
 <<< __file__ >>>;

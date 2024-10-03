@@ -63,6 +63,7 @@ ANN void union_release(const VM_Shred shred, const Type t, const m_bit *data) {
     const Value v   = (Value)map_at(map, idx - 1);
     if (tflag(v->type, tflag_compound))
       compound_release(shred, v->type, data + SZ_INT);
+    // what if there is an union instead
   }
 }
 

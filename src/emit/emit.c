@@ -317,7 +317,7 @@ ANN2(1, 2)
 static ArrayInfo *emit_array_extend(const Emitter emit, const Type t,
                                           Exp* e, const uint is_ref);
 ANN static bool emit_pre_ctor(const Emitter emit, const Type type) {
-  if (type->info->parent) {
+  if (type->info->parent && !tflag(type, tflag_cxx)) {
     CHECK_B(emit_pre_ctor(emit, type->info->parent));
     if (tflag(type, tflag_typedef) && type->info->parent->array_depth)
       CHECK_B(emit_array_extend(emit, type, type->info->cdef->base.ext->array->exp, false));
@@ -2577,6 +2577,7 @@ ANN static bool emit_stmt_retry(const Emitter                  emit,
 #define emit_stmt_until emit_stmt_flow
 #define emit_stmt_spread dummy_func
 #define emit_stmt_using dummy_func
+#define emit_stmt_import dummy_func
 
 DECL_STMT_FUNC(emit, bool, Emitter);
 

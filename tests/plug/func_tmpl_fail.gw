@@ -1,2 +1,2 @@
-#import func_tmpl_fail
+import func_tmpl_fail;
 <<< __file__ >>>;

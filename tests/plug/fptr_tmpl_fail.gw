@@ -1,2 +1,2 @@
-#import fptr_tmpl_fail
+import fptr_tmpl_fail;
 <<< __file__ >>>;

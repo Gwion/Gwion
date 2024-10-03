@@ -1,2 +1,2 @@
-#import no_import
+import no_import;
 <<< __file__ >>>;

@@ -263,11 +263,13 @@ ANN static bool scan2_stmt_defer(const Env env, const Stmt_Defer stmt) {
 
 ANN static inline bool scan2_stmt_using(const restrict Env env,
                                         const Stmt_Using stmt) {
-  if(stmt->alias.sym)
+  if(stmt->tag.sym)
     CHECK_B(scan2_exp(env, stmt->d.exp));
-  mp_vector_add(env->gwion->mp, &env->curr->info->using, Stmt_Using, stmt);
+  mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, stmt);
   return true;
 }
+
+#define scan2_stmt_import dummy_func
 
 #define scan2_stmt_spread dummy_func
 
@@ -279,8 +281,8 @@ ANN static bool scan2_stmt(const Env env, Stmt* stmt) {
 
 ANN static bool scan2_stmt_list(const Env env, Stmt_List l) {
   bool ok = true;
-  const uint32_t nusing = env->curr->info->using
-    ? env->curr->info->using->len
+  const uint32_t nusing = env->curr->info->gwusing
+    ? env->curr->info->gwusing->len
     : 0;
   for(m_uint i = 0; i < l->len; i++) {
     Stmt* stmt = mp_vector_at(l, Stmt, i);
@@ -288,8 +290,8 @@ ANN static bool scan2_stmt_list(const Env env, Stmt_List l) {
     if(!scan2_stmt(env, stmt))
       POISON_NODE(ok, env, stmt);
   }
-  if(env->curr->info->using)
-    env->curr->info->using->len = nusing;
+  if(env->curr->info->gwusing)
+    env->curr->info->gwusing->len = nusing;
   return ok;
 }
 

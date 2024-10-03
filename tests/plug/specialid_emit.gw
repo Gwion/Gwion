@@ -1,2 +1,2 @@
-#import specialid_emit
+import specialid_emit;
 <<< testid >>>;

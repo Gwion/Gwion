@@ -85,6 +85,7 @@ ANN static bool validate_prim_id(Validate *a, Exp_Primary *b) {
   struct SpecialId_ *spid = specialid_get(a->env->gwion, b->d.var);
   if(spid) return true;
   if (!b->value) {// assume it's an operator
+    // turns out it could be a _ in a case expression
     env_err(a->env, exp_self(b)->loc, "missing value for operator");
     return false;
   }
@@ -382,6 +383,7 @@ ANN static bool validate_stmt_spread(Validate *a NUSED, Spread_Def b NUSED) {
 }
 
 #define validate_stmt_using dummy_func
+#define validate_stmt_import dummy_func
 
 DECL_STMT_FUNC(validate, bool, Validate*)
 ANN static bool validate_stmt(Validate *a, Stmt* b) {

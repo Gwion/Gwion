@@ -1,2 +1,2 @@
-#import union_member
+import union_member;
 <<< __file__ >>>;

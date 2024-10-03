@@ -1,2 +1,2 @@
-#import func_subscript_not_empty
+import func_subscript_not_empty;
 <<< __file__ >>>;

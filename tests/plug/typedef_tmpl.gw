@@ -1,2 +1,2 @@
-#import typedef_tmpl
+import typedef_tmpl;
 <<< __file__ >>>;

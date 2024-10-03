@@ -43,7 +43,8 @@ enum tflag {
   tflag_packed    = 1 << 23,
   tflag_compound  = 1 << 24,
   tflag_release   = 1 << 25, // mark structs that need release
-  tflag_primitive = 1 << 26, // mark structs that need release
+  tflag_primitive = 1 << 26,
+  tflag_cxx       = 1 << 27, // do not emit parent ctors for cxx types
 } __attribute__((packed));
 
 struct Type_ {
