@@ -37,7 +37,7 @@ static OP_CHECK(opck_ctrl) {
   Exp* exp = exp_self(data);
 
   Exp* func = cpy_exp(mp, exp);
-  Exp* dot = new_exp_dot(mp, func->d.exp_binary.lhs, insert_symbol(env->gwion->st, "last"), func->loc);
+  Exp* dot = new_exp_dot(mp, func->d.exp_binary.lhs, MK_TAG(insert_symbol(env->gwion->st, "last"), func->loc), func->loc);
   Exp* call = new_exp_call(mp, dot, NULL, func->loc);
   func->d.exp_binary.lhs = call;
   func->d.exp_binary.op = chuck;

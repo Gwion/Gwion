@@ -228,6 +228,14 @@ ANN static bool validate_exp_td(Validate *a, Type_Decl *b) {
   return validate_type_decl(a, b);
 }
 
+ANN static bool validate_exp_named(Validate *a, Exp_Named *b) {
+  if(!b->is_arg) {
+    env_err(a->env, exp_self(b)->loc, "named expression not in a function call");
+    return false;
+  }
+  return validate_exp(a, b->exp);
+}
+
 DECL_EXP_FUNC(validate, bool, Validate*)
 ANN static bool validate_exp(Validate *a, Exp* b) {
   bool ret = true;

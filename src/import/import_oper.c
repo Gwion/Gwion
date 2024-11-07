@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "gwion_util.h"
 #include "gwion_ast.h"
 #include "gwion_env.h"
@@ -13,8 +10,6 @@
 #include "operator.h"
 #include "import.h"
 #include "gwi.h"
-#include "mpool.h"
-#include "specialid.h"
 
 ANN static Type _get_type(const Gwi gwi, const m_str s) {
   if (s == (m_str)OP_ANY_TYPE) return OP_ANY_TYPE;
@@ -30,7 +25,8 @@ static bool import_op(const Gwi gwi, struct OperCK *const op, const f_instr f) {
   const Type lhs = gwi_get_type(gwi, op->lhs), rhs = gwi_get_type(gwi, op->rhs),
              ret              = gwi_get_type(gwi, op->ret);
   const struct Op_Func opfunc = {
-      .ck = op->ck, .em = op->em, .effect = {.ptr = op->effect.ptr}};
+      .ck = op->ck, .em = op->em,
+      .effect = {.ptr = op->effect.ptr}};
   const struct Op_Import opi = {.lhs  = lhs,
                                 .rhs  = rhs,
                                 .ret  = ret,
@@ -52,7 +48,7 @@ bool gwi_oper_ini(const Gwi gwi, const restrict m_str l,
   return true;
 }
 
-ANN bool gwi_oper_add(const Gwi gwi, Type (*ck)(Env, void *)) {
+ANN bool gwi_oper_add(const Gwi gwi, const opck ck) {
   gwi->oper->ck = ck;
   return true;
 }

@@ -378,7 +378,7 @@ ANN static Type prim_owned(const Env env, const Symbol *data) {
   exp->d.exp_dot.base = base;
   base->d.prim.value = v->from->owner_class->info->value;
 //  base->type = v->from->owner_class;
-  exp->d.exp_dot.xid  = *data;
+  exp->d.exp_dot.tag.sym  = *data;
   return check_exp(env, exp);
 }
 
@@ -410,7 +410,7 @@ ANN static Type prim_id_non_res(const Env env, const Symbol *data) {
             exp->exp_type = ae_exp_dot;
             Type_Decl *td = cpy_type_decl(env->gwion->mp, using->d.td);
             exp->d.exp_dot.base = new_exp_td(env->gwion->mp, td, exp->loc);
-            exp->d.exp_dot.xid = insert_symbol(value->name);
+            exp->d.exp_dot.tag.sym = insert_symbol(value->name);
             return check_exp(env, exp);
           }
         } else if(sym == using->tag.sym) {
@@ -643,7 +643,7 @@ ANN static Func call2ufcs(const Env env, Exp_Call *call, const Value v) {
   call->args                   = this;
   call->func->type             = v->type;
   call->func->d.prim.value     = v;
-  call->func->d.prim.d.var     = call->func->d.exp_dot.xid;
+  call->func->d.prim.d.var     = call->func->d.exp_dot.tag.sym;
   call->func->exp_type         = ae_exp_primary;
   call->func->d.prim.prim_type = ae_prim_id;
   CHECK_O(check_exp_call(env, call));
@@ -657,7 +657,7 @@ ANN static Func ufcs(const Env env, const Func up, Exp_Call *const call) {
   return NULL;
 }
 
-ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
+static ANN Func find_func_match_normal(const Env env, const Func up, Exp_Call *const call) {
   Func      func;
   Exp* exp = call->args;
   Exp* args =
@@ -670,6 +670,110 @@ ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
   return call->func->exp_type == ae_exp_dot && up->value_ref->from->owner_class
              ? ufcs(env, up, call)
              : NULL;
+}
+
+ANN bool call_has_named_args(Exp_Call *call, uint32_t *nargs) {
+  Exp *exp = call->args;
+  bool ret = false;
+  do {
+    if(exp->exp_type == ae_exp_named)
+      ret = true;
+    (*nargs)++;
+  } while ((exp = exp->next));
+  return ret;
+}
+
+struct NamedChecker {
+  MP_Vector *call_list;
+  MP_Vector *named;
+  MP_Vector *unnamed;
+  uint32_t  nargs;
+};
+
+static ANN Func __find_func_match_named(const Env env, const Func up, Exp_Call *const call, const struct NamedChecker *nc) {
+  const MP_Vector *args = up->def->base->args;
+  if(!args || nc->nargs != args->len) {
+    return NULL;
+  }
+
+  uint32_t nnamed = 0;
+  uint32_t nunnamed = 0;
+  for(uint32_t i = 0; i < args->len; i++) {
+    bool found = false;
+    Arg *arg = mp_vector_at(args, Arg, i);
+    for(uint32_t j = 0; j < nc->named->len; j++) {
+      Exp *exp = *mp_vector_at(nc->named, Exp*, j);
+      if(arg->var.vd.tag.sym == exp->d.exp_named.tag.sym) {
+        mp_vector_set(nc->call_list, Exp*, i, exp);
+        nnamed++;
+        found = true;
+        break;
+      }
+    }
+    if(!found && nunnamed < nc->unnamed->len)
+      mp_vector_set(nc->call_list, Exp*, i, *mp_vector_at(nc->unnamed, Exp*,nunnamed++));
+  }
+  if((nunnamed + nnamed) != nc->nargs) return NULL;
+  for(uint32_t i = 1; i < nc->call_list->len; i++) {
+    (*mp_vector_at(nc->call_list, Exp*, i-1))->next = 
+    *mp_vector_at(nc->call_list, Exp*, i);
+  }
+  (*mp_vector_at(nc->call_list, Exp*, nc->call_list->len-1))->next = NULL;
+  call->args = *mp_vector_at(nc->call_list, Exp*, 0);
+  return find_func_match_normal(env, up, call);
+}
+
+static ANN Func _find_func_match_named(const Env env, const Func up, Exp_Call *const call, const struct NamedChecker *nc) {
+  Func ret = __find_func_match_named(env, up, call, nc);
+  if(ret) return ret;
+  if(!up->next) return NULL;
+  return _find_func_match_named(env, up->next, call, nc);
+}
+
+static ANN Func find_func_match_named(const Env env, const Func up, Exp_Call *const call, const uint32_t nargs) {
+  struct NamedChecker nc = {
+    .call_list = new_mp_vector(env->gwion->mp, Exp*, nargs),
+    .named = new_mp_vector(env->gwion->mp, Exp*, 0),
+    .unnamed = new_mp_vector(env->gwion->mp, Exp*, 0),
+    .nargs = nargs,
+  };
+  MP_Vector *arg_list = new_mp_vector(env->gwion->mp, Exp*, nargs);
+  Exp *exp = call->args;
+  uint32_t i = 0;
+  do {
+    mp_vector_set(arg_list, Exp*, i, exp);
+    if(exp->exp_type == ae_exp_named) {
+      exp->d.exp_named.is_arg = true;
+      mp_vector_add(env->gwion->mp, &nc.named, Exp*, exp);
+    } else
+      mp_vector_add(env->gwion->mp, &nc.unnamed, Exp*, exp);
+    i++;
+  } while((exp = exp->next));
+
+  const Func ret = _find_func_match_named(env, up, call, &nc);
+
+  if(!ret) {
+    for(uint32_t i = 1; i < arg_list->len; i++) {
+      (*mp_vector_at(arg_list, Exp*, i-1))->next = 
+        *mp_vector_at(arg_list, Exp*, i);
+    }
+    (*mp_vector_at(arg_list, Exp*, arg_list->len-1))->next = NULL;
+    call->args = (*mp_vector_at(arg_list, Exp*, 0));
+  }
+
+  free_mp_vector(env->gwion->mp, Exp*, arg_list);
+  free_mp_vector(env->gwion->mp, Exp*, nc.call_list);
+  free_mp_vector(env->gwion->mp, Exp*, nc.named);
+  free_mp_vector(env->gwion->mp, Exp*, nc.unnamed);
+
+  return ret;
+}
+
+ANN Func find_func_match(const Env env, const Func up, Exp_Call *const call) {
+  uint32_t nargs = 0;
+  if(!call->args || !call_has_named_args(call, &nargs))
+    return find_func_match_normal(env, up, call);
+  return find_func_match_named(env, up, call, nargs);
 }
 
 ANN bool check_traverse_fdef(const Env env, const Func_Def fdef) {
@@ -713,8 +817,11 @@ ANN static inline Exp* next_arg_exp(const Exp *e) {
 }
 
 ANN static void print_current_args(Exp* e) {
-  do gw_err(" {G}%s{0}", e->type ? e->type->name : "<Unknown>");
-  while ((e = next_arg_exp(e)));
+  do {
+    if (e->exp_type == ae_exp_named)
+      gw_err(" {B}%s{0} =", s_name(e->d.exp_named.tag.sym));
+    gw_err(" {G}%s{0}", e->type ? e->type->name : "<Unknown>");
+  } while ((e = next_arg_exp(e)));
   gw_err("\n");
 }
 
@@ -1045,7 +1152,7 @@ ANN static Type call_return(const Env env, Exp_Call *const exp,
   return NULL;
 }
 
-ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
+static ANN Type _check_exp_call1(const Env env, Exp_Call *const exp) {
   DECL_O(const Type, t, = call_type(env, exp));
   if (t == env->gwion->type[et_op]) return check_op_call(env, exp);
   if (!t->info->func) // TODO: effects?
@@ -1109,6 +1216,7 @@ ANN static Type check_exp_binary(const Env env, const Exp_Binary *bin) {
                          bin->rhs->d.exp_decl.type == env->gwion->type[et_auto];
   if (is_auto) bin->rhs->d.exp_decl.type = bin->lhs->type;
   // allow foo => new C to mean new C(foo)
+  // do we actually still need that?
   if(bin->op == insert_symbol("=>") &&
      bin->rhs->exp_type == ae_exp_unary && bin->rhs->d.exp_unary.unary_type == unary_td &&
      !bin->rhs->d.exp_unary.ctor.td->array &&
@@ -1368,6 +1476,9 @@ ANN static Type check_exp_td(const Env env, Type_Decl **td) {
   return t;
 }
 
+ANN static Type check_exp_named(const Env env, Exp_Named *exp_named) {
+  return check_exp(env, exp_named->exp);
+}
 DECL_EXP_FUNC(check, Type, Env)
 
 ANN Type check_exp(const Env env, Exp* exp) {

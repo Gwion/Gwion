@@ -210,6 +210,10 @@ ANN static inline bool scan2_stmt_match(const restrict Env env,
   RET_NSPC(_scan2_stmt_match(env, stmt))
 }
 
+ANN static bool scan2_exp_named(const Env env, Exp_Named *named) {
+  return scan2_exp(env, named->exp);
+}
+
 #define scan2_exp_lambda dummy_func
 #define scan2_exp_td     dummy_func
 HANDLE_EXP_FUNC(scan2, bool, Env)

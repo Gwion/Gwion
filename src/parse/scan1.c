@@ -144,7 +144,7 @@ ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
       SET_FLAG(v, global);
     else if(env->context)
     set_vflag(v, vflag_fglobal); // file global
-  } else if (GET_FLAG(decl->var.td, global))
+  } else if (GET_FLAG(decl->var.td, global)) // wait we can have globals in a scope ?
     SET_FLAG(v, global);
   nspc_add_value(env->curr, vd->tag.sym, v);
   ((Exp_Decl *)decl)->type = decl->var.vd.value->type;
@@ -250,6 +250,11 @@ ANN static inline bool scan1_exp_unary(const restrict Env env,
 
 #define scan1_exp_lambda dummy_func
 #define scan1_exp_td     dummy_func
+
+ANN static bool scan1_exp_named(const Env env, Exp_Named *named) {
+  return scan1_exp(env, named->exp);
+}
+
 HANDLE_EXP_FUNC(scan1, bool, Env)
 
 ANN static inline bool _scan1_stmt_match_case(const restrict Env env,
@@ -410,6 +415,19 @@ ANN static inline bool scan1_stmt_exp(const Env env, const Stmt_Exp stmt) {
   return stmt->val ? scan1_exp(env, stmt->val) : 1;
 }
 
+ANN static void enum_value(const Env env, const Enum_Def edef,
+                           const Tag tag, const m_int value, m_int *last) {
+  const Value v = new_value(env, edef->type, tag);
+  v->d.num = value;
+  *last = v->d.num + 1;
+  valuefrom(env, v->from);
+  nspc_add_value(env->curr, tag.sym, v);
+  SET_FLAG(v, static | ae_flag_const);
+  SET_ACCESS(edef, v)
+  SET_ACCESS(edef, edef->type)
+  set_vflag(v, vflag_builtin);
+}
+
 ANN bool scan1_enum_def(const Env env, const Enum_Def edef) {
   const Type t = edef->type;
   t->nspc = new_nspc(env->gwion->mp, t->name);
@@ -418,15 +436,11 @@ ANN bool scan1_enum_def(const Env env, const Enum_Def edef) {
   m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
     EnumValue ev = *mp_vector_at(list, EnumValue, i);
-    const Value v = new_value(env, t, ev.tag);
-    v->d.num = (ev.set ? ev.gwint.num : last);
-    last = v->d.num + 1;
-    valuefrom(env, v->from);
-    nspc_add_value(env->curr, ev.tag.sym, v);
-    SET_FLAG(v, static | ae_flag_const);
-    SET_ACCESS(edef, v)
-    SET_ACCESS(edef, t)
-    set_vflag(v, vflag_builtin);
+    CHECK_B(can_define(env, ev.tag.sym, ev.tag.loc));
+    const m_int value = !ev.set
+      ? last
+      : ev.gwint.num;
+    enum_value(env, edef, ev.tag, value, &last);
   }
   env_pop(env, scope);
   return true;
@@ -550,17 +564,13 @@ ANN bool scan1_type_def(const Env env, const Type_Def tdef) {
 
 ANN static inline bool scan1_union_def_inner_loop(const Env env,
                                                     Union_Def udef) {
-  nspc_allocdata(env->gwion->mp, udef->type->nspc);
-  Variable_List  l  = udef->l;
   m_uint      sz = 0;
-  const Symbol sym = insert_symbol("@index");
-  const Value v = new_value(env, env->gwion->type[et_int], MK_TAG(sym, udef->tag.loc));
-  nspc_add_value_front(env->curr, sym, v);
-  valuefrom(env, v->from);
   bool ok = true;
+  Variable_List  l  = udef->l;
   for(uint32_t i = 0; i < l->len; i++) {
     Variable *um = mp_vector_at(l, Variable, i);
     if (nspc_lookup_value0(env->curr, um->vd.tag.sym)) {
+      // TODO: use already_declared
       ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym));
       continue;
     }
@@ -885,8 +895,8 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
   }
 //  return 
 // check for previous errors?
-cdef->base.type->error = !env_body(env, cdef, scan1_section);
-return true;
+  cdef->base.type->error = !env_body(env, cdef, scan1_section);
+  return true;
 }
 
 ANN static bool scan1_class_tmpl(const Env env, const Class_Def c) {

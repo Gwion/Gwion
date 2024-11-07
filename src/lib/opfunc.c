@@ -73,7 +73,7 @@ OP_CHECK(opck_rassign) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (opck_const_rhs(env, data) == env->gwion->type[et_error])
     return env->gwion->type[et_error];
-  exp_setvar(bin->rhs, 1);
+  exp_setvar(bin->rhs, true);
   return bin->rhs->type;
 }
 
@@ -140,7 +140,7 @@ OP_CHECK(opck_new) {
     Exp* args   = cpy_exp(env->gwion->mp, unary->ctor.exp);
     Exp* base   = new_exp_unary2(env->gwion->mp, unary->op, unary->ctor.td, unary->ctor.exp, self->loc);
     base->type = t;
-    Exp* func   = new_exp_dot(env->gwion->mp, base, insert_symbol("new"), self->loc);
+    Exp* func   = new_exp_dot(env->gwion->mp, base, MK_TAG(insert_symbol("new"), self->loc), self->loc);
     self->d.exp_call.func = func;
     self->d.exp_call.args = args;
     self->d.exp_call.tmpl = NULL;

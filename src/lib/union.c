@@ -31,22 +31,105 @@ static INSTR(UnionIndex) {
   // probs exosts already
   *(m_uint*)REG(-SZ_INT) = **(m_uint**)REG(-SZ_INT);
 }
+
+static bool needs_reset(const Env env, const Exp *base) {
+  return base->cast_to
+//    && isa(base->cast_t
+    && strcmp(*(m_str*)base->cast_to->nspc->class_data, env->curr->name);
+}
+
+// TODO: put in header, check other uses
+OP_CHECK(opck_object_dot);
+
+OP_EMIT(opem_setunion_implicit) { exit(19);}
+
+OP_CHECK(opck_setunion_class) {
+  struct TemplateScan *ts      = (struct TemplateScan *)data;
+  const Type base = known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td);
+  const m_str name = mp_vector_at(ts->td->types, TmplArg, 1)->d.exp->d.prim.d.string.data;
+  char buf[256];
+  snprintf(buf, 256, "FlowType:[%s,\"%s\",\"%s\"]",
+           base->name, name, env->curr->name); // vector_at 1
+  const Type t = type_copy(env->gwion->mp, base);
+  t->name = s_name(insert_symbol(env->gwion->st, buf));
+  t->info->parent = ts->t; // check if not set by copy
+  t->info->base_type = base;
+  t->nspc = new_nspc(env->gwion->mp, t->name);
+  t->nspc->class_data_size = 16;
+  nspc_allocdata(env->gwion->mp, t->nspc);
+  *(m_str*)t->nspc->class_data = s_name(insert_symbol(env->gwion->st, name));
+  *(m_str*)(t->nspc->class_data+SZ_INT) = s_name(insert_symbol(env->gwion->st, env->name));
+  return t;
+}
+
+OP_CHECK(opck_setunion_implicit) {
+  exit(87);
+}
+
+static Value find_dot_value(const Env env, const Exp *exp) {
+//  if(exp->exp_type == ae_exp_dot)
+//    return find_dot_value(
+  if(exp->exp_type == ae_exp_primary && exp->d.prim.prim_type == ae_prim_id)
+    return nspc_lookup_value1(env->curr, exp->d.prim.d.var);
+  return NULL;
+}
+
+static OP_CHECK(opck_setunion_dot) { 
+  const Exp_Dot *member = (Exp_Dot *)data;
+  const Type set_t = member->base->type;
+  const Type t = member->base->type->info->base_type;
+  member->base->type = t;
+  const Type ret = opck_object_dot(env, data);
+  member->base->type = set_t;
+  return ret;
+}
+
+static OP_CHECK(opck_setunion_dot2) {
+  puts(__func__);
+  const Exp_Dot *member = (Exp_Dot *)data;
+  puts(member->base->type->name);
+  const m_str name = *(m_str*)member->base->type->nspc->class_data;
+  if(!exp_getvar(exp_self(member)) && strcmp(s_name(member->tag.sym), name)) {
+    // change member->base->loc to member->tag.loc
+    char buf[256];
+    sprintf(buf, "expected {G}%s{0}", name);
+    gwlog_error("invalid union access", buf, env->name, member->base->loc, 0);
+    return env->gwion->type[et_error];
+  }
+  member->base->type = member->base->type->info->base_type;
+  return exp_self(member)->type;
+}
+
+static OP_CHECK(opck_union_dot) {
+  const Exp_Dot *member = (Exp_Dot *)data;
+  find_dot_value(env, member->base);
+  DECL_NN(const Type, ret, = opck_object_dot(env, data));
+/*
+  char buf[256];
+  snprintf(buf, 256, "FlowType:[%s,\"%s\",\"%s\"]",
+           member->base->type->name, s_name(member->xid), env->curr->name);
+  const Value v = find_dot_value(env, member->base);
+  if(v)
+    v->type = str2type(env->gwion, buf, member->base->loc);
+*/
+  return ret;
+}
+
 static OP_EMIT(opem_union_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
-  const Map      map    = &member->base->type->nspc->info->value->map;
   exp_setvar(member->base, true);
   CHECK_B(emit_exp(emit, member->base));
   if (is_func(emit->gwion, exp_self(member)->type)) { // is_callable? can only be a func
     emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
     return true;
   }
-  if (!strcmp(s_name(member->xid), "index")) {
-    //emit_add_instr(emit, DotMember);
+  if (!strcmp(s_name(member->tag.sym), "index")) {
     emit_add_instr(emit, UnionIndex);
     return true;
   }
+  const Map      map    = &member->base->type->nspc->info->value->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
-    if (VKEY(map, i) == (m_uint)member->xid) {
+    if (VKEY(map, i) == (m_uint)member->tag.sym) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
       emit_unionmember(emit, i, v->type->size, emit_addr);
@@ -88,7 +171,7 @@ static OP_CHECK(opck_union_is) {
       Exp* exp_args  = call->args;
       e->exp_type         = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
-      e->d.exp_binary.lhs->d.exp_dot.xid =
+      e->d.exp_binary.lhs->d.exp_dot.tag.sym =
           insert_symbol(env->gwion->st, "index");
       //      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->loc);
       e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i, e->loc);

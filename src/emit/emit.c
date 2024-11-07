@@ -18,7 +18,6 @@
 #include "match.h"
 #include "specialid.h"
 #include "looper.h"
-#include "shreduler_private.h"
 
 #undef insert_symbol
 #define insert_symbol(a) insert_symbol(emit->gwion->st, (a))
@@ -1909,9 +1908,13 @@ ANN static bool emit_exp_td(const Emitter emit, Type_Decl *td) {
   return true;
 }
 
+ANN static bool emit_exp_named(const Emitter emit, Exp_Named *exp) {
+//  gw_out("these should be changed in verify pass");
+  return emit_exp(emit, exp->exp);
+}
 DECL_EXP_FUNC(emit, bool, Emitter)
 
-ANN2(1) /*static */ bool emit_exp(const Emitter emit, /* const */ Exp* e) {
+ANN2(1) bool emit_exp(const Emitter emit, /* const */ Exp* e) {
   Exp* exp = e;
   do {
     if (emit->info->debug){

@@ -497,7 +497,7 @@ static inline int is_now(const Env env, Exp* exp) {
 static OP_CHECK(opck_now) {
   const Exp_Binary *bin = (Exp_Binary *)data;
   if (!is_now(env, bin->rhs)) CHECK_NN(opck_const_rhs(env, data));
-  exp_setvar(bin->rhs, 1);
+  exp_setvar(bin->rhs, true);
   return bin->rhs->type;
 }
 

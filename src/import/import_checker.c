@@ -320,7 +320,7 @@ ANN Exp* td2exp(const MemPool mp, const Type_Decl *td) {
   Exp* base = new_prim_id(mp, td->tag.sym, td->tag.loc);
   Type_Decl *next = td->next;
   while(next) {
-    base = new_exp_dot(mp, base, next->tag.sym, td->tag.loc);
+    base = new_exp_dot(mp, base, next->tag, td->tag.loc);
     next = next->next;
   }
   return base;
@@ -358,7 +358,7 @@ ANEW ANN m_str type2str(const Gwion gwion, const Type t,
 
 ANEW ANN m_str tl2str(const Gwion gwion, const TmplArg_List tl,
                       const loc_t loc NUSED) {
-  struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa};
+  struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa, .color=false};
   gwfmt_state_init(&ls);
   text_init(&ls.text, gwion->mp);
   Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };

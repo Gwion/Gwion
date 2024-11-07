@@ -280,6 +280,7 @@ ANN static void union_tmpl(const Env env, const Union_Def udef) {
 
 ANN bool scan0_union_def(const Env env, const Union_Def udef) {
   bool global = false;
+  bool ok = true;
   CHECK_B(scan0_global(env, udef->flag, udef->tag.loc, &global));
   CHECK_B(scan0_defined(env, udef->tag));
   udef->type   = union_type(env, udef->tag.sym, udef->tag.loc);
@@ -287,7 +288,7 @@ ANN bool scan0_union_def(const Env env, const Union_Def udef) {
   if (udef->tmpl) union_tmpl(env, udef);
   if (global) env_pop(env, 0);
   set_tflag(udef->type, tflag_scan0);
-  return true;
+  return ok;
 }
 
 ANN static inline void cdef_flag(const Class_Def cdef, const Type t) {

@@ -202,7 +202,7 @@ ANN2(1,2) bool check_tmpl(const Env env, const TmplArg_List tl, const Specialize
          if(t) {
            targ->type = tmplarg_exp;
            Exp* e = new_exp_td(env->gwion->mp, base, base->tag.loc);
-           targ->d.exp = new_exp_dot(env->gwion->mp, e, last->tag.sym, base->tag.loc);
+           targ->d.exp = new_exp_dot(env->gwion->mp, e, last->tag, base->tag.loc);
            free_type_decl(env->gwion->mp, last);
            i--;
            continue;

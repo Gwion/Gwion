@@ -169,7 +169,7 @@ ANN bool abstract_array(const Env env, const Array_Sub array);
 ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
   if (e->exp_type != ae_exp_dot) return true;
   const Exp_Dot *member = &e->d.exp_dot;
-  if(unlikely(!strcmp(s_name(member->xid), "new"))) return true;
+  if(unlikely(!strcmp(s_name(member->tag.sym), "new"))) return true;
   return GET_FLAG(e->type, final) ||
          GET_FLAG(member->base->type, final) ||
          is_class(gwion, member->base->type) ||

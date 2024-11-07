@@ -172,9 +172,6 @@ ANN bool add_op(const Gwion gwion, const struct Op_Import *opi) {
       CHECK_B(op_exist(&ock, n));
     }
   } while ((n = n->parent));
-  // Nspc nspc = gwion->env->context
-  //   ? gwion->env->context->nspc
-  //   : gwion->env->curr;
   const Nspc nspc = get_nspc(gwion->env);
   if (!nspc->operators)
     nspc->operators = mp_calloc(gwion->mp, NspcOp);
@@ -208,7 +205,7 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
                                               ock->opi->lhs, r)
                              : operator_find((Vector)&VVAL(ock->map, idx),
                                              ock->opi->lhs, r))) {
-      if ((mo->ck && (t = mo->ck(ock->env, (void *)ock->opi->data)))) {
+     if ((mo->ck && (t = mo->ck(ock->env, (void *)ock->opi->data)))) {
         ock->effect.ptr = mo->effect.ptr;
         return t;
       } else
@@ -296,6 +293,7 @@ ANN static Type op_check_tmpl(const Env env, struct Op_Import *opi) {
   return NULL;
 }
 
+// TODO: maybe should return M_Operator*?
 ANN void* op_get(const Env env, struct Op_Import *opi) {
   for (int i = 0; i < 2; ++i) {
     Nspc nspc = env->curr;
@@ -395,8 +393,6 @@ ANN Type op_check(const Env env, struct Op_Import *opi) {
 }
 
 ANN bool operator_set_func(const Env env, const struct Op_Import *opi) {
-  //const Nspc   nspc = ((Func)opi->data)->value_ref->from->owner;
-  //const Nspc   nspc = ((Func)opi->data)->value_ref->from->ctx->nspc;
   const Nspc   nspc = get_nspc(env);
   const m_int  idx  = map_index(&nspc->operators->map, (vtype)opi->op);
   const Vector v    = (Vector)&VVAL(&nspc->operators->map, idx);

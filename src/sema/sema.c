@@ -250,6 +250,10 @@ ANN static bool sema_exp_td(Sema *a, Type_Decl *b) {
   return type_decl_array_empty(a, b, "in `type declaration` expression");
 }
 
+ANN static bool sema_exp_named(Sema *a, Exp_Named *b) { 
+  return sema_exp(a, b->exp);
+}
+
 DECL_EXP_FUNC(sema, bool, Sema*)
 ANN static bool sema_exp(Sema *a, Exp* b) {
   bool ok = sema_exp_func[b->exp_type](a, &b->d);
@@ -542,7 +546,7 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
     MP_Vector *result = new_mp_vector(a->mp, Stmt, base->len + stmt_list->len - 1);
     // store the first part of the list in it
     // TODO: use memcpy
-    // or berrer, use the above function to just start at part two
+    // or better, use the above function to just start at part two
     for(uint32_t i = 0; i < index; i++) {
       Stmt stmt = *mp_vector_at(base, Stmt, i);
       mp_vector_set(result, Stmt, i, stmt);
@@ -767,6 +771,11 @@ ANN static bool sema_enum_def(Sema *a, Enum_Def b) {
 
 // TODO: rename l
 ANN static bool sema_union_def(Sema *a, Union_Def b) {
+  if(!b->l->len) {
+    gwlog_error(_("unions can't be empty"), NULL,
+              a->filename, b->tag.loc, 0);
+    return false;
+  }
   bool ok = true;
   for(uint32_t i = 0; i < b->l->len; i++) {
     Variable *c = mp_vector_at(b->l, Variable, i);

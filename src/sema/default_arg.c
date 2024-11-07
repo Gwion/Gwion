@@ -51,7 +51,7 @@ ANN static Stmt_List new_code(const Sema *sema, Func_Base *base, const uint32_t 
   SymTable *st = sema->st;
   Exp* dbase  = new_prim_id(p, insert_symbol(st, "this"), base->tag.loc);
   const Symbol sym = insert_symbol(st, "new");
-  Exp* func  = new_exp_dot(p, dbase, sym, base->tag.loc);
+  Exp* func  = new_exp_dot(p, dbase, MK_TAG(sym, base->tag.loc), base->tag.loc);
   return code(p, func, base->args, max, ae_stmt_exp);
 }
 

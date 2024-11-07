@@ -132,6 +132,10 @@ ANN static void clean_exp_td(Clean *a, Type_Decl **b) {
   clean_type_decl(a, *b);
 }
 
+ANN static void clean_exp_named(Clean *a, Exp_Named *b) {
+  clean_exp(a, b->exp);
+}
+
 DECL_EXP_FUNC(clean, void, Clean *)
 ANN static void clean_exp(Clean *a, Exp* b) {
   clean_exp_func[b->exp_type](a, &b->d);
