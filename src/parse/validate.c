@@ -43,11 +43,9 @@ ANN static bool validate_specialized_list(Validate *a, Specialized_List b) {
 }
 
 ANN static bool validate_tmplarg(Validate *a, TmplArg *b) {
-  bool ret = true;
   if (b->type == tmplarg_td)
-    CHECK_RET(validate_type_decl(a, b->d.td), ret);
-  else CHECK_RET(validate_exp(a, b->d.exp), ret);
-  return ret;
+    return validate_type_decl(a, b->d.td);
+  return validate_exp(a, b->d.exp);
 }
 
 ANN static bool validate_tmplarg_list(Validate *a, TmplArg_List b) {
