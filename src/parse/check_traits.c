@@ -45,7 +45,7 @@ ANN static bool check_trait_variables(const Env env, const Type t,
                                       const Trait trait) {
   bool error = false;
   for (m_uint i = 0; i < trait->var->len; i++) {
-    const Value request = *mp_vector_at(trait->var, Value, i);
+    const Value request = valuelist_at(trait->var, i);
     if (!request_var(env, t, request)) error = true;
   }
   return error;
@@ -62,26 +62,26 @@ ANN static bool trait_inherit(const Env env, const Type t, const Func_Def req) {
   Section section = MK_SECTION(func, func_def, cpy, t->info->value->from->loc);
   
   if(!env->context->extend)
-    env->context->extend = new_mp_vector(env->gwion->mp, Section, 0);
-  mp_vector_add(env->gwion->mp, &env->context->extend, Section, section);
+    env->context->extend = new_sectionlist(env->gwion->mp, 0);
+  sectionlist_add(env->gwion->mp, &env->context->extend, section);
 
   // sema_ast, traverse_ast
-  // mp_vector_add(env->gwion->mp, &t->info->cdef->body, Section, section);
+  // sectionlist_add(env->gwion->mp, &t->info->cdef->body, section);
   return ret;
 }
 
 ANN static bool check_trait_args(const Env env, const Func f, const Func_Base *req, const bool m) {
-  if (mp_vector_len(f->def->base->args) + m != mp_vector_len(req->args)) return false;
+  if (arglist_len(f->def->base->args) + m != arglist_len(req->args)) return false;
   if(m) {
-    const Arg *r = mp_vector_at(req->args, Arg, 0);
-    if(strcmp(s_name(r->var.td->tag.sym), "Self"))
+    const Arg r = arglist_at(req->args, 0);
+    if(strcmp(s_name(r.var.td->tag.sym), "Self"))
     return false;
   }
   for(m_uint i = m; i < req->args->len; i++) {
-    const Arg *r = mp_vector_at(req->args, Arg, i + m);
-    const Type t = known_type(env, r->var.td);
-    const Arg *arg = mp_vector_at(f->def->base->args, Arg, i);
-    if(arg->type != t) return false;
+    const Arg r = arglist_at(req->args, i + m);
+    const Type t = known_type(env, r.var.td);
+    const Arg arg = arglist_at(f->def->base->args, i);
+    if(arg.type != t) return false;
   }
   return true;
 }
@@ -116,7 +116,7 @@ ANN static bool ufcs_match(const Env env, const Value v,
       if (!GET_FLAG(fbase, abstract) &&
           !vflag(f->value_ref, vflag_member) &&
           fbase->ret_type == known_type(env, req->td) &&
-          mp_vector_len(fbase->args) == mp_vector_len(req->args) &&
+          arglist_len(fbase->args) == arglist_len(req->args) &&
           (!req->args || check_trait_args(env, f, req, 0))) {
       if(global && !GET_FLAG(fbase, global))
         return false;
@@ -161,17 +161,17 @@ ANN static bool check_trait_functions(const Env env, const Type t,
                                       const Trait trait) {
   bool error = false;
   for (m_uint i = 0; i < trait->fun->len; i++) {
-    const Func_Def request = *mp_vector_at(trait->fun, Func_Def, i);
+    const Func_Def request = funcdeflist_at(trait->fun, i);
     if (!request_fun(env, t, request)) error = true;
   }
   return error;
 }
 
-ANN bool trait_nodup(const ID_List list, const uint32_t i) {
-  const Symbol fst = *mp_vector_at(list, Symbol, i);
+ANN bool trait_nodup(const TagList *list, const uint32_t i) {
+  const Tag fst = taglist_at(list, i);
   for(uint32_t j = i + 1; j < list->len; j++) {
-    const Symbol snd = *mp_vector_at(list, Symbol, j);
-    if (fst == snd) return false;
+    const Tag snd = taglist_at(list, j);
+    if (fst.sym== snd.sym) return false;
   }
   return true;
 }
@@ -181,10 +181,10 @@ ANN static inline bool trait_error(const Env env) {
   return false;
 }
 
-ANN bool check_trait_requests(const Env env, const Type t, const ID_List list, const ValueFrom *from) {
+ANN bool check_trait_requests(const Env env, const Type t, const TagList *list, const ValueFrom *from) {
   for(uint32_t i = 0; i < list->len; i++) {
-    const Symbol xid = *mp_vector_at(list, Symbol, i);
-    const Trait trait = nspc_lookup_trait1(env->curr, xid);
+    const Tag tag = taglist_at(list, i);
+    const Trait trait = nspc_lookup_trait1(env->curr, tag.sym);
     if (!trait_nodup(list, i)) {
       gwlog_warning_from("class has duplicated trait", from);
       return trait_error(env);

@@ -69,17 +69,17 @@ ANN static bool sema_array_sub(Sema *a, Array_Sub b) {
   return true;
 }
 
-ANN static bool sema_tmplarg(Sema *a, TmplArg *b) {
+ANN static bool sema_tmplarg(Sema *a, const TmplArg *b) {
   if (b->type == tmplarg_td)
     return type_decl_array_empty(a, b->d.td, "in template argument");
   return sema_exp(a, b->d.exp);
 }
 
-ANN static bool sema_tmplarg_list(Sema *a, TmplArg_List b) {
+ANN static bool sema_tmplarg_list(Sema *a, const TmplArgList *b) {
   bool ok = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    TmplArg * c = mp_vector_at(b, TmplArg, i);
-    if(!sema_tmplarg(a, c))
+    const TmplArg c = tmplarglist_at(b, i);
+    if(!sema_tmplarg(a, &c))
       ok = false;
   }
   return ok;
@@ -164,13 +164,13 @@ ANN static bool sema_prim_locale(Sema *a NUSED, Symbol *b NUSED) {
   return true;
 }
 
-DECL_PRIM_FUNC(sema, bool, Sema *)
+DECL_PRIM_FUNC(sema, bool, Sema *,)
 ANN static bool sema_prim(Sema *a, Exp_Primary *b) {
   return sema_prim_func[b->prim_type](a, &b->d);
 }
 
 
-ANN static bool sema_variable(Sema *a, Variable *b) {
+ANN static bool sema_variable(Sema *a, const Variable *b) {
   if(b->td) return sema_type_decl(a, b->td);
   return true;
 }
@@ -254,7 +254,7 @@ ANN static bool sema_exp_named(Sema *a, Exp_Named *b) {
   return sema_exp(a, b->exp);
 }
 
-DECL_EXP_FUNC(sema, bool, Sema*)
+DECL_EXP_FUNC(sema, bool, Sema*,)
 ANN static bool sema_exp(Sema *a, Exp* b) {
   bool ok = sema_exp_func[b->exp_type](a, &b->d);
   if(b->next && !sema_exp(a, b ->next))
@@ -348,10 +348,10 @@ ANN static bool sema_stmt_return(Sema *a, Stmt_Exp b) {
   return ok;
 }
 
-ANN static bool sema_case_list(Sema *a, Stmt_List b) {
+ANN static bool sema_case_list(Sema *a, StmtList *b) {
   bool ok = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Stmt* c = mp_vector_at(b, Stmt, i);
+    Stmt* c = stmtlist_ptr_at(b, i);
     if(!sema_stmt_case(a, &c->d.stmt_match)) {
       POISON_OK(a, c, ok);
     }
@@ -393,33 +393,33 @@ ANN static bool sema_stmt_retry(Sema *a NUSED, Stmt_Exp b NUSED) {
   return false;
 }
 
-ANN static bool sema_handler(Sema *a, Handler *b, ID_List *tags) {
+ANN static bool sema_handler(Sema *a, const Handler *b, TagList **tags) {
   bool ok = true;
   for(uint32_t i = 0; i < (*tags)->len; i++) {
-    Tag *tag = mp_vector_at(*tags, Tag, i);
-    if(!tag->sym && b->tag.sym) {
+    const Tag tag = taglist_at(*tags, i);
+    if(!tag.sym && b->tag.sym) {
       gwlog_error("named handler after a catch-all one", NULL, a->filename, b->tag.loc, 0);
       gwlog_related("catch-all used here", a->filename, b->tag.loc);
       ok = false;
-    } else if(b->tag.sym == tag->sym) {
+    } else if(b->tag.sym == tag.sym) {
       gwlog_error("duplicate handler tag", NULL, a->filename, b->tag.loc, 0);
       gwlog_related("handler used here", a->filename, b->tag.loc);
       ok = false;
     }
   }
-  mp_vector_add(a->mp, tags, Tag, b->tag);
+  taglist_add(a->mp, tags, b->tag);
   return sema_stmt(a, b->stmt, false) && ok;
 }
 
-ANN static bool sema_handler_list(Sema *a, Handler_List b) {
+ANN static bool sema_handler_list(Sema *a, HandlerList *b) {
   bool ok = true;
-  MP_Vector *tags = new_mp_vector(a->mp, Tag, 0);
+  TagList *tags = new_taglist(a->mp, 0);
   for(uint32_t i = 0; i < b->len; i++) {
-    Handler *handler = mp_vector_at(b, Handler, i);
-    if(!sema_handler(a, handler, &tags))
+    const Handler handler = handlerlist_at(b, i);
+    if(!sema_handler(a, &handler, &tags))
       ok = false;
   }
-  free_mp_vector(a->mp, Symbol, tags);
+  free_taglist(a->mp, tags);
   return ok;
 }
 
@@ -440,7 +440,7 @@ ANN static bool sema_stmt_defer(Sema *a, Stmt_Defer b) {
   a ->in_defer = in_defer;
 }
 
-ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector **acc) {
+ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, SectionList **acc) {
   char c[256]; // dangerous?
   const m_str data = spread->data;
   DECL_B(FILE *,f, = fmemopen(data, strlen(data), "r"));
@@ -453,7 +453,7 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector *
   }
   bool ok = true;
   for(uint32_t i = 0; i < a->tmpls->len; i++) {
-    const Type_Decl *td = *mp_vector_at(a->tmpls, Type_Decl*, i);
+    const Type_Decl *td = tdlist_at(a->tmpls, i);
     fseek(f, 0, SEEK_SET);
 
     const m_str type = tdpp(a->mp, a->st, td, true, true);
@@ -461,8 +461,8 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector *
     pparg_add(a->ppa, c);
     free_mstr(a->mp, type);
     for(uint32_t j = 0; j < spread->list->len; j++) {
-      const Symbol sym = *mp_vector_at(spread->list, Symbol, j);
-      m_str name = s_name(sym);
+      const Tag tag = taglist_at(spread->list, j);
+      m_str name = s_name(tag.sym);
       char c[256]; // dangerous?
       sprintf(c, "%s=%s%i", name, name, i);
       pparg_add(a->ppa, c);
@@ -470,17 +470,17 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector *
     Ast ast = parse_pos(&arg, spread->tag.loc.first);
     pparg_rem(a->ppa, s_name(spread->tag.sym));
     for(uint32_t j = 0; j < spread->list->len;j++) {
-      const Symbol sym = *mp_vector_at(spread->list, Symbol, j);
-      m_str name = s_name(sym);
+      const Tag tag = taglist_at(spread->list, j);
+      m_str name = s_name(tag.sym);
       pparg_rem(a->ppa, name);
     }
     // we should only *sema* the first one
     if(ast /*&& sema_ast(a, &ast)*/) {
       for(uint32_t i = 0; i < ast->len; i++) {
-        const Section section = *mp_vector_at(ast, Section, i);
-        mp_vector_add(a->mp, acc, Section, section);
+        const Section section = sectionlist_at(ast, i);
+        sectionlist_add(a->mp, acc, section);
       }
-      free_mp_vector(a->mp, Section , ast);
+      free_sectionlist(a->mp, ast);
     } else {
       ok = false;
       break;
@@ -490,29 +490,29 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, MP_Vector *
   return ok;
 }
 
-ANN static Stmt_List spread_to_stmt_list(Sema *a, const Spread_Def spread) {
+ANN static StmtList *spread_to_stmt_list(Sema *a, const Spread_Def spread) {
   bool ok = true;
-  Ast ast = new_mp_vector(a->mp, Section, 0);
+  Ast ast = new_sectionlist(a->mp, 0);
   if(!sema_spread(a, spread, &ast)) {
     free_ast(a->mp, ast);
     return NULL;
   }
-  Stmt_List stmt_list = new_mp_vector(a->mp, Stmt, 0);
+  StmtList *stmt_list = new_stmtlist(a->mp, 0);
   for(uint32_t i = 0; i < ast->len; i++) {
-    Section *section = mp_vector_at(ast, Section, i);
-    if(section->section_type != ae_section_stmt) {
+    const Section section = sectionlist_at(ast, i);
+    if(section.section_type != ae_section_stmt) {
       ok = false;
       break;
     }
-    for(uint32_t j = 0; j < section->d.stmt_list->len; j++) {
-      Stmt stmt = *mp_vector_at(section->d.stmt_list, Stmt, j);
-      mp_vector_add(a->mp, &stmt_list, Stmt, stmt);
+    for(uint32_t j = 0; j < section.d.stmt_list->len; j++) {
+      Stmt stmt = stmtlist_at(section.d.stmt_list, j);
+      stmtlist_add(a->mp, &stmt_list, stmt);
     }
   }
   if(ok) {
     free_mstr(a->mp, spread->data);
-    free_id_list(a->mp, spread->list);
-    free_mp_vector(a->mp, Section, ast);
+    free_taglist(a->mp, spread->list);
+    free_sectionlist(a->mp, ast);
     return stmt_list;
   }
   gwlog_error(_("invalid spread section"), NULL, a->filename, spread->tag.loc, 0);
@@ -531,39 +531,38 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
     }
   }
   bool ok = true;
-    DECL_B(Stmt_List, stmt_list, = spread_to_stmt_list(a, b));
-    Stmt *stmt = mp_vector_at(stmt_list, Stmt, 0);
-    if(!sema_stmt(a, stmt, false)) { //bin
-      free_stmt_list(a->mp, stmt_list);
-      return false;
-    }
+  DECL_B(StmtList*, stmt_list, = spread_to_stmt_list(a, b));
+  Stmt *stmt = stmtlist_ptr_at(stmt_list, 0);
+  if(!sema_stmt(a, stmt, false)) { //bin
+    free_stmt_list(a->mp, stmt_list);
+    return false;
+  }
  if(a->stmt_list) {
-
-    Stmt_List base = *a->stmt_list;
-    const uint32_t index = ((uint8_t*)stmt_self(b) - base->ptr) / sizeof(Stmt);
+    StmtList *base = *a->stmt_list;
+    const uint32_t index = ((uint8_t*)stmt_self(b) - (uint8_t*)base->ptr) / sizeof(Stmt);
     // for now we will litteraly create a new vector
     // TODO: a function to extends array len (and allocate if needed)
-    MP_Vector *result = new_mp_vector(a->mp, Stmt, base->len + stmt_list->len - 1);
+    StmtList *result = new_stmtlist(a->mp, base->len + stmt_list->len - 1);
     // store the first part of the list in it
     // TODO: use memcpy
     // or better, use the above function to just start at part two
     for(uint32_t i = 0; i < index; i++) {
-      Stmt stmt = *mp_vector_at(base, Stmt, i);
-      mp_vector_set(result, Stmt, i, stmt);
+      const Stmt stmt = stmtlist_at(base, i);
+      stmtlist_set(result, i, stmt);
     }
     for(uint32_t i = 0; i < stmt_list->len; i++) { 
-      Stmt stmt = *mp_vector_at(stmt_list, Stmt, i);
-      mp_vector_set(result, Stmt, i + index, stmt);
+      const Stmt stmt = stmtlist_at(stmt_list, i);
+      stmtlist_set(result, i + index, stmt);
     }
     for(uint32_t i = index + 1; i < base->len; i++) { 
-      Stmt stmt = *mp_vector_at(base, Stmt, i);
-      mp_vector_set(result, Stmt, stmt_list->len + i - 1, stmt);
+      const Stmt stmt = stmtlist_at(base, i);
+      stmtlist_set(result, stmt_list->len + i - 1, stmt);
     }
     // we can now free the base list
-    free_mp_vector(a->mp, Stmt, base);
+    free_stmtlist(a->mp, base);
     *a->stmt_list = result;
   } else {
-    Stmt_List result = spread_to_stmt_list(a, b);
+    StmtList *result = spread_to_stmt_list(a, b);
     Stmt *stmt = stmt_self(b);
     stmt->stmt_type = ae_stmt_code;
     stmt->d.stmt_code.stmt_list = result;
@@ -574,9 +573,9 @@ ANN static bool sema_stmt_spread(Sema *a, Spread_Def b) {
 #define sema_stmt_using dummy_func
 #define sema_stmt_import dummy_func
 
-DECL_STMT_FUNC(sema, bool, Sema*)
+DECL_STMT_FUNC(sema, bool, Sema*,)
 ANN static bool sema_stmt(Sema *a, Stmt* b, bool in_list) {
-  Stmt_List *stmt_list = a->stmt_list;
+  StmtList **stmt_list = a->stmt_list;
   if(!in_list) a->stmt_list = NULL;
   const bool ret = sema_stmt_func[b->stmt_type](a, &b->d);
   if(!ret) b->poison = true;
@@ -603,11 +602,11 @@ ANN static bool sema_arg(Sema *a, Arg *b, const bool no_default) {
   return ok;
 }
 
-ANN static bool sema_arg_list(Sema *a, Arg_List b,
+ANN static bool sema_arg_list(Sema *a, ArgList *b,
       bool *has_default, const bool arg_needs_sym, const bool no_default) {
   bool ok = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Arg *c = mp_vector_at(b, Arg, i);
+    Arg *c = arglist_ptr_at(b, i);
     if(!c->var.vd.tag.sym && arg_needs_sym) {
       gwlog_error("argument needs name", NULL, a->filename, c->var.vd.tag.loc, 0);
       ok = false;
@@ -623,34 +622,34 @@ ANN static bool sema_arg_list(Sema *a, Arg_List b,
   return ok;
 }
 
-ANN static bool sema_stmt_list(Sema *a, Stmt_List *b) {
+ANN static bool sema_stmt_list(Sema *a, StmtList **b) {
   bool ok = true;
-  Stmt_List *stmt_list = a->stmt_list;
+  StmtList **stmt_list = a->stmt_list;
   a->stmt_list = b;
   for(uint32_t i = 0; i < (*b)->len; i++) {
-    Stmt* c = mp_vector_at(*b, Stmt, i);
+    Stmt* c = stmtlist_ptr_at(*b, i);
     if(!sema_stmt(a, c, true))
       POISON_OK(a, c, ok);
     
     if(c->stmt_type == ae_stmt_import &&
        c->d.stmt_import.selection) {
       const uint32_t len = (*b)->len;
-      ImportList selection = c->d.stmt_import.selection;
+      UsingStmtList *selection = c->d.stmt_import.selection;
       c->d.stmt_import.selection = NULL;
-      mp_vector_resize(a->mp, b, sizeof(Stmt), len + selection->len);
-        memmove((*b)->ptr + (i + 1 + selection->len) * sizeof(Stmt), 
-                (*b)->ptr + (i + 1) * sizeof(Stmt),
-                (len - i) * sizeof(Stmt));
+      stmtlist_resize(a->mp, b, len + selection->len);
+      memmove((*b)->ptr + (i + 1 + selection->len) * sizeof(Stmt), 
+              (*b)->ptr + (i + 1) * sizeof(Stmt),
+              (len - i) * sizeof(Stmt));
       for(uint32_t j = 0; j < selection->len; j++) {
-        Stmt *stmt = mp_vector_at(*b, Stmt, i + j + 1);
-        struct Stmt_Using_ using = *mp_vector_at(selection, struct Stmt_Using_, j);
+        Stmt *stmt = stmtlist_ptr_at(*b, i + j + 1);
+        const UsingStmt using = usingstmtlist_at(selection, j);
         stmt->d.stmt_using = using;
         stmt->stmt_type = ae_stmt_using;
         stmt->loc = using.tag.loc;
         stmt->poison = false;
       }
       stmt_list = b;
-      free_mp_vector(a->mp, struct Stmt_Using_, selection);
+      free_usingstmtlist(a->mp, selection);
     }
     
   }
@@ -677,17 +676,16 @@ ANN static bool fill(Sema *a, const Tmpl *tmpl) {
   bool ok = true;
   const uint32_t len = a->tmpls->len;
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
-    TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+    const TmplArg targ = tmplarglist_at(tmpl->call, i);
     if(targ.type != tmplarg_td) {
       gwlog_error("invalid const expression in variadic template",
                   "can't use expression in spread",
                   a->filename, targ.d.exp->loc, 0);
-      Specialized *spec = mp_vector_at(tmpl->list, Specialized,
-                                       tmpl->list->len - 1);
-      gwlog_related("spread starts here", a->filename, spec->tag.loc);
+      const Specialized spec = specializedlist_at(tmpl->list, tmpl->list->len - 1);
+      gwlog_related("spread starts here", a->filename, spec.tag.loc);
       ok = false;
     }
-    mp_vector_add(a->mp, &a->tmpls, Type_Decl*, targ.d.td);
+    tdlist_add(a->mp, &a->tmpls, targ.d.td);
   }
   if(ok) return true;
   a->tmpls->len = len;
@@ -755,10 +753,10 @@ ANN static bool sema_enumvalue(Sema *a NUSED, EnumValue *b NUSED) {
   // gwint, set
 }
 
-ANN static bool sema_enum_list(Sema *a, EnumValue_List b) {
+ANN static bool sema_enum_list(Sema *a, EnumValueList *b) {
   bool ok = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    EnumValue *c = mp_vector_at(b, EnumValue, i);
+    EnumValue *c = enumvaluelist_ptr_at(b, i);
     if(!sema_enumvalue(a, c))
       ok = false;
   }
@@ -778,9 +776,9 @@ ANN static bool sema_union_def(Sema *a, Union_Def b) {
   }
   bool ok = true;
   for(uint32_t i = 0; i < b->l->len; i++) {
-    Variable *c = mp_vector_at(b->l, Variable, i);
-    sema_variable(a, c);
-    if(!type_decl_array_empty(a, c->td, "in union member"))
+    const Variable c = variablelist_at(b->l, i);
+    sema_variable(a, &c);
+    if(!type_decl_array_empty(a, c.td, "in union member"))
       ok = false;
   }
   if(b->tmpl) {
@@ -818,7 +816,7 @@ ANN static bool sema_prim_def(Sema *a NUSED, Prim_Def b NUSED) {
   return true;
 }
 
-DECL_SECTION_FUNC(sema, bool, Sema*)
+DECL_SECTION_FUNC(sema, bool, Sema*,)
 ANN static bool sema_section(Sema *a, Section *b) {
   if(b->section_type != ae_section_stmt)
     return sema_section_func[b->section_type](a, *(void**)&b->d);
@@ -827,11 +825,11 @@ ANN static bool sema_section(Sema *a, Section *b) {
 
 ANN void sema_default_args(const Sema *a, const Section *s, Ast *acc) {
   Func_Base *const fb = s->d.func_def->base;
-  Arg_List       args = fb->args;
+  ArgList          *args = fb->args;
   uint32_t len = args->len;
   while(args->len--) {
-    const Arg *arg = mp_vector_at(args, Arg, args->len);
-    if(!arg->exp) break;
+    const Arg arg = arglist_at(args, args->len);
+    if(!arg.exp) break;
     default_args(a, fb, acc, len);
   }
   args->len = len;
@@ -839,43 +837,42 @@ ANN void sema_default_args(const Sema *a, const Section *s, Ast *acc) {
 
 ANN static bool sema_ast(Sema *a, Ast *b) {
   bool ok = true;
-  Ast acc = new_mp_vector(a->mp, Section, 0);
+  Ast acc = new_sectionlist(a->mp, 0);
   for(uint32_t i = 0; i < (*b)->len; i++) {
-    Section *c = mp_vector_at((*b), Section, i);
+    Section *c = sectionlist_ptr_at((*b), i);
     if(!sema_section(a, c)) {
       POISON_OK(a, c, ok);
       continue;
     }
     if (c->section_type == ae_section_func &&
         fbflag(c->d.func_def->base, fbflag_default))
-        mp_vector_add(a->mp, &acc, Section, *c);
+        sectionlist_add(a->mp, &acc, *c);
   }
   for(uint32_t i = 0; i < acc->len; i++) {
-    Section *section = mp_vector_at(acc, Section, i);
+    Section *section = sectionlist_ptr_at(acc, i);
     sema_default_args(a, section, b);
   }
-  free_mp_vector(a->mp, Section, acc);
+  free_sectionlist(a->mp, acc);
   return ok;
 }
 
-ANN static bool ext_fill(const Gwion gwion, MP_Vector **vec, const Tmpl *tmpl) {
+ANN static bool ext_fill(const Gwion gwion, TDList **vec, const Tmpl *tmpl) {
   for(uint32_t i = tmpl->list->len - 1; i < tmpl->call->len; i++) {
-    TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+    const TmplArg targ = tmplarglist_at(tmpl->call, i);
     if(targ.type != tmplarg_td) {
       gwlog_error("invalid const expression in variadic template",
                   "can't use expression in spread",
                   gwion->env->name, targ.d.exp->loc, 0);
-      Specialized *spec = mp_vector_at(tmpl->list, Specialized,
-                                       tmpl->list->len - 1);
-      gwlog_related("spread starts here", gwion->env->name, spec->tag.loc);
+      const Specialized spec = specializedlist_at(tmpl->list, tmpl->list->len - 1);
+      gwlog_related("spread starts here", gwion->env->name, spec.tag.loc);
       return false;
     }
-    mp_vector_add(gwion->mp, vec, Type_Decl*, targ.d.td);
+    tdlist_add(gwion->mp, vec, targ.d.td);
   }
   return true;
 }
 
-ANN static bool spread_class_vector(const Env env, const Type t, MP_Vector **vec) {
+ANN static bool spread_class_vector(const Env env, const Type t, TDList **vec) {
   if(t->info->value->from->owner_class)
     CHECK_B(spread_class_vector(env, t->info->value->from->owner_class, vec));
   if(!tflag(t, tflag_cdef)) return true;
@@ -886,23 +883,23 @@ ANN static bool spread_class_vector(const Env env, const Type t, MP_Vector **vec
 }
 
 ANN bool sema_variadic_func(Env a, Func_Def fdef) {
-   Sema sema = { .filename = a->name, .mp = a->gwion->mp, .st = a->gwion->st, .tmpls = new_mp_vector(a->gwion->mp, Type_Decl*, 0),
+   Sema sema = { .filename = a->name, .mp = a->gwion->mp, .st = a->gwion->st, .tmpls = new_tdlist(a->gwion->mp, 0),
     .ppa = a->gwion->ppa };
   if(a->class_def)
     spread_class_vector(a, a->class_def, &sema.tmpls);
   bool ret = sema_func_def(&sema, fdef);
-  free_mp_vector(a->gwion->mp, Type_Decl*, sema.tmpls);
+  free_tdlist(a->gwion->mp, sema.tmpls);
   return ret;
 }
 
 
 ANN bool sema_variadic_class(Env a, Class_Def cdef) {
-   Sema sema = { .filename = a->name, .mp = a->gwion->mp, .st = a->gwion->st, .tmpls = new_mp_vector(a->gwion->mp, Type_Decl*, 0),
+   Sema sema = { .filename = a->name, .mp = a->gwion->mp, .st = a->gwion->st, .tmpls = new_tdlist(a->gwion->mp, 0),
     .ppa = a->gwion->ppa};
    if(a->class_def)
      spread_class_vector(a, a->class_def, &sema.tmpls);
   bool ret = sema_class_def(&sema, cdef);
-  free_mp_vector(a->gwion->mp, Type_Decl*, sema.tmpls);
+  free_tdlist(a->gwion->mp, sema.tmpls);
   return ret;
 }
 

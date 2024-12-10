@@ -13,8 +13,8 @@
 static OP_CHECK(opck_sift) {
   Exp_Binary *bin = (Exp_Binary*)data;
   Exp* lhs = bin->lhs;
-  Stmt* stmt = mp_vector_at(lhs->d.exp_unary.code, Stmt, 0);
-  Stmt* fst = mp_vector_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, Stmt, 0);
+  Stmt* stmt = stmtlist_ptr_at(lhs->d.exp_unary.code, 0);
+  Stmt* fst  = stmtlist_ptr_at(stmt->d.stmt_flow.body->d.stmt_code.stmt_list, 0);
   const Symbol chuck = insert_symbol(env->gwion->st, "=>");
   Exp* next = new_exp_binary(env->gwion->mp, fst->d.stmt_exp.val, chuck, bin->rhs, bin->rhs->loc);
   CHECK_ON(traverse_exp(env, next)); // how do we free it?
@@ -51,16 +51,16 @@ static OP_CHECK(opck_ctrl) {
   Stmt two = MK_STMT_EXP(func->loc, time);
   free_exp(mp, bin->lhs);
   free_exp(mp, bin->rhs);
-  Stmt_List slist = new_mp_vector(mp, Stmt, 2);
-  mp_vector_set(slist, Stmt, 0, one);
-  mp_vector_set(slist, Stmt, 1, two);
+  StmtList *slist = new_stmtlist(mp, 2);
+  stmtlist_set(slist, 0, one);
+  stmtlist_set(slist, 1, two);
   Stmt* stmt = new_stmt_code(mp, slist, func->loc);
 
   Exp* cond = new_prim_id(mp, insert_symbol(env->gwion->st, "true"), func->loc);
   check_exp(env, cond);
 
-  const Stmt_List code = new_mp_vector(mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, MK_STMT(ae_stmt_while, func->loc,
+  StmtList *code = new_stmtlist(mp, 1);
+  stmtlist_set(code, 0, MK_STMT(ae_stmt_while, func->loc,
         .stmt_flow = {
           .cond = cond,
           .body = stmt

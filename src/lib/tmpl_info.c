@@ -72,7 +72,7 @@ ANEW ANN static Symbol template_id(const Env               env,
   return sym;
 }
 
-ANN static bool template_match(Specialized_List sl, TmplArg_List tl) {
+ANN static bool template_match(const SpecializedList *sl, const TmplArgList *tl) {
   return tl->len >= sl->len;
 }
 
@@ -90,9 +90,9 @@ ANN Type tmpl_exists(const Env env, struct tmpl_info *const info) {
   return _tmpl_exists(env, info->name);
 }
 
-ANN bool tmpl_global(const Env env, TmplArg_List tl) {
+ANN bool tmpl_global(const Env env, const TmplArgList *tl) {
   for(uint32_t i = 0; i < tl->len; i++) {
-    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    const TmplArg arg = tmplarglist_at(tl, i);
     if(unlikely(arg.type == tmplarg_exp)) continue;
     const Type t = known_type(env, arg.d.td);
     if(!t || !type_global(env, t))

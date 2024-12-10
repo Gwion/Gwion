@@ -10,7 +10,7 @@ ANN void free_value(Value a, Gwion gwion) {
     _mp_free(gwion->mp, t->size, a->d.ptr);
   else if (is_class(gwion, t))
     type_remref(t, gwion);
-  if(a->used_by) free_mp_vector(gwion->mp, Func, a->used_by);
+  if(a->used_by) free_funclist(gwion->mp, a->used_by);
   mp_free(gwion->mp, ValueFrom, a->from);
   mp_free(gwion->mp, Value, a);
 }

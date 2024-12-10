@@ -14,12 +14,12 @@
 ANN static Type _option(const Env env, Type_Decl *td, const uint8_t n) {
   const Array_Sub array = td->array;
   td->array = NULL;
-  TmplArg_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArgList *tl  = new_tmplarglist(env->gwion->mp, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
-  mp_vector_set(tl, TmplArg, 0, arg);
+  tmplarglist_set(tl, 0, arg);
   Type_Decl         tmp = { .tag = MK_TAG(insert_symbol("Option"), td->tag.loc), .types = tl };
   const Type t = !(n - 1) ? known_type(env, &tmp) : _option(env, &tmp, n - 1);
-  free_mp_vector(env->gwion->mp, TmplArg, tl);
+  free_tmplarglist(env->gwion->mp, tl);
   td->array = array;
   return t;
 }
@@ -33,12 +33,12 @@ ANN static Type option(const Env env, Type_Decl *td) {
 }
 
 ANN static Type _ref(const Env env, Type_Decl *td) {
-  TmplArg_List tl  = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  TmplArgList *tl  = new_tmplarglist(env->gwion->mp, 1);
   TmplArg arg = { .type = tmplarg_td, .d = { .td = td } };
-  mp_vector_set(tl, TmplArg, 0, arg);
+  tmplarglist_set(tl, 0, arg);
   Type_Decl tmp = {.tag = MK_TAG(insert_symbol("Ref"), td->tag.loc), .types = tl};
   const Type t = known_type(env, &tmp);
-  free_mp_vector(env->gwion->mp, TmplArg, tl);
+  free_tmplarglist(env->gwion->mp, tl);
   return t;
 }
 
@@ -62,9 +62,9 @@ ANN static Symbol symname(const Env env, Func_Base *const base, bool *global) {
   if(base->args) {
     for(uint32_t i = 0; i < base->args->len; i++) {
       if(i) text_add(&text, ",");
-      Arg *arg = mp_vector_at(base->args, Arg, i);
-      DECL_O(const Type, t, = known_type(env, arg->var.td));
-      DECL_O(const m_str, name, = type2str(env->gwion, t, arg->var.td->tag.loc));
+      const Arg arg = arglist_at(base->args, i);
+      DECL_O(const Type, t, = known_type(env, arg.var.td));
+      DECL_O(const m_str, name, = type2str(env->gwion, t, arg.var.td->tag.loc));
       text_add(&text, name);
       free_mstr(env->gwion->mp, name);
       if(*global)

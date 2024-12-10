@@ -20,7 +20,7 @@ struct Env_Scope_ {
   struct Vector_ breaks;
   struct Vector_ conts;
   struct Vector_ known_ctx;
-  struct Match_ *match;
+  struct Matcher *match;
   struct Vector_ effects;
   uint16_t       depth;
   bool           in_try;
@@ -68,10 +68,11 @@ ANN void   env_warn(const Env, const loc_t, const m_str fmt, ...);
 ANN Value  global_string(const Env env, const m_str str, const loc_t);
 ANN void   release_ctx(struct Env_Scope_ *a, struct Gwion_ *gwion);
 
-struct ScopeEffect {
+typedef struct ScopeEffect {
   Symbol sym;
   loc_t  loc;
-};
+} ScopeEffect;
+MK_VECTOR_TYPE(ScopeEffect, scopeeffect)
 
 ANN void env_add_effect(const Env a, const Symbol effect, const loc_t);
 ANN void call_add_effect(const Env env, const Func func, const loc_t);

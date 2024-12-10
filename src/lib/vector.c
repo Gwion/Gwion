@@ -117,12 +117,12 @@ static OP_EMIT(opem_vector_access) {
 /*! build arg_list for `new`          *
  * `N` arguments with Type_Decl `td`  *
  * where `td` points to the base type */
-static Arg_List new_args(const MemPool mp, const Type_Decl *td, 
+static ArgList *new_args(const MemPool mp, const Type_Decl *td, 
                           const m_uint N) {
-  Arg_List args = new_mp_vector(mp, Arg, N);
+  ArgList *args = new_arglist(mp, N);
   for(uint32_t i = 0; i < N; i++) {
     Arg arg = { .var = { .td = cpy_type_decl(mp, td) }};
-    mp_vector_set(args, Arg, i, arg);
+    arglist_set(args, i, arg);
   }
   return args;
 }
@@ -154,7 +154,7 @@ static OP_CHECK(opck_vector_scan) {
   const Type exist = nspc_lookup_type1(env->curr, sym);
   if (exist) return exist;
   const Class_Def c= ts->t->info->cdef;
-  Type_Decl *base_td = mp_vector_at(ts->td->types, TmplArg, 0)->d.td;
+  Type_Decl *base_td = tmplarglist_at(ts->td->types, 0).d.td;
   DECL_ON(const Type, base,  = known_type(env, base_td));
 
   // TODO: this is basically the same as in Array
@@ -172,13 +172,13 @@ static OP_CHECK(opck_vector_scan) {
     env_set_error(env, true);
     return env->gwion->type[et_error];
   }
-  const TmplArg *ta = mp_vector_at(ts->td->types, TmplArg, 1);
-  const m_uint size = ta->d.exp->d.prim.d.gwint.num;
+  const TmplArg ta = tmplarglist_at(ts->td->types, 1);
+  const m_uint size = ta.d.exp->d.prim.d.gwint.num;
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
   cdef->base.ext        = type2td(env->gwion, ts->t, ts->td->tag.loc);
   cdef->base.tag.sym    = sym;
   cdef->base.tmpl->call = cpy_tmplarg_list(env->gwion->mp, ts->td->types);
-  Func_Def fdef = mp_vector_at(cdef->body, Section, 0)->d.func_def;
+  Func_Def fdef = sectionlist_at(cdef->body, 0).d.func_def;
   fdef->base->args = new_args(env->gwion->mp, base_td, size);
 
   struct EnvSet es = {
@@ -224,10 +224,10 @@ static OP_CHECK(opck_vector_new) {
     return NULL;
   }
   CHECK_B(check_exp(env, arg));
-  TmplArg_List tl = new_mp_vector(env->gwion->mp, TmplArg, 2);
-  mp_vector_set(tl, TmplArg, 0, MK_TMPLARG_TD(
+  TmplArgList *tl = new_tmplarglist(env->gwion->mp, 2);
+  tmplarglist_set(tl, 0, MK_TMPLARG_TD(
     type2td(env->gwion, arg->type, arg->loc)));
-  mp_vector_set(tl, TmplArg, 1, MK_TMPLARG_EXP(
+  tmplarglist_set(tl, 1, MK_TMPLARG_EXP(
      new_prim_int(env->gwion->mp, nargs, e->loc)));
   call->tmpl = new_tmpl_call(env->gwion->mp, tl);
   Type_Decl *td = new_type_decl(env->gwion->mp,
@@ -262,7 +262,7 @@ GWION_IMPORT(vector) {
   puts("after traverse");
  */ 
   const Env env = gwi->gwion->env;
-  Func_Def fdef = mp_vector_at(t_vector->info->cdef->body, Section, 0)->d.func_def;
+  Func_Def fdef = sectionlist_at(t_vector->info->cdef->body, 0).d.func_def;
   env_push_type(env, t_vector);
   traverse_func_def(env, fdef);
   env_pop(env, 0);
@@ -271,7 +271,7 @@ GWION_IMPORT(vector) {
   };
   add_op_func_check(gwi->gwion->env, t_vector, &opfunc, 0);
 /*
-  Type_Def tdef = mp_vector_at(t_vector->info->cdef->body, Section, 2)->d.type_def;
+  Type_Def tdef = sectionlist_at(t_vector->info->cdef->body, 2).d.type_def;
   env_push_type(env, t_vector);
   traverse_type_def(env, tdef);
   env_pop(env, 0);

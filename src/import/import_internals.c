@@ -13,10 +13,10 @@
 void gwi_body(const Gwi gwi, const Section *section) {
   const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
   if (!cdef->body) {
-    cdef->body = new_mp_vector(gwi->gwion->mp, Section, 1);
-    mp_vector_set(cdef->body, Section, 0, *section);
+    cdef->body = new_sectionlist(gwi->gwion->mp, 1);
+    sectionlist_set(cdef->body, 0, *section);
   } else {
-    mp_vector_add(gwi->gwion->mp, &cdef->body, Section, (*section));
+    sectionlist_add(gwi->gwion->mp, &cdef->body, (*section));
   }
 }
 

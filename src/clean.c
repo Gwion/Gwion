@@ -13,9 +13,9 @@ ANN static void clean_array_sub(Clean *a, Array_Sub b) {
 #define clean_id_list(a, b) do {} while(0)
 #define clean_specialized_list(a, b) do {} while(0)
 
-ANN static void clean_tmplarg_list(Clean *a, TmplArg_List b) {
+ANN static void clean_tmplarg_list(Clean *a, TmplArgList *b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    TmplArg arg = *mp_vector_at(b, TmplArg, i);
+    const TmplArg arg = tmplarglist_at(b, i);
     if(arg.type == tmplarg_td)
       clean_type_decl(a, arg.d.td);
     else if(arg.type == tmplarg_exp)
@@ -49,7 +49,7 @@ ANN static void clean_prim(Clean *a, Exp_Primary *b) {
     clean_range(a, b->d.range);
 }
 
-ANN static void clean_var_decl(Clean *a, Var_Decl *b) {
+ANN static void clean_var_decl(Clean *a, const Var_Decl *b) {
   if (a->scope && b->value) value_remref(b->value, a->gwion);
 }
 
@@ -67,10 +67,10 @@ ANN static void clean_exp_binary(Clean *a, Exp_Binary *b) {
   clean_exp(a, b->rhs);
 }
 
-ANN static void clean_captures(Clean *a, Capture_List b) {
+ANN static void clean_captures(Clean *a, CaptureList *b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    const Capture *cap = mp_vector_at(b, Capture, i);
-    if(cap->temp) value_remref(cap->temp, a->gwion);
+    const Capture cap = capturelist_at(b, i);
+    if(cap.temp) value_remref(cap.temp, a->gwion);
   }
 }
 
@@ -136,7 +136,7 @@ ANN static void clean_exp_named(Clean *a, Exp_Named *b) {
   clean_exp(a, b->exp);
 }
 
-DECL_EXP_FUNC(clean, void, Clean *)
+DECL_EXP_FUNC(clean, void, Clean *,)
 ANN static void clean_exp(Clean *a, Exp* b) {
   clean_exp_func[b->exp_type](a, &b->d);
   if (b->next) clean_exp(a, b->next);
@@ -201,18 +201,18 @@ ANN static void clean_stmt_return(Clean *a, Stmt_Exp b) {
   if (b->val) clean_exp(a, b->val);
 }
 
-ANN static void clean_case_list(Clean *a, Stmt_List b) {
+ANN static void clean_case_list(Clean *a, StmtList *b) {
   for(m_uint i = 0; i < b->len; i++) {
-    Stmt* stmt = mp_vector_at(b, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(b, i);
     clean_stmt_case(a, &stmt->d.stmt_match);
   }
 }
 
-ANN static void clean_handler_list(Clean *a, Handler_List b) {
+ANN static void clean_handler_list(Clean *a, HandlerList *b) {
   ++a->scope;
   for(uint32_t i = 0; i < b->len; i++) {
-    Handler *handler = mp_vector_at(b, Handler, i);
-    clean_stmt(a, handler->stmt);
+    const Handler handler = handlerlist_at(b, i);
+    clean_stmt(a, handler.stmt);
   }
   --a->scope;
 }
@@ -254,9 +254,9 @@ ANN static void clean_stmt_using(Clean *a, Stmt_Using b) {
 ANN static void clean_stmt_import(Clean *a, Stmt_Import b) {
   if(b->selection) {
     for(uint32_t i = 0; i < b->selection->len; i++) {
-      Stmt_Using item = mp_vector_at(b->selection, struct Stmt_Using_, i);
-      if(item->d.exp)
-        clean_exp(a, item->d.exp);
+      UsingStmt item = usingstmtlist_at(b->selection, i);
+      if(item.d.exp)
+        clean_exp(a, item.d.exp);
     }
   }
 }
@@ -270,21 +270,21 @@ ANN static void clean_dummy(Clean *a NUSED, void *b NUSED) {}
 #define clean_stmt_retry    clean_dummy
 #define clean_stmt_spread   clean_dummy
 
-DECL_STMT_FUNC(clean, void, Clean *)
+DECL_STMT_FUNC(clean, void, Clean *,)
 ANN static void clean_stmt(Clean *a, Stmt* b) {
   clean_stmt_func[b->stmt_type](a, &b->d);
 }
 
-ANN static void clean_arg_list(Clean *a, Arg_List b) {
+ANN static void clean_arg_list(Clean *a, ArgList *b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    Arg *arg = mp_vector_at(b, Arg, i);
+    Arg *arg = arglist_ptr_at(b, i);
     clean_variable(a, &arg->var);
   }
 }
 
-ANN static void clean_stmt_list(Clean *a, Stmt_List b) {
+ANN static void clean_stmt_list(Clean *a, StmtList *b) {
   for(m_uint i = 0; i < b->len; i++) {
-    Stmt* stmt = mp_vector_at(b, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(b, i);
     clean_stmt(a, stmt);
   }
 }
@@ -330,11 +330,11 @@ ANN void class_def_cleaner(const Gwion gwion, Class_Def b) {
 }
 
 #define clean_enum_def   clean_dummy
-ANN static void clean_variable_list(Clean *a, Variable_List b) {
+ANN static void clean_variable_list(Clean *a, VariableList *b) {
   for(uint32_t i = 0; i < b->len; i++) {
-    Variable *tgt = mp_vector_at(b, Variable, i);
-    clean_type_decl(a, tgt->td);
-    clean_var_decl(a, &tgt->vd);
+    const Variable tgt = variablelist_at(b, i);
+    clean_type_decl(a, tgt.td);
+    clean_var_decl(a, &tgt.vd);
   }
 }
 
@@ -363,16 +363,16 @@ ANN static void clean_trait_def(Clean *a, Trait_Def b) {
 }
 ANN static void clean_prim_def(Clean *a NUSED, Prim_Def b NUSED) {}
 
-DECL_SECTION_FUNC(clean, void, Clean *);
+DECL_SECTION_FUNC(clean, void, Clean *,);
 
-ANN static inline void clean_section(Clean *a, Section *b) {
+ANN static inline void clean_section(Clean *a, const Section *b) {
   clean_section_func[b->section_type](a, *(void **)&b->d);
 }
 
 ANN static void clean_ast(Clean *a, Ast b) {
   for(m_uint i = 0; i < b->len; i++) {
-    Section *section = mp_vector_at(b, Section, i);
-    clean_section(a, section);
+    const Section section = sectionlist_at(b, i);
+    clean_section(a, &section);
   }
 }
 

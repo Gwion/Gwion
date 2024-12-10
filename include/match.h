@@ -1,11 +1,11 @@
 #ifndef __MATCH
 #define __MATCH
-struct Match_ {
+struct Matcher {
   struct Vector_ cond;
   struct Vector_ vec;
 };
 
-ANN static inline void match_map(struct Match_ *const match, Exp* e) {
+ANN static inline void match_map(struct Matcher *const match, Exp* e) {
   const Vector cond = &match->cond;
   vector_init(cond);
   Exp* next;
@@ -16,7 +16,7 @@ ANN static inline void match_map(struct Match_ *const match, Exp* e) {
   } while ((e = next));
 }
 
-ANN static inline void match_unmap(struct Match_ *const match) {
+ANN static inline void match_unmap(struct Matcher *const match) {
   const Vector cond = &match->cond;
   const vtype  sz   = vector_size(cond);
   for (m_uint i = 0; i < sz - 1; ++i) {
@@ -28,7 +28,7 @@ ANN static inline void match_unmap(struct Match_ *const match) {
 }
 
 #define MATCH_INI(scope)                                                       \
-  struct Match_ *former = scope->match, m = {};                                \
+  struct Matcher *former = scope->match, m = {};                                \
   scope->match = &m;                                                           \
   match_map(&m, stmt->cond);
 

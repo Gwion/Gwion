@@ -50,9 +50,7 @@
 
 #define RET_NSPC(exp)                                                          \
   ++env->scope->depth;                                                         \
-  const uint32_t nusing = env->curr->info->gwusing                             \
-     ? env->curr->info->gwusing->len                                           \
-     : 0;                                                                      \
+  const uint32_t nusing = usinglist_len(env->curr->info->gwusing);             \
   nspc_push_value(env->gwion->mp, env->curr);                                  \
   const bool ret = exp;                                                        \
   nspc_pop_value(env->gwion->mp, env->curr);                                   \
@@ -67,16 +65,16 @@
   else if (GET_FLAG(a, protect))                                               \
     SET_FLAG(b, protect);
 
-#define HANDLE_SECTION_FUNC(prefix, type, Arg)                                 \
-  DECL_SECTION_FUNC(prefix, type, Arg)                                         \
+#define HANDLE_SECTION_FUNC(prefix, type, Arg, mod)                            \
+  DECL_SECTION_FUNC(prefix, type, Arg, mod)                                    \
   ANN static inline type prefix##_section(const Arg            a,              \
                                           /* const */ Section *section) {      \
     void *d = &section->d.stmt_list;                                           \
     return prefix##_section_func[section->section_type](a, *(void **)d);       \
   }
 
-#define HANDLE_EXP_FUNC(prefix, type, Arg)                                     \
-  DECL_EXP_FUNC(prefix, type, Arg)                                             \
+#define HANDLE_EXP_FUNC(prefix, type, Arg, mod)                                \
+  DECL_EXP_FUNC(prefix, type, Arg, mod)                                        \
   ANN type prefix##_exp(const Arg arg, Exp* exp) {                             \
     bool ok = true;                                                            \
     do {                                                                       \
@@ -94,7 +92,7 @@
     RET_NSPC(exp)                                                              \
   }
 
-ANN bool check_stmt_list(const Env env, const Stmt_List);
+ANN bool check_stmt_list(const Env env, StmtList*);
 
 ANN bool scanx_body(const Env e, const Class_Def c, const _envset_func f,
                       void *d);
@@ -169,7 +167,7 @@ ANN bool abstract_array(const Env env, const Array_Sub array);
 ANN static inline bool is_static_call(const Gwion gwion, Exp* e) {
   if (e->exp_type != ae_exp_dot) return true;
   const Exp_Dot *member = &e->d.exp_dot;
-  if(unlikely(!strcmp(s_name(member->tag.sym), "new"))) return true;
+  if(unlikely(!strcmp(s_name(member->var.tag.sym), "new"))) return true;
   return GET_FLAG(e->type, final) ||
          GET_FLAG(member->base->type, final) ||
          is_class(gwion, member->base->type) ||

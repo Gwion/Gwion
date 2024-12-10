@@ -173,13 +173,13 @@ ANN static inline void emit_struct_data(const Emitter emit, const Value v,
 
 ANN static inline Value get_value(const Env env, const Exp_Dot *member,
                                   const Type t) {
-  const Value value = find_value(t, member->tag.sym);
+  const Value value = find_value(t, member->var.tag.sym);
   if (value)
     return value;
   if (env->func && env->func->def->base->values)
-    return upvalues_lookup(env->func->def->base->values, member->tag.sym);
+    return upvalues_lookup(env->func->def->base->values, member->var.tag.sym);
   if(t->info->values)
-    return (Value)scope_lookup1(t->info->values, (m_uint)member->tag.sym);
+    return (Value)scope_lookup1(t->info->values, (m_uint)member->var.tag.sym);
   return NULL;
 }
 
@@ -200,24 +200,26 @@ ANN static bool member_access(const Env env, Exp* exp, const Value value) {
 OP_CHECK(opck_object_dot) {
   Exp_Dot *const member      = (Exp_Dot *)data;
   Exp* self = exp_self(member);
-  const m_str  str         = s_name(member->tag.sym);
+  const m_str  str         = s_name(member->var.tag.sym);
   const bool   base_static = is_class(env->gwion, member->base->type);
   const Type   the_base =
       base_static ? _class_base(member->base->type) : member->base->type;
   const Value value = get_value(env, member, the_base);
   if (!value) {
-    const Value v = nspc_lookup_value1(env->curr, member->tag.sym);
+    const Value v = nspc_lookup_value1(env->curr, member->var.tag.sym);
     if(v) {
+      member->var.value = v;
       if (self->is_call) {
         if (is_func(env->gwion, v->type) && (!v->from->owner_class || isa(the_base, v->from->owner_class))) // is_callable needs type
           return v->type;
       }
     }
-    env_err(env, member->tag.loc, _("class '%s' has no member '%s'"),
+    env_err(env, member->var.tag.loc, _("class '%s' has no member '%s'"),
             the_base->name, str);
     if (member->base->type->nspc) did_you_mean_type(the_base, str);
     return env->gwion->type[et_error];
   }
+  member->var.value = value;
   CHECK_ON(not_from_owner_class(env, the_base, value, self->loc));
   CHECK_ON(member_access(env, self, value));
   if ((base_static && vflag(value, vflag_member)) ||
@@ -237,7 +239,8 @@ ANN static Type member_type(const Gwion gwion, const Type base) {
 OP_EMIT(opem_object_dot) {
   const Exp_Dot *member = (Exp_Dot *)data;
   const Type     t_base = member_type(emit->gwion, member->base->type);
-  const Value    value  = find_value(t_base, member->tag.sym);
+  const Value    value  = member->var.value; 
+    //find_value(t_base, member->tag.sym);
   if (is_class(emit->gwion, value->type)) {
     emit_pushimm(emit, (m_uint)value->type);
     return true;

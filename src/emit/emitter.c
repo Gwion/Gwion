@@ -20,14 +20,12 @@ ANEW Emitter new_emitter(MemPool p) {
   Emitter emit = (Emitter)mp_calloc(p, Emitter);
   vector_init(&emit->stack);
   emit->info = (struct EmitterInfo_ *)mp_calloc(p, EmitterInfo);
-  vector_init(&emit->info->pure);
   emit->info->emit_code = emit_code;
   return emit;
 }
 
 ANN void free_emitter(MemPool p, Emitter a) {
   vector_release(&a->stack);
-  vector_release(&a->info->pure);
   mp_free(p, EmitterInfo, a->info);
   mp_free(p, Emitter, a);
 }

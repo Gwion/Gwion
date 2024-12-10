@@ -34,13 +34,14 @@ struct Value_ {
   Type               type;
   m_str              name;
   ValueFrom *from;
-  MP_Vector *used_by; // list of functions using this global
+  FuncList  *used_by; // list of functions using this global
   union value_data   d;
   uint16_t           ref;
   ae_flag            flag;
   enum vflag         vflag;
 };
 
+MK_VECTOR_TYPE(Value, value);
 REF_FUNC(Value, value)
 FLAG_FUNC(Value, v)
 

@@ -49,7 +49,7 @@ ANN void free_nspc(const Nspc a, const Gwion gwion) {
   if(a->operators) free_operators(a->operators, gwion);
   nspc_free_type(a, gwion);
   if (a->info->gwusing)
-    free_mp_vector(gwion->mp, Stmt_Using, a->info->gwusing);
+    free_usinglist(gwion->mp, a->info->gwusing);
   if (a->class_data && a->class_data_size)
     mp_free2(gwion->mp, a->class_data_size, a->class_data);
   if (a->vtable.ptr) vector_release(&a->vtable);
@@ -69,18 +69,3 @@ ANN Nspc new_nspc(MemPool p, const m_str name) {
   a->ref         = 1;
   return a;
 }
-
-static nspc_add_value_t _add = _nspc_add_value;
-static nspc_add_value_t _front = _nspc_add_value_front;
-ANN void nspc_add_value(const Nspc n, const Symbol s, const Value a) {
-  _add(n, s, a);
-}
-ANN void nspc_add_value_front(const Nspc n, const Symbol s, const Value a) {
-  _front(n, s, a);
-}
-
-ANN void nspc_add_value_set_func(nspc_add_value_t add, nspc_add_value_t front) {
-  _add = add;
-  _front = front;
-}
-

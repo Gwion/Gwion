@@ -9,7 +9,7 @@
 ANN void free_func(Func a, Gwion gwion) {
   if (fflag(a, fflag_tmpl)) func_def_cleaner(gwion, a->def);
   if (a->code) vmcode_remref(a->code, gwion);
-  if (a->_wait) free_mp_vector(gwion->mp, Value, a->_wait);
+  if (a->_wait) free_valuelist(gwion->mp, a->_wait);
   mp_free(gwion->mp, Func, a);
 }
 
@@ -43,17 +43,17 @@ ANN void builtin_func(const Gwion gwion, const Func f, void *func_ptr) {
   f->code->native_func = (m_uint)func_ptr;
   f->code->ret_type = f->def->base->ret_type;
   if(f->def->base->tmpl) {
-    const TmplArg_List tl = f->def->base->tmpl->call;
+    const TmplArgList *tl = f->def->base->tmpl->call;
     if(!tl) return;
-    const Specialized *spec = mp_vector_at(f->def->base->tmpl->list, Specialized, f->def->base->tmpl->list->len - 1);
-    if(!strcmp(s_name(spec->tag.sym), "...")) {
+    const Specialized spec = specializedlist_at(f->def->base->tmpl->list, f->def->base->tmpl->list->len - 1);
+    if(!strcmp(s_name(spec.tag.sym), "...")) {
       const uint32_t len = tmplarg_ntypes(tl);
-      f->code->types = new_mp_vector(gwion->mp, Type, len);
+      f->code->types = new_typelist(gwion->mp, len);
       uint32_t n = 0;
       for(uint32_t i = 0; i < tl->len; i++)  {
-        const TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+        const TmplArg arg = tmplarglist_at(tl, i);
         if(likely(arg.type == tmplarg_td))
-          mp_vector_set(f->code->types, Type, n++, known_type(gwion->env, arg.d.td));
+          typelist_set(f->code->types, n++, known_type(gwion->env, arg.d.td));
       }
     }
   }

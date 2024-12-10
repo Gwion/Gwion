@@ -215,17 +215,17 @@ ANN static Type op_check_inner(const Env env, struct OpChecker *ock,
   return NULL;
 }
 
-ANN static bool op_template_type(const Symbol xid, const Specialized_List sl) {
+ANN static bool op_template_type(const Symbol xid, const SpecializedList *sl) {
   for(uint32_t i = 0; i < sl->len; i++) {
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if (xid == spec->tag.sym) return true;
+    const Specialized spec = specializedlist_at(sl, i);
+    if (xid == spec.tag.sym) return true;
   }
   return false;
 }
 
 //! check if type matches for template operator
 ANN2(1,2,3) bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
-                    Specialized_List sl) {
+                    const SpecializedList *sl) {
   if (!td->next && !td->types && op_template_type(td->tag.sym, sl))
     return true;
   const Type base = known_type(env, td);
@@ -235,35 +235,34 @@ ANN2(1,2,3) bool _tmpl_match(const Env env, const Type t, Type_Decl *const td,
 //! check Func_Base matches for template operator
 ANN bool tmpl_match(const Env env, const struct Op_Import *opi,
                     Func_Base *const base) {
-  Specialized_List sl  = base->tmpl->list;
-  const Arg_List   args = base->args;
-  Arg *arg0 = mp_vector_at(args, Arg, 0);
-  Arg *arg1 = args->len > 1 ? mp_vector_at(args, Arg, 1) : NULL;
+  SpecializedList *sl  = base->tmpl->list;
+  ArgList    *args = base->args;
+  const Arg arg0 = arglist_at(args, 0);
+  Arg *arg1 = args->len > 1 ? arglist_ptr_at(args, 1) : NULL;
   if (opi->lhs) {
-    if (!_tmpl_match(env, opi->lhs, arg0->var.td, sl)) return false;
+    if (!_tmpl_match(env, opi->lhs, arg0.var.td, sl)) return false;
     if (fbflag(base, fbflag_postfix)) return !!opi->rhs;
     if (!fbflag(base, fbflag_unary)) {
       if (!opi->rhs) return false;
       if (!_tmpl_match(env, opi->rhs, arg1->var.td, sl)) return false;
     } else if (opi->rhs) return false;
   } else if (!fbflag(base, fbflag_unary) ||
-        !_tmpl_match(env, opi->rhs, arg0->var.td, sl))
+        !_tmpl_match(env, opi->rhs, arg0.var.td, sl))
       return false;
   return true;
 }
 
-ANN static void op_tmpl_set(const Gwion gwion, TmplArg_List tl,
+ANN static void op_tmpl_set(const Gwion gwion, TmplArgList *tl,
       const Type t, const loc_t loc, const uint32_t idx) {
   TmplArg arg = {.type = tmplarg_td, .d = { .td = type2td(gwion, t, loc)}};
-  mp_vector_set(tl, TmplArg, idx, arg);
+  tmplarglist_set(tl, idx, arg);
 }
 
 //! make template operator Func_def
 ANN static Type op_def(const Env env, struct Op_Import *const opi,
                 const Func_Def fdef) {
   const Func_Def tmpl_fdef    = cpy_func_def(env->gwion->mp, fdef);
-  tmpl_fdef->base->tmpl->call = new_mp_vector(env->gwion->mp,
-    TmplArg, fdef->base->tmpl->list->len); // we need to check op def for type, maybe
+  tmpl_fdef->base->tmpl->call = new_tmplarglist(env->gwion->mp, fdef->base->tmpl->list->len); // we need to check op def for type, maybe
   if (opi->lhs) {
      op_tmpl_set(env->gwion, tmpl_fdef->base->tmpl->call, opi->lhs, opi->loc, 0);
      if(opi->rhs)

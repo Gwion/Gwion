@@ -204,7 +204,7 @@ static DTOR(usrugen_dtor) {
 
 static OP_CHECK(opck_usrugen) {
   Exp_Binary *   bin = (Exp_Binary *)data;
-  const Arg_List arg = bin->lhs->type->info->func->def->base->args;
+  const ArgList *arg = bin->lhs->type->info->func->def->base->args;
   if (!arg || arg->len > 1)
     ERR_N(exp_self(bin)->loc,
           _("Tick function take one and only one argument"));

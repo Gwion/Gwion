@@ -2,7 +2,7 @@
 #define __TEMPLATE
 ANN bool template_push_types(const Env, const Tmpl *);
 ANN bool template_push(const Env env, const Type t);
-ANN Tmpl *mk_tmpl(const Env, const Tmpl *, const TmplArg_List);
+ANN Tmpl *mk_tmpl(const Env, const Tmpl *, const TmplArgList*);
 /*
 //! returns the Tmpl of a class or enum def
 ANN static inline Tmpl* get_tmpl(const Type t) {

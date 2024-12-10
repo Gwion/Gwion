@@ -52,7 +52,7 @@ ANN Type find_initial(const Env env, const Symbol xid) {
   }
   if(env->curr->info->gwusing) {
   for(uint32_t i = 0; i < env->curr->info->gwusing->len; i++) {
-    Stmt_Using using = *mp_vector_at(env->curr->info->gwusing, Stmt_Using, i);
+    const Stmt_Using using = usinglist_at(env->curr->info->gwusing, i);
       if(!using->tag.sym) {
         const Type owner = known_type(env, using->d.td);
         if(owner) {
@@ -126,7 +126,7 @@ ANN Value global_string(const Env env, const m_str str, const loc_t loc) {
   if (v) return v;
   const Value value =
       new_value(env, env->gwion->type[et_string], MK_TAG(sym, loc));
-  _nspc_add_value_front(env->global_nspc, sym, value);
+  nspc_add_value_front(env->global_nspc, sym, value);
   return value;
 }
 

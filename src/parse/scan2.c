@@ -13,7 +13,7 @@
 #include "closure.h"
 
 ANN static bool scan2_stmt(const Env, Stmt*);
-ANN static bool scan2_stmt_list(const Env, Stmt_List);
+ANN static bool scan2_stmt_list(const Env, StmtList*);
 
 ANN static inline bool ensure_scan2(const Env env, const Type t) {
   if (tflag(t, tflag_scan2) || !(tflag(t, tflag_cdef) || tflag(t, tflag_udef)))
@@ -44,10 +44,10 @@ ANN bool scan2_exp_decl(const Env env, const Exp_Decl *decl) {
 }
 
 ANN static bool scan2_args(const Func_Def f) {
-  Arg_List   args   = f->base->args;
+  ArgList   *args   = f->base->args;
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    const Value v   = arg->var.vd.value;
+    const Arg arg = arglist_at(args, i);
+    const Value v   = arg.var.vd.value;
     v->from->offset = f->stack_depth;
     f->stack_depth += v->type->size;
     set_vflag(v, vflag_arg);
@@ -76,7 +76,7 @@ ANN bool scan2_fptr_def(const Env env NUSED, const Fptr_Def fptr) {
   if(fptr->cdef->base.type->error) return false;
   if(GET_FLAG(fptr->cdef, global)) env_push_global(env);
   const bool ret = scan2_class_def(env, fptr->cdef);
-  const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
+  const Func_Def fdef = sectionlist_at(fptr->cdef->base.type->info->cdef->body, 0).d.func_def;
   if(fdef->base->func) set_fflag(fdef->base->func, fflag_fptr);
   else CHECK_B(tmpl_fptr(env, fptr, fdef));
   if(GET_FLAG(fptr->cdef, global)) env_pop(env, 0);
@@ -172,10 +172,10 @@ ANN static inline bool scan2_stmt_match_case(const restrict Env env,
 ANN static inline bool
     _scan2_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   if (stmt->where) CHECK_B(scan2_stmt(env, stmt->where));
-  Stmt_List l = stmt->list;
+  StmtList *l = stmt->list;
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(l, i);
     if(!scan2_stmt_match_case(env, &stmt->d.stmt_match))
       POISON_NODE(ok, env, stmt);
   }
@@ -188,11 +188,11 @@ ANN static inline bool scan2_handler(const restrict Env env,
 }
 
 ANN static inline bool scan2_handler_list(const restrict Env env,
-                                            const Handler_List handlers) {
+                                            const HandlerList *handlers) {
   bool ok = true;
   for(uint32_t i = 0; i < handlers->len; i++) {
-    Handler * handler = mp_vector_at(handlers, Handler, i);
-    if(!scan2_handler(env, handler))
+    const Handler handler = handlerlist_at(handlers, i);
+    if(!scan2_handler(env, &handler))
       POISON(ok, env);
   }
   return ok;
@@ -216,7 +216,7 @@ ANN static bool scan2_exp_named(const Env env, Exp_Named *named) {
 
 #define scan2_exp_lambda dummy_func
 #define scan2_exp_td     dummy_func
-HANDLE_EXP_FUNC(scan2, bool, Env)
+HANDLE_EXP_FUNC(scan2, bool, Env,)
 
 #define scan2_stmt_func(name, type, prolog, exp)                               \
   describe_stmt_func(scan2, name, type, prolog, exp)
@@ -269,7 +269,7 @@ ANN static inline bool scan2_stmt_using(const restrict Env env,
                                         const Stmt_Using stmt) {
   if(stmt->tag.sym)
     CHECK_B(scan2_exp(env, stmt->d.exp));
-  mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, stmt);
+  usinglist_add(env->gwion->mp, &env->curr->info->gwusing, stmt);
   return true;
 }
 
@@ -277,19 +277,17 @@ ANN static inline bool scan2_stmt_using(const restrict Env env,
 
 #define scan2_stmt_spread dummy_func
 
-DECL_STMT_FUNC(scan2, bool, Env)
+DECL_STMT_FUNC(scan2, bool, Env,)
 
 ANN static bool scan2_stmt(const Env env, Stmt* stmt) {
   return scan2_stmt_func[stmt->stmt_type](env, &stmt->d);
 }
 
-ANN static bool scan2_stmt_list(const Env env, Stmt_List l) {
+ANN static bool scan2_stmt_list(const Env env, StmtList *l) {
   bool ok = true;
-  const uint32_t nusing = env->curr->info->gwusing
-    ? env->curr->info->gwusing->len
-    : 0;
+  const uint32_t nusing = usinglist_len(env->curr->info->gwusing);
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(l, i);
     if(stmt->poison) { ok = false; continue; }
     if(!scan2_stmt(env, stmt))
       POISON_NODE(ok, env, stmt);
@@ -576,7 +574,7 @@ ANN bool scan2_func_def(const Env env, const Func_Def fdef) {
 #define scan2_trait_def dummy_func
 #define scan2_extend_def dummy_func
 #define scan2_prim_def dummy_func
-HANDLE_SECTION_FUNC(scan2, bool, Env)
+HANDLE_SECTION_FUNC(scan2, bool, Env,)
 
 ANN static bool scan2_parent(const Env env, const Class_Def cdef) {
   if (cdef->base.ext->array && cdef->base.ext->array->exp)
@@ -595,9 +593,9 @@ ANN static bool cdef_parent(const Env env, const Class_Def cdef) {
 ANN bool scan2_class_body(const Env env, const Class_Def c) {
   const Tmpl *tmpl = c->base.tmpl;
   bool ok = true;
-  if(tmpl && tmplarg_ntypes(tmpl->list) != tmpl->list->len) {
+  if(tmpl && tmplarg_ntypes(tmpl->call) != tmpl->list->len) {
     for(uint32_t i = 0; i < tmpl->list->len; i++) {
-      const TmplArg targ = *mp_vector_at(tmpl->call, TmplArg, i);
+      const TmplArg targ = tmplarglist_at(tmpl->call, i);
       if(unlikely(targ.type != tmplarg_td)) {
         if(!scan2_exp(env, targ.d.exp))
           POISON_NODE(ok, env, targ.d.exp);
@@ -634,7 +632,7 @@ ANN bool scan2_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
-    Section *section = mp_vector_at(a, Section, i);
+    Section *section = sectionlist_ptr_at(a, i);
     if(section->poison) { ok = false; continue;}
     if(!scan2_section(env, section)) {
       POISON_SECTION(ok, env, section);

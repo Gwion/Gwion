@@ -805,7 +805,7 @@ static OP_CHECK(opck_array_scan) {
   if (ts->t == t_array && !ts->td->types)
     ERR_N(ts->td->tag.loc, "Array needs template arguments");
   DECL_ON(const Type, base,
-          = ts->t != t_array ? ts->t : known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td));
+          = ts->t != t_array ? ts->t : known_type(env, tmplarglist_at(ts->td->types, 0).d.td));
   if (base->size == 0) {
     gwlog_error("Can't use type of size 0 as array base", NULL,
                 env->name, ts->td->tag.loc, 0);
@@ -824,9 +824,9 @@ static OP_CHECK(opck_array_scan) {
   const Class_Def cdef  = cpy_class_def(env->gwion->mp, c);
   cdef->base.ext        = type2td(env->gwion, t_array, t_array->info->value->from->loc);
   cdef->base.tag.sym    = sym;
-  cdef->base.tmpl->call = new_mp_vector(env->gwion->mp, TmplArg, 1);
+  cdef->base.tmpl->call = new_tmplarglist(env->gwion->mp, 1);
   TmplArg arg = {.type = tmplarg_td, .d = {.td = type2td(env->gwion, base, base->info->value->from->loc)} };
-  mp_vector_set(cdef->base.tmpl->call, TmplArg, 0, arg);
+  tmplarglist_set(cdef->base.tmpl->call, 0, arg);
   struct EnvSet es = {
     .env = env,
     .data = env,

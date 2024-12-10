@@ -29,7 +29,7 @@ ANN bool gwi_union_ini(const Gwi gwi, const m_str name) {
   CHECK_B(ck_ini(gwi, ck_udef));
   gwi->ck->name = name;
   CHECK_B(check_typename_def(gwi, gwi->ck));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Variable, 0);
+  gwi->ck->list = new_variablelist(gwi->gwion->mp, 0);
   return true;
 }
 
@@ -39,7 +39,7 @@ ANN bool gwi_union_add(const Gwi gwi, const restrict m_str type,
   DECL_B(Type_Decl *, td, = str2td(gwi->gwion, type, gwi->loc));
   DECL_B(const Symbol, xid, = str2sym(gwi->gwion, name, gwi->loc));
   Variable um = { .td = td, .vd = { .tag = MK_TAG(xid, gwi->loc) } };
-  mp_vector_add(gwi->gwion->mp, &gwi->ck->list, Variable, um);
+  variablelist_add(gwi->gwion->mp, &gwi->ck->list, um);
 //  const Variable_List l = new_variable_list(gwi->gwion->mp, td, xid, gwi->loc);
 //  l->next            = gwi->ck->list;
 //  gwi->ck->list      = l;
@@ -66,14 +66,14 @@ ANN static Type union_type(const Gwi gwi, const Union_Def udef) {
 
 ANN bool gwi_union_end(const Gwi gwi, const ae_flag flag) {
   CHECK_B(ck_ok(gwi, ck_udef));
-  if (!gwi->ck->mpv->len) GWI_ERR_O(_("union is empty"));
-  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->mpv, gwi->loc);
+  if (!gwi->ck->list->len) GWI_ERR_O(_("union is empty"));
+  const Union_Def udef = new_union_def(gwi->gwion->mp, gwi->ck->list, gwi->loc);
   gwi->ck->list        = NULL;
   udef->flag           = flag;
   udef->tag.sym        = gwi->ck->sym;
-  if (gwi->ck->tmpl) {
+  if (gwi->ck->sl) {
     udef->tmpl    = gwi_tmpl(gwi);
-    gwi->ck->tmpl = NULL;
+    gwi->ck->sl = NULL;
   }
   const Type t = union_type(gwi, udef);
   if (!safe_tflag(t, tflag_tmpl)) free_union_def(gwi->gwion->mp, udef);
@@ -82,6 +82,6 @@ ANN bool gwi_union_end(const Gwi gwi, const ae_flag flag) {
 }
 
 ANN void ck_clean_udef(MemPool mp, ImportCK *ck) {
-  if (ck->mpv) free_mp_vector(mp, Variable, ck->mpv);
-  if (ck->tmpl) free_id_list(mp, ck->tmpl);
+  if (ck->list) free_variablelist(mp, ck->list);
+  if (ck->sl) free_specializedlist(mp, ck->sl);
 }

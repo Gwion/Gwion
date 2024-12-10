@@ -19,7 +19,7 @@ struct ResolverArgs {
   const Value     v;
   Exp_Call *const e;
   const m_str     tmpl_name;
-  const TmplArg_List types;
+  TmplArgList *types;
 };
 
 ANN static inline Value template_get_ready(const Env env, const Value v,
@@ -55,7 +55,7 @@ ANN static Func ensure_tmpl(const Env env, const Func_Def fdef,
 ANN static inline Func ensure_fptr(const Env env, struct ResolverArgs *ra,
                                    const Fptr_Def fptr) {
   CHECK_O(traverse_fptr_def(env, fptr));
-  const Func_Def fdef = mp_vector_at(fptr->cdef->base.type->info->cdef->body, struct Section_ , 0)->d.func_def;
+  const Func_Def fdef = sectionlist_at(fptr->cdef->base.type->info->cdef->body, 0).d.func_def; // NOTE: we have a few of these!
   return find_func_match(env, fdef->base->func, ra->e);
 }
 
@@ -66,7 +66,7 @@ ANN static Func fptr_match(const Env env, struct ResolverArgs *ra) {
   const Value exists = nspc_lookup_value0(v->from->owner, sym);
   if(exists) {
     const Type t = actual_type(env->gwion, exists->type);
-    const Func_Def fdef = mp_vector_at(t->info->cdef->body, struct Section_ , 0)->d.func_def;
+    const Func_Def fdef = sectionlist_at(t->info->cdef->body, 0).d.func_def;
     return find_func_match(env, fdef->base->func, ra->e);
   }
   const Func_Def base =
@@ -102,21 +102,21 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
 
   fdef->vt_index = i;
   if(is_spread_tmpl(value->d.func_ref->def->base->tmpl)) {
-    Arg_List args = fdef->base->args ?: new_mp_vector(env->gwion->mp, Arg, 0);
+    ArgList *args = fdef->base->args ?: new_arglist(env->gwion->mp, 0);
     for(uint32_t idx = 0; idx < ra->types->len; idx++) {
 //    for(uint32_t idx = value->d.func_ref->def->base->tmpl->call->len - 1; idx < ra->types->len; idx++) {
       char c[256];
       sprintf(c, "arg%u", idx);
-      TmplArg targ = *mp_vector_at(ra->types, TmplArg, idx);
+      const TmplArg targ = tmplarglist_at(ra->types, idx);
       if(targ.type != tmplarg_td) {
         gwlog_error("invalid const expression in variadic template", "can't use expression in spread", env->name, targ.d.exp->loc, 0);
-        Specialized *spec = mp_vector_at(value->d.func_ref->def->base->tmpl->list, Specialized, value->d.func_ref->def->base->tmpl->list->len - 1);
-        gwlog_related("spread starts here", env->name, spec->tag.loc);
+        const Specialized spec = specializedlist_back(value->d.func_ref->def->base->tmpl->list);
+        gwlog_related("spread starts here", env->name, spec.tag.loc);
         env_set_error(env, true);
         return NULL;
       }
       Arg arg = { .var = MK_VAR(cpy_type_decl(env->gwion->mp, targ.d.td), (Var_Decl){ .tag = MK_TAG(insert_symbol(c), fdef->base->tag.loc)})};
-      mp_vector_add(env->gwion->mp, &args, Arg, arg);
+      arglist_add(env->gwion->mp, &args, arg);
     }
     fdef->base->args = args;
   }
@@ -143,8 +143,8 @@ ANN static Func func_match(const Env env, struct ResolverArgs *ra) {
 
 ANN static Func find_tmpl(const Env env, const Value v, Exp_Call *const exp,
                           const m_str tmpl_name) {
-  const TmplArg_List     types  = exp->tmpl->call;
-  const Func          former = env->func;
+  TmplArgList *types  = exp->tmpl->call;
+  const Func         former = env->func;
   const m_uint        scope  = env->scope->depth;
   struct EnvSet       es     = {.env   = env,
                       .data  = env,
@@ -180,12 +180,13 @@ ANN static Func __find_template_match(const Env env, const Value v,
 ANN static Func _find_template_match(const Env env, const Value v,
                                      Exp_Call *const exp) {
   DECL_O(const Func, f, = __find_template_match(env, v, exp));
-  TmplArg_List        tl = exp->tmpl->call;
-  Specialized_List sl = f->def->base->tmpl->list;
+  TmplArgList       *tl = exp->tmpl->call;
+  SpecializedList *sl = f->def->base->tmpl->list;
   for(uint32_t i = 0; i < tl->len; i++) {
-    Specialized * spec = mp_vector_at(sl, Specialized, i);
-    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
-    if(unlikely(spec->td)) {
+    // TODO: check miss trait takes a const !!!
+    const Specialized spec = specializedlist_at(sl, i);
+    const TmplArg arg = tmplarglist_at(tl, i);
+    if(unlikely(spec.td)) {
       if(unlikely(arg.type == tmplarg_td))
         ERR_O(exp_self(exp)->loc, "expected constant, not type");
       continue;
@@ -196,7 +197,7 @@ ANN static Func _find_template_match(const Env env, const Value v,
         continue;
       }
       DECL_O(const Type, t, = known_type(env, arg.d.td));
-      if(t->info->traits && miss_traits(t, spec))
+      if(t->info->traits && miss_traits(t, &spec))
         return NULL;
     }
   }

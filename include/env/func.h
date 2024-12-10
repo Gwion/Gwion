@@ -17,7 +17,7 @@ struct Func_ {
   Value            value_ref;
   Func             next;
   m_str            name;
-  MP_Vector       *_wait;
+  ValueList       *_wait;
   float            inline_mult;
   uint16_t         weight;  // used to mark gack use in scan1
   uint16_t         memoize; // used to mark return in scan1
@@ -25,7 +25,6 @@ struct Func_ {
   ae_flag          flag;
   enum fflag       fflag;
 };
-
 REF_FUNC(Func, func)
 FLAG_FUNC(Func, f)
 
@@ -42,9 +41,9 @@ ANN static inline Value upvalues_lookup(const Upvalues *upvalues, const Symbol s
   return upvalues->parent ? upvalues_lookup(upvalues->parent, sym) : NULL;
 }
 
-ANN static inline m_uint captures_sz(const Capture_List captures) {
-  const Capture *cap = mp_vector_back(captures, Capture);
-  return cap->temp->from->offset + cap->temp->type->size;
+ANN static inline m_uint captures_sz(const CaptureList *captures) {
+  const Capture cap = capturelist_back(captures);
+  return cap.temp->from->offset + cap.temp->type->size;
 }
 
 ANN static inline bool is_ctor(const Func_Def fdef) {

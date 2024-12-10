@@ -2,7 +2,7 @@
 #define _TMPL_INFO
 struct tmpl_info {
   Symbol           name;
-  Specialized_List list;
+  SpecializedList *list;
   const Type_Decl *td;
   Type             ret;
   Type             base;
@@ -12,5 +12,5 @@ struct tmpl_info {
 };
 
 ANN Type tmpl_exists(const Env env, struct tmpl_info *const info);
-ANN bool tmpl_global(const Env env, TmplArg_List tl);
+ANN bool tmpl_global(const Env env, const TmplArgList *tl);
 #endif

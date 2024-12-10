@@ -142,7 +142,7 @@ INSTR(FuncWait) {
     if(!handle(shred, "UninitValue")) {
       gw_err("{-}some values are not instantiated yet{0}\n");
       for(uint32_t i = instr->m_val2; i < f->_wait->len; i++) {
-        Value v = *mp_vector_at(f->_wait, Value, i);
+        const Value v = valuelist_at(f->_wait, i);
         defined_here(v);
       }
     }

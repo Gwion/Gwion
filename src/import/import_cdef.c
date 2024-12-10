@@ -33,10 +33,10 @@ ANN2(1, 2) static void import_class_ini(const Env env, const Type t) {
 
 ANN2(1) void add_template(const Env env, const Type t) {
   nspc_push_type(env->gwion->mp, env->curr); //
-  Specialized_List sl = get_tmpl(t)->list;
+  SpecializedList *sl = get_tmpl(t)->list;
   for(uint32_t i = 0; i < sl->len; i++) {
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
-    nspc_add_type(env->curr, spec->tag.sym, env->gwion->type[et_auto]);
+    const Specialized spec = specializedlist_at(sl, i);
+    nspc_add_type(env->curr, spec.tag.sym, env->gwion->type[et_auto]);
   }
 }
 
@@ -85,7 +85,7 @@ Type gwi_class_ini(const Gwi gwi, const m_str name, const m_str parent) {
   Tmpl *tmpl = ck.sl ? new_tmpl(gwi->gwion->mp, ck.sl) : NULL;
   if (tmpl) CHECK_O(template_push_types(gwi->gwion->env, tmpl));
   DECL_O(const Type, base, = known_type(gwi->gwion->env, td));
-  const TmplArg_List tl   = td->types;
+  TmplArgList *tl   = td->types;
   if (tflag(base, tflag_ntmpl)) td->types = NULL;
   const Type p = !td->types ? known_type(gwi->gwion->env, td) : NULL;
   td->types    = tl;

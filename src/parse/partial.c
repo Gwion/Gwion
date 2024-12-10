@@ -13,18 +13,18 @@
 #include "parse.h"
 #include "partial.h"
 
-ANN static Arg_List partial_arg_list(const Env env, const Arg_List base, Exp* e) {
-  Arg_List args = new_mp_vector(env->gwion->mp, Arg, 0);
+ANN static ArgList *partial_arg_list(const Env env, const ArgList *base, Exp* e) {
+  ArgList *args = new_arglist(env->gwion->mp, 0);
   Exp* next = e;
   uint32_t i = 0;
   while(next) {
     if(is_hole(env, next) || is_typed_hole(env, next)) {
       char c[256];
       sprintf(c, "@%u", args->len);
-      const Arg *src = mp_vector_at(base, Arg, i);
-      Type_Decl *td = src->var.td ? cpy_type_decl(env->gwion->mp, src->var.td) : NULL;
-      Arg arg = { .var = MK_VAR(td, (Var_Decl){ .tag = MK_TAG(insert_symbol(c), src->var.vd.tag.loc)})};
-      mp_vector_add(env->gwion->mp, &args, Arg, arg);
+      const Arg src = arglist_at(base, i);
+      Type_Decl *td = src.var.td ? cpy_type_decl(env->gwion->mp, src.var.td) : NULL;
+      Arg arg = { .var = MK_VAR(td, (Var_Decl){ .tag = MK_TAG(insert_symbol(c), src.var.vd.tag.loc)})};
+      arglist_add(env->gwion->mp, &args, arg);
     }
     i++;
     next = next->next;
@@ -39,17 +39,17 @@ ANN static inline Symbol partial_name(const Env env, const pos_t pos) {
 }
 
 ANN2(1, 2) static inline Func_Base *partial_base(const Env env, const Func_Base *base, Exp* earg, const loc_t loc) {
-  Arg_List args = earg ? partial_arg_list(env, base->args, earg) : NULL;
+  ArgList *args = earg ? partial_arg_list(env, base->args, earg) : NULL;
   Func_Base *fb = new_func_base(env->gwion->mp, base->td ? cpy_type_decl(env->gwion->mp, base->td) : NULL, partial_name(env, loc.first), args, ae_flag_none, loc);
   return fb;
 }
 
-ANN static Exp* partial_exp(const Env env, Arg_List args, Exp* e, const uint i) {
+ANN static Exp* partial_exp(const Env env, ArgList *args, Exp* e, const uint i) {
   if(is_hole(env, e) || is_typed_hole(env, e)) {
     char c[256];
     sprintf(c, "@%u", i);
     Exp* exp = new_prim_id(env->gwion->mp, insert_symbol(c), e->loc);
-    exp->type = known_type(env, mp_vector_at(args, Arg, i)->var.td);
+    exp->type = known_type(env, arglist_at(args, i).var.td);
     exp->d.prim.value = new_value(env, exp->type, MK_TAG(insert_symbol(c), e->loc));
     valid_value(env, insert_symbol(c), exp->d.prim.value);
     return exp;
@@ -62,7 +62,7 @@ ANN static Exp* partial_exp(const Env env, Arg_List args, Exp* e, const uint i) 
   return exp;
 }
 
-ANN2(1) static Exp* partial_call(const Env env, Arg_List args, Exp* e) {
+ANN2(1) static Exp* partial_call(const Env env, ArgList *args, Exp* e) {
   Exp* base = NULL;
   Exp* arg;
   uint32_t i = 0;
@@ -81,11 +81,11 @@ ANN Func find_match(const Env env, Func func, Exp* exp, const bool implicit,
   do {
     Exp* e = exp;
     uint32_t i = 0;
-    Arg_List args = func->def->base->args;
-    uint32_t len = mp_vector_len(args);
+    ArgList *args = func->def->base->args;
+    uint32_t len = arglist_len(args);
     while(e) {
       if (i >= len) break;
-      const Arg *arg = mp_vector_at(args, Arg, i++);
+      const Arg arg = arglist_at(args, i++);
       if(!is_hole(env, e)) {
         if(!is_typed_hole(env, e)) {
           Exp* next = e->next;
@@ -95,7 +95,7 @@ ANN Func find_match(const Env env, Func func, Exp* exp, const bool implicit,
           CHECK_O(ret);
       } else
           CHECK_O((e->type = known_type(env, e->d.exp_cast.td)));
-        if (!func_match_inner(env, e, arg->type, implicit, specific)) break;
+        if (!func_match_inner(env, e, arg.type, implicit, specific)) break;
       }
       e = e->next;
     }
@@ -147,11 +147,11 @@ ANN static Func partial_match(const Env env, const Func up, Exp* args, const loc
   return NULL;
 }
 
-ANN static Stmt_List partial_code(const Env env, Arg_List args, Exp* efun, Exp* earg) {
+ANN static StmtList *partial_code(const Env env, ArgList *args, Exp* efun, Exp* earg) {
   Exp* arg = partial_call(env, args, earg);
   Exp* exp = new_exp_call(env->gwion->mp, efun, arg, efun->loc);
-  Stmt_List code = new_mp_vector(env->gwion->mp, Stmt, 1);
-  mp_vector_set(code, Stmt, 0, MK_STMT_RETURN(efun->loc, exp));
+  StmtList *code = new_stmtlist(env->gwion->mp, 1);
+  stmtlist_set(code, 0, MK_STMT_RETURN(efun->loc, exp));
   return code;
 }
 
@@ -165,7 +165,7 @@ ANN static uint32_t count_args_exp(Exp* args) {
 ANN static uint32_t count_args_func(Func f, const uint32_t i) {
   uint32_t max = 0;
   do {
-    const uint32_t len =  mp_vector_len(f->def->base->args);
+    const uint32_t len =  arglist_len(f->def->base->args);
     if(len > i && len > max) max = len;
   } while ((f = f->next));
   return max;
@@ -199,7 +199,7 @@ ANN Type partial_type(const Env env, Exp_Call *const call) {
   }
   nspc_push_value(env->gwion->mp, env->curr);
   Func_Base *const fbase = partial_base(env, f->def->base, call->args, call->func->loc);
-  const Stmt_List code = partial_code(env, f->def->base->args, call->func, call->args);
+  StmtList *code = partial_code(env, f->def->base->args, call->func, call->args);
   Exp* exp = exp_self(call);
   exp->d.exp_lambda.def = new_func_def(env->gwion->mp, fbase, code);
   exp->exp_type = ae_exp_lambda;

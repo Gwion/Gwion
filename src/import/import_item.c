@@ -18,17 +18,17 @@ ANN bool gwi_item_ini(const Gwi gwi, const restrict m_str type,
 }
 
 ANN static bool gwi_item_tmpl(const Gwi gwi) {
-  Stmt_List slist = new_mp_vector(gwi->gwion->mp, Stmt, 1);
-  mp_vector_set(slist, Stmt, 0, MK_STMT_EXP(gwi->loc, gwi->ck->exp));
+  StmtList *slist = new_stmtlist(gwi->gwion->mp, 1);
+  stmtlist_set(slist, 0, MK_STMT_EXP(gwi->loc, gwi->ck->exp));
   Section section = MK_SECTION(stmt, stmt_list, slist, gwi->loc);
   const Class_Def cdef = gwi->gwion->env->class_def->info->cdef;
   Section *former = cdef->body
-    ? mp_vector_back(cdef->body, Section)
+    ? sectionlist_ptr_at(cdef->body, cdef->body->len - 1)
     : NULL;
   if(!former || former->section_type != ae_section_stmt)
     gwi_body(gwi, &section);
   else
-    mp_vector_add(gwi->gwion->mp, &cdef->body, Section, section);
+    sectionlist_add(gwi->gwion->mp, &cdef->body, section);
   mp_free2(gwi->gwion->mp, sizeof(ImportCK), gwi->ck);
   gwi->ck = NULL;
   return true;

@@ -32,7 +32,7 @@ ANN bool gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   const Type_Def tdef =
       new_type_def(gwi->gwion->mp, td, gwi->ck->sym, gwi->loc);
   if (gwi->ck->when) tdef->when = gwi->ck->when;
-  if (gwi->ck->tmpl) tdef->tmpl = gwi_tmpl(gwi);
+  if (gwi->ck->sl) tdef->tmpl = gwi_tmpl(gwi);
 
   if (safe_tflag(gwi->gwion->env->class_def, tflag_tmpl)) {
     Section section = MK_SECTION(
@@ -44,7 +44,7 @@ ANN bool gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
   }
   
   gwi->ck->td      = NULL;
-  gwi->ck->tmpl    = NULL;
+  gwi->ck->sl    = NULL;
   const bool ret = traverse_type_def(gwi->gwion->env, tdef);
   if (gwi->gwion->data->cdoc) {
     gwfmt_indent(gwi->gwfmt);
@@ -62,5 +62,5 @@ ANN bool gwi_typedef_end(const Gwi gwi, const ae_flag flag) {
 ANN void ck_clean_tdef(MemPool mp, ImportCK *ck) {
   if (ck->td) free_type_decl(mp, ck->td);
   if (ck->when) free_exp(mp, ck->when);
-  if (ck->tmpl) free_id_list(mp, ck->tmpl);
+  if (ck->sl) free_specializedlist(mp, ck->sl);
 }

@@ -9,8 +9,8 @@ struct VM_Code_ {
       struct Vector_ instr;
     };
     struct {
-      m_uint         native_func;
-      MP_Vector *types;
+      m_uint    native_func;
+      TypeList *types;
     };
   };
   Type ret_type; // could be `struct Vector_ tmpl_types;`

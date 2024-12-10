@@ -45,8 +45,8 @@ OP_EMIT(opem_setunion_implicit) { exit(19);}
 
 OP_CHECK(opck_setunion_class) {
   struct TemplateScan *ts      = (struct TemplateScan *)data;
-  const Type base = known_type(env, mp_vector_at(ts->td->types, TmplArg, 0)->d.td);
-  const m_str name = mp_vector_at(ts->td->types, TmplArg, 1)->d.exp->d.prim.d.string.data;
+  const Type base = known_type(env, tmplarglist_at(ts->td->types, 0).d.td);
+  const m_str name = tmplarglist_at(ts->td->types, 1).d.exp->d.prim.d.string.data;
   char buf[256];
   snprintf(buf, 256, "FlowType:[%s,\"%s\",\"%s\"]",
            base->name, name, env->curr->name); // vector_at 1
@@ -85,11 +85,9 @@ static OP_CHECK(opck_setunion_dot) {
 }
 
 static OP_CHECK(opck_setunion_dot2) {
-  puts(__func__);
   const Exp_Dot *member = (Exp_Dot *)data;
-  puts(member->base->type->name);
   const m_str name = *(m_str*)member->base->type->nspc->class_data;
-  if(!exp_getvar(exp_self(member)) && strcmp(s_name(member->tag.sym), name)) {
+  if(!exp_getvar(exp_self(member)) && strcmp(s_name(member->var.tag.sym), name)) {
     // change member->base->loc to member->tag.loc
     char buf[256];
     sprintf(buf, "expected {G}%s{0}", name);
@@ -123,13 +121,13 @@ static OP_EMIT(opem_union_dot) {
     emit_pushimm(emit, (m_uint)exp_self(member)->type->info->func->code);
     return true;
   }
-  if (!strcmp(s_name(member->tag.sym), "index")) {
+  if (!strcmp(s_name(member->var.tag.sym), "index")) {
     emit_add_instr(emit, UnionIndex);
     return true;
   }
   const Map      map    = &member->base->type->nspc->info->value->map;
   for (m_uint i = 0; i < map_size(map); ++i) {
-    if (VKEY(map, i) == (m_uint)member->tag.sym) {
+    if (VKEY(map, i) == (m_uint)member->var.tag.sym) {
       const Value v         = (Value)VVAL(map, i);
       const uint  emit_addr = exp_getvar(exp_self(member));
       emit_unionmember(emit, i, v->type->size, emit_addr);
@@ -171,7 +169,7 @@ static OP_CHECK(opck_union_is) {
       Exp* exp_args  = call->args;
       e->exp_type         = ae_exp_binary;
       e->d.exp_binary.lhs = cpy_exp(env->gwion->mp, exp_func);
-      e->d.exp_binary.lhs->d.exp_dot.tag.sym =
+      e->d.exp_binary.lhs->d.exp_dot.var.tag.sym =
           insert_symbol(env->gwion->st, "index");
       //      e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i+1, e->loc);
       e->d.exp_binary.rhs = new_prim_int(env->gwion->mp, i, e->loc);

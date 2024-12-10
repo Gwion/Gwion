@@ -40,7 +40,7 @@ static OP_CHECK(opck_spork) {
     if(unary->captures) {
       uint32_t offset = !env->class_def ? 0 : SZ_INT;
       for(uint32_t i = 0; i < unary->captures->len; i++) {
-        Capture *const cap = mp_vector_at(unary->captures, Capture, i);
+        Capture *const cap = capturelist_ptr_at(unary->captures, i);
         DECL_O(const Type, t, = upvalue_type(env, cap));
         cap->temp = new_value(env, t, cap->var.tag);
         cap->temp->from->offset = offset;
@@ -54,8 +54,8 @@ static OP_CHECK(opck_spork) {
     env->curr->info->value = new_scope(env->gwion->mp);
     if(unary->captures) {
       for(uint32_t i = 0; i < unary->captures->len; i++) {
-        Capture *const cap = mp_vector_at(unary->captures, Capture, i);
-        valid_value(env, cap->var.tag.sym, cap->temp);
+        const Capture cap = capturelist_at(unary->captures, i);
+        valid_value(env, cap.var.tag.sym, cap.temp);
       }
     }
     const Func f = env->func;

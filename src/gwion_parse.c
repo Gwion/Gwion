@@ -24,71 +24,74 @@ ANN static Ast gwion_parse_ast1(const Gwion gwion, const char *data, const loc_t
 
 ANN Func_Def gwion_parse_func_def(const Gwion gwion, const char *data, const loc_t loc) {
   DECL_O(const Ast, ast, = gwion_parse_ast1(gwion, data, loc));
-  Section *section = mp_vector_at(ast, Section, 0);
-  if(section->section_type != ae_section_func) {
+  const Section section = sectionlist_at(ast, 0);
+  if(section.section_type != ae_section_func) {
     gwlog_error("invalid section type", NULL, gwion->env->name, loc, 0);
     free_ast(gwion->mp, ast);
     return NULL;
   }
-  Func_Def fdef = section->d.func_def;
-  free_ast(gwion->mp, ast);
+  Func_Def fdef = section.d.func_def;
+  free_sectionlist(gwion->mp, ast);
   return fdef;
 }
 
-ANN Stmt_List gwion_parse_stmt_list(const Gwion gwion, const char *data, const loc_t loc) {
+ANN StmtList* gwion_parse_stmt_list(const Gwion gwion, const char *data, const loc_t loc) {
   DECL_O(const Ast, ast, = gwion_parse_ast1(gwion, data, loc));
-  Section *section = mp_vector_at(ast, Section, 0);
-  if(section->section_type != ae_section_stmt) {
+  const Section section = sectionlist_at(ast, 0);
+  if(section.section_type != ae_section_stmt) {
     gwlog_error("invalid section type", NULL, gwion->env->name, loc, 0);
     free_ast(gwion->mp, ast);
     return NULL;
   }
-  Stmt_List stmts = section->d.stmt_list;
-  free_mp_vector(gwion->mp, Section, ast);
+  StmtList* stmts = section.d.stmt_list;
+  free_sectionlist(gwion->mp, ast);
   return stmts;
 }
 
 ANN Exp *gwion_parse_expression(const Gwion gwion, const char *data, const loc_t loc) {
   char* str = NULL;
   gw_asprintf(gwion->mp, &str, "%s;", data);
-  Stmt_List stmts = gwion_parse_stmt_list(gwion, str, loc);
+  StmtList *stmts = gwion_parse_stmt_list(gwion, str, loc);
   free_mstr(gwion->mp, str);
   if(!stmts) return NULL;
   if(stmts->len != 1) {
     gwlog_error("invalid number of statements", NULL, gwion->env->name, loc, 0);
+    free_stmt_list(gwion->mp, stmts);
     return NULL;
   }
-  Stmt *stmt = mp_vector_at(stmts, Stmt, 0);
+  Stmt *stmt = stmtlist_ptr_at(stmts, 0);
   if(stmt->stmt_type != ae_stmt_exp) {
     gwlog_error("invalid statement type", NULL, gwion->env->name, loc, 0);
+    free_stmt_list(gwion->mp, stmts);
     return NULL;
   }
   Exp *exp = stmt->d.stmt_exp.val;
-  free_mp_vector(gwion->mp, Stmt, stmts);
+  free_stmtlist(gwion->mp, stmts);
   return exp;
 }
 
 ANN Type_Decl *gwion_parse_type_decl(const Gwion gwion, const char *data, const loc_t loc) {
   char* str = NULL;
   gw_asprintf(gwion->mp, &str, "var %s A;", data);
-  Stmt_List stmts = gwion_parse_stmt_list(gwion, str, loc);
-  if(!stmts) {
-    return NULL;
-  }
-//  free_mstr(gwion->mp, str);
+  StmtList *stmts = gwion_parse_stmt_list(gwion, str, loc);
+  free_mstr(gwion->mp, str);
+  if(!stmts) return NULL;
   if(stmts->len != 1) {
     gwlog_error("invalid number of statements", NULL, gwion->env->name, loc, 0);
+    free_stmt_list(gwion->mp, stmts);
     return NULL;
   }
-  Stmt *stmt = mp_vector_at(stmts, Stmt, 0);
+  Stmt *stmt = stmtlist_ptr_at(stmts, 0);
   if(stmt->stmt_type != ae_stmt_exp) {
     gwlog_error("invalid statement type", NULL, gwion->env->name, loc, 0);
+    free_stmt_list(gwion->mp, stmts);
     return NULL;
   }
   Exp *exp = stmt->d.stmt_exp.val;
-  free_mp_vector(gwion->mp, Stmt, stmts);
+  free_stmtlist(gwion->mp, stmts);
   if(exp->exp_type != ae_exp_decl) {
     gwlog_error("invalid expression type", NULL, gwion->env->name, loc, 0);
+    free_exp(gwion->mp, exp);
     return NULL;
   }
   Type_Decl *td = cpy_type_decl(gwion->mp, exp->d.exp_decl.var.td);

@@ -9,7 +9,7 @@
 ANN static inline bool _body(const Env env, Ast ast, const _envset_func f) {
   bool ok = true;
   for(m_uint i = 0; i < ast->len; i++) {
-    Section *section = mp_vector_at(ast, Section, i);
+    Section *section = sectionlist_ptr_at(ast, i);
     if(section->poison) { ok = false; continue; }
     if(!f(env, section))
       POISON_SECTION(ok, env, section);

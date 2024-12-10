@@ -69,20 +69,23 @@ ANN static inline void check_deep_equal_exp(const Env env, Exp* e, const Vector 
     exp_setvar(e, true);
 }
 
-#define MK_DOT(_data, _exp, _value)                             \
-  {                                                             \
-    .d = {                                                      \
-      .exp_dot = {                                              \
-        .base = _exp,                                           \
-        .tag = {                                                \
-          .sym = insert_symbol(_data->gwion->st, _value->name), \
-          .loc = _exp->loc                                      \
-        }                                                       \
-      }                                                         \
-    },                                                          \
-    .type = _value->type,                                       \
-    .exp_type = ae_exp_dot,                                     \
-    .loc = _exp->loc                                            \
+#define MK_DOT(_data, _exp, _value)                               \
+  {                                                               \
+    .d = {                                                        \
+      .exp_dot = {                                                \
+        .base = _exp,                                             \
+        .var = {                                                  \
+          .tag = {                                                \
+            .sym = insert_symbol(_data->gwion->st, _value->name), \
+            .loc = _exp->loc                                      \
+          },                                                      \
+          .value = _value                                         \
+        }                                                         \
+      }                                                           \
+    },                                                            \
+    .type = _value->type,                                         \
+    .exp_type = ae_exp_dot,                                       \
+    .loc = _exp->loc                                              \
   }
 
 #define MK_BIN(_lhs, _rhs, _bin)                         \

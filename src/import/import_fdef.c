@@ -23,7 +23,7 @@ static bool dl_func_init(const Gwi gwi, const restrict m_str t,
   gwi->ck->name = n;
   CHECK_B(check_typename_def(gwi, gwi->ck));
   CHECK_B((gwi->ck->td = gwi_str2td(gwi, t)));
-  gwi->ck->mpv = new_mp_vector(gwi->gwion->mp, Arg, 0);
+  gwi->ck->arg_list = new_arglist(gwi->gwion->mp, 0);
   return true;
 }
 
@@ -33,13 +33,13 @@ ANN bool gwi_func_ini(const Gwi gwi, const restrict m_str t,
 }
 
 ANEW ANN static Func_Base *gwi_func_base(const Gwi gwi, ImportCK *ck) {
-  Arg_List args = gwi->ck->mpv->len ? cpy_arg_list(gwi->gwion->mp, gwi->ck->mpv) : NULL;
+  ArgList *args = gwi->ck->arg_list->len ? cpy_arg_list(gwi->gwion->mp, gwi->ck->arg_list) : NULL;
   Func_Base *    base = new_func_base(gwi->gwion->mp, ck->td, ck->sym, args,
                                   ck->flag, gwi->loc);
   ck->td = NULL;
-  if (ck->tmpl) {
+  if (ck->sl) {
     base->tmpl = gwi_tmpl(gwi);
-    ck->tmpl   = NULL;
+    ck->sl   = NULL;
   }
   return base;
 }
@@ -108,7 +108,7 @@ ANN bool gwi_func_arg(const Gwi gwi, const restrict m_str t,
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n)) {
     Arg arg = { .var = MK_VAR(td, var) };
-    mp_vector_add(gwi->gwion->mp, &gwi->ck->mpv, Arg, arg);
+    arglist_add(gwi->gwion->mp, &gwi->ck->arg_list, arg);
     return true;
   }
   free_type_decl(gwi->gwion->mp, td);
@@ -156,6 +156,6 @@ ANN Type gwi_fptr_end(const Gwi gwi, const ae_flag flag) {
 
 ANN void ck_clean_fdef(MemPool mp, ImportCK *ck) {
   if (ck->td) free_type_decl(mp, ck->td);
-  free_arg_list(mp, ck->mpv);
-  if (ck->tmpl) free_id_list(mp, ck->tmpl);
+  free_arg_list(mp, ck->arg_list);
+  if (ck->sl) free_specializedlist(mp, ck->sl);
 }

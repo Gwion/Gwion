@@ -2,13 +2,18 @@
 #define __GWION_ENV
 
 #include "env/oo.h"
-#include "env/trait.h"
+
+typedef struct Value_ *Value;
+typedef struct Func_  *Func;
+MK_VECTOR_TYPE(Func, func)
+typedef struct Trait_ *Trait;
 #include "env/nspc.h"
 #include "env/env.h"
 
 #include "env/value.h"
 #include "env/type.h"
 #include "env/func.h"
+#include "env/trait.h"
 #include "env/context.h"
 #include "env/tuple.h"
 #include "env/envset.h"

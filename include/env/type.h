@@ -12,7 +12,7 @@ struct TypeInfo_ {
   Type               base_type;
   struct TupleForm_ *tuple;
   struct VM_Code_ *  gack;
-  ID_List            traits;
+  TagList           *traits;
   Scope values;
 };
 
@@ -61,7 +61,7 @@ struct Type_ {
   enum tflag        tflag;
   bool error;
 };
-
+MK_VECTOR_TYPE(Type, type)
 REF_FUNC(Type, type)
 FLAG_FUNC(Type, t)
 
@@ -101,7 +101,7 @@ ANN static inline Type typedef_base(Type t) {
 
 ANN static inline Func_Def closure_def(Type t) {
   t = typedef_base(t);
-  return mp_vector_at(t->info->cdef->body, Section, 0)->d.func_def;
+  return sectionlist_at(t->info->cdef->body, 0).d.func_def;
 }
 
 __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
@@ -112,19 +112,19 @@ __attribute__((returns_nonnull)) ANN static inline Type get_gack(Type t) {
 
 // trait helpers
 ANN static inline bool has_trait(const Type t, const Symbol trait) {
-  ID_List list = t->info->traits;
-  for(uint32_t i = 0; i < list->len; i++) {
-    Symbol xid = *mp_vector_at(list, Symbol, i);
-    if (xid == trait) return true;
+  TagList *traits = t->info->traits;
+  for(uint32_t i = 0; i < traits->len; i++) {
+    const Tag tag = taglist_at(traits, i);
+    if (tag.sym == trait) return true;
   }
   return false;
 }
 
 ANN static inline Symbol miss_traits(const Type t, const Specialized *spec) {
-  ID_List traits = spec->traits;
+  TagList *traits = spec->traits;
   for(uint32_t i = 0; i < traits->len; i++) {
-    Symbol xid = *mp_vector_at(traits, Symbol, i);
-    if (!has_trait(t, xid)) return xid;
+    const Tag tag = taglist_at(traits, i);
+    if (!has_trait(t, tag.sym)) return tag.sym;
   }
   return NULL;
 }

@@ -15,19 +15,19 @@
 
 ANN static bool _push_types(const Env env, const Nspc nspc,
                               const Tmpl *tmpl) {
-  Specialized_List sl = tmpl->list;
-  TmplArg_List        tl = tmpl->call;
-  Specialized *spec = mp_vector_at(sl, Specialized, sl->len - 1);
+  const SpecializedList *sl = tmpl->list;
+  const TmplArgList     *tl = tmpl->call;
+  const Specialized spec = specializedlist_at(sl, sl->len - 1);
 
-  const uint32_t len = strcmp(s_name(spec->tag.sym), "...") ? sl->len : sl->len-1;
+  const uint32_t len = strcmp(s_name(spec.tag.sym), "...") ? sl->len : sl->len-1;
   if(!tl) return true;
   for(uint32_t i = 0; i < len; i++) {
     if (i >= tl->len) return true;
-    TmplArg arg = *mp_vector_at(tl, TmplArg, i);
+    const TmplArg arg = tmplarglist_at(tl, i);
     if(unlikely(arg.type == tmplarg_exp)) continue;
     const Type t = known_type(env, arg.d.td);
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
-    nspc_add_type(nspc, spec->tag.sym, t);
+    const Specialized spec = specializedlist_at(sl, i);
+    nspc_add_type(nspc, spec.tag.sym, t);
   };
   if(len != sl->len) return true;
   return tl->len == sl->len;
@@ -60,14 +60,13 @@ ANN bool template_push(const Env env, const Type t) {
    return _template_push(env, t);
 }
 
-#include <ctype.h>
 ANN Exp* td2exp(const MemPool mp, const Type_Decl *td);
 ANN void check_call(const Env env, const Tmpl *tmpl) {
   for(uint32_t i = 0; i < tmpl->call->len; i++) {
-    Specialized *spec = i < tmpl->list->len
-       ? mp_vector_at(tmpl->list, Specialized, i)
+    const Specialized *spec = i < tmpl->list->len
+       ? specializedlist_ptr_at(tmpl->list, i)
        : NULL;
-    TmplArg *targ = mp_vector_at(tmpl->call, TmplArg, i);
+    TmplArg *targ = tmplarglist_ptr_at(tmpl->call, i);
 //if(targ->type != tmplarg_td) exit(16);
 if(targ->type == tmplarg_td) {
     if(spec && strcmp(s_name(spec->tag.sym), "...")) {
@@ -122,7 +121,7 @@ ANN bool template_push_types(const Env env, const Tmpl *tmpl) {
   POP_RET(false);
 }
 
-ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const TmplArg_List types) {
+ANN Tmpl *mk_tmpl(const Env env, const Tmpl *tm, const TmplArgList *types) {
   Tmpl *tmpl = new_tmpl(env->gwion->mp, tm->list);
   tmpl->call = cpy_tmplarg_list(env->gwion->mp, types);
   return tmpl;
@@ -174,20 +173,20 @@ static ANN Type maybe_func(const Env env, const Type t, const Type_Decl *td) {
         t->name);
 }
 
-static ANN bool is_single_variadic(const MP_Vector *v) {
+static ANN bool is_single_variadic(const SpecializedList *v) {
   if(v->len != 1) return false;
-  const Specialized *spec = mp_vector_at(v, Specialized, 0);
-  return !strcmp(s_name(spec->tag.sym), "...");
+  const Specialized spec = specializedlist_at(v, 0);
+  return !strcmp(s_name(spec.tag.sym), "...");
 }
 
-ANN2(1,2) bool check_tmpl(const Env env, const TmplArg_List tl, const Specialized_List sl, const loc_t loc, const bool is_spread) {
+ANN2(1,2) static bool check_tmpl(const Env env, TmplArgList *tl, const SpecializedList *sl, const loc_t loc, const bool is_spread) {
   if (!sl || sl->len > tl->len || (tl->len != sl->len && !is_spread))
      ERR_B(loc, "invalid template type number");
   for (uint32_t i = 0; i < sl->len; i++) {
-    TmplArg *targ = mp_vector_at(tl, TmplArg, i);
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
+    TmplArg *targ = tmplarglist_ptr_at(tl, i);
+    const Specialized spec = specializedlist_at(sl, i);
     if(targ->type == tmplarg_td) {
-      if(spec->td) {
+      if(spec.td) {
        Type_Decl *base = targ->d.td;
        Type_Decl *next = base;
        Type_Decl *last = next->next;
@@ -210,23 +209,23 @@ ANN2(1,2) bool check_tmpl(const Env env, const TmplArg_List tl, const Specialize
          next->next = last;
        }
       ERR_B(loc, "template type argument mismatch. expected %s",
-          spec->td ? "constant" : "type");
+          spec.td ? "constant" : "type");
       }
 
       DECL_B(const Type, t, = known_type(env, targ->d.td));
-      if(spec->traits) {
-        Symbol missing = miss_traits(t, spec);
+      if(spec.traits) {
+        Symbol missing = miss_traits(t, &spec);
         if (missing) {
           ERR_B(loc, "does not implement requested trait '{/}%s{0}'",
               s_name(missing));
         }
       }
     } else {
-      if(!spec->td) {
+      if(!spec.td) {
         ERR_B(loc, "template const argument mismatch. expected %s",
-            spec->td ? "constant" : "type");
+            spec.td ? "constant" : "type");
       }
-      CHECK_B(const_generic_typecheck(env, spec, targ));
+      CHECK_B(const_generic_typecheck(env, &spec, targ));
     }
   }
   return true;
@@ -245,15 +244,15 @@ ANN static Type _scan_type(const Env env, const Type t, Type_Decl *td) {
       if(!d->types) {
         if(!single_variadic)
           ERR_O(td->tag.loc, _("you must provide template types for type '%s'"), t->name);
-        d->types = new_mp_vector(env->gwion->mp, TmplArg, 0);
+        d->types = new_tmplarglist(env->gwion->mp, 0);
       }
       const Type ret = _scan_type(env, t, d);
       free_type_decl(env->gwion->mp, new_td);
       return ret;
     }
-    struct TemplateScan ts = {.t = t, .td = td};
-    TmplArg_List           tl = td->types;
-    Specialized_List    sl = tmpl
+    struct TemplateScan  ts = {.t = t, .td = td};
+    TmplArgList         *tl = td->types;
+    SpecializedList     *sl = tmpl
         ? tmpl->list : NULL;
     const bool is_spread = is_spread_tmpl(tmpl);
     if(!single_variadic)

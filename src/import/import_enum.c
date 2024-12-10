@@ -20,7 +20,7 @@
 ANN bool gwi_enum_ini(const Gwi gwi, const m_str type) {
   CHECK_B(ck_ini(gwi, ck_edef));
   CHECK_B((gwi->ck->xid = gwi_str2sym(gwi, type)));
-  gwi->ck->tmpl = new_mp_vector(gwi->gwion->mp, EnumValue, 0);
+  gwi->ck->enums = new_enumvaluelist(gwi->gwion->mp, 0);
   return true;
 }
 
@@ -31,7 +31,7 @@ ANN bool gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_B(ck_ok(gwi, ck_edef));
   DECL_B(const Symbol, xid, = gwi_str2sym(gwi, name));
   const EnumValue ev = { .tag = MK_TAG(xid, gwi->loc), .gwint = { .num = i }, .set = true};
-  mp_vector_add(gwi->gwion->mp, &gwi->ck->tmpl, EnumValue, ev);
+  enumvaluelist_add(gwi->gwion->mp, &gwi->ck->enums, ev);
   return true;
 }
 
@@ -39,12 +39,12 @@ ANN bool gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
 //! \arg the importer
 ANN bool gwi_enum_end(const Gwi gwi) {
   CHECK_B(ck_ok(gwi, ck_edef));
-  if (!gwi->ck->tmpl->len) GWI_ERR_B("Enum is empty");
+  if (!gwi->ck->enums->len) GWI_ERR_B("Enum is empty");
   const Gwion    gwion = gwi->gwion;
   const Enum_Def edef =
-      new_enum_def(gwion->mp, gwi->ck->tmpl, gwi->ck->xid, gwi->loc);
+      new_enum_def(gwion->mp, gwi->ck->enums, gwi->ck->xid, gwi->loc);
 // clean the vector
-  gwi->ck->tmpl    = NULL;
+  gwi->ck->enums    = NULL;
   const bool ret = traverse_enum_def(gwion->env, edef);
   if (gwi->gwion->data->cdoc) gwfmt_enum_def(gwi->gwfmt, edef);
   free_enum_def(gwion->mp, edef);

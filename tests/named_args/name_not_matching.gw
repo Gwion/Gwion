@@ -1,0 +1,5 @@
+#! [contains] Argument type mismatch
+#! fails if name of argument doesn't match
+fun void test(float bar) { <<< "${__func__} ${bar}" >>>; }
+
+test(foo = 13.2);

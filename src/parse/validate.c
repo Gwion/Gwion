@@ -13,7 +13,7 @@ typedef struct {
 ANN static bool validate_type_decl(Validate *a, Type_Decl *b);
 ANN static bool validate_exp(Validate *a, Exp* b);
 ANN static bool validate_stmt(Validate *a, Stmt* b);
-ANN static bool validate_stmt_list(Validate *a, Stmt_List b);
+ANN static bool validate_stmt_list(Validate *a, StmtList *b);
 ANN static bool validate_func_def(Validate *a, Func_Def b);
 ANN static bool validate_type_def(Validate *a, Type_Def b);
 ANN static bool validate_ast(Validate *a, Ast b);
@@ -28,31 +28,31 @@ ANN static bool validate_array_sub(Validate *a, Array_Sub b) {
   return b->exp ? validate_exp(a, b->exp) : true;
 }
 
-ANN static bool validate_specialized(Validate *a, Specialized *b) {
+ANN static bool validate_specialized(Validate *a, const Specialized *b) {
   return b->td ? validate_type_decl(a, b->td) : true;
 }
 
-ANN static bool validate_specialized_list(Validate *a, Specialized_List b) {
+ANN static bool validate_specialized_list(Validate *a, const SpecializedList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Specialized * c = mp_vector_at(b, Specialized  , i);
-    if(!validate_specialized(a, c))
+    const Specialized c = specializedlist_at(b, i);
+    if(!validate_specialized(a, &c))
       ret = false;
   }
   return ret;
 }
 
-ANN static bool validate_tmplarg(Validate *a, TmplArg *b) {
+ANN static bool validate_tmplarg(Validate *a, const TmplArg *b) {
   if (b->type == tmplarg_td)
     return validate_type_decl(a, b->d.td);
   return validate_exp(a, b->d.exp);
 }
 
-ANN static bool validate_tmplarg_list(Validate *a, TmplArg_List b) {
+ANN static bool validate_tmplarg_list(Validate *a, const TmplArgList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    TmplArg *c = mp_vector_at(b, TmplArg, i);
-    if(!validate_tmplarg(a, c))
+    const TmplArg c = tmplarglist_at(b, i);
+    if(!validate_tmplarg(a, &c))
       ret = false;
   }
   return ret;
@@ -104,7 +104,7 @@ ANN static bool validate_prim(Validate *a, Exp_Primary *b) {
   return true;
 }
 
-ANN static bool validate_variable(Validate *a, Variable *b) {
+ANN static bool validate_variable(Validate *a, const Variable *b) {
   return b->td ? validate_type_decl(a, b->td) : true;
 }
 
@@ -236,7 +236,7 @@ ANN static bool validate_exp_named(Validate *a, Exp_Named *b) {
   return validate_exp(a, b->exp);
 }
 
-DECL_EXP_FUNC(validate, bool, Validate*)
+DECL_EXP_FUNC(validate, bool, Validate*,)
 ANN static bool validate_exp(Validate *a, Exp* b) {
   bool ret = true;
   if(!b->poison)
@@ -333,10 +333,10 @@ ANN static bool validate_stmt_case(Validate *a, Stmt_Match b) {
   return ret;
 }
 
-ANN static bool validate_case_list(Validate *a, Stmt_List b) {
+ANN static bool validate_case_list(Validate *a, StmtList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Stmt* c = mp_vector_at(b, Stmt, i);
+    Stmt* c = stmtlist_ptr_at(b, i);
     if(!validate_stmt_case(a, &c->d.stmt_match))
       ret = false;
   }
@@ -359,15 +359,15 @@ ANN static bool validate_stmt_pp(Validate *a NUSED, Stmt_PP b NUSED) {
 
 #define validate_stmt_retry dummy_func
 
-ANN static bool validate_handler(Validate *a, Handler *b) {
+ANN static bool validate_handler(Validate *a, const Handler *b) {
   return validate_stmt(a, b->stmt);
 }
 
-ANN static bool validate_handler_list(Validate *a, Handler_List b) {
+ANN static bool validate_handler_list(Validate *a, HandlerList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Handler *handler = mp_vector_at(b, Handler, i);
-    if(!validate_handler(a, handler))
+    const Handler handler = handlerlist_at(b, i);
+    if(!validate_handler(a, &handler))
       ret = false;
   }
   return ret;
@@ -391,7 +391,7 @@ ANN static bool validate_stmt_spread(Validate *a NUSED, Spread_Def b NUSED) {
 #define validate_stmt_using dummy_func
 #define validate_stmt_import dummy_func
 
-DECL_STMT_FUNC(validate, bool, Validate*)
+DECL_STMT_FUNC(validate, bool, Validate*,)
 ANN static bool validate_stmt(Validate *a, Stmt* b) {
   if(b->poison) return false;
   if(!validate_stmt_func[b->stmt_type](a, &b->d))
@@ -399,34 +399,34 @@ ANN static bool validate_stmt(Validate *a, Stmt* b) {
   return !b->poison;
 }
 
-ANN static bool validate_arg(Validate *a, Arg *b) {
+ANN static bool validate_arg(Validate *a, const Arg *b) {
   return validate_variable(a, &b->var);
 }
 
-ANN static bool validate_arg_list(Validate *a, Arg_List b) {
+ANN static bool validate_arg_list(Validate *a, ArgList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Arg *c = mp_vector_at(b, Arg, i);
-    if(!validate_arg(a, c))
+    const Arg c = arglist_at(b, i);
+    if(!validate_arg(a, &c))
       ret = false;
   }
   return ret;
 }
 
-ANN static bool validate_variable_list(Validate *a, Variable_List b) {
+ANN static bool validate_variable_list(Validate *a, VariableList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Variable *c = mp_vector_at(b, Variable, i);
-    if(!validate_variable(a, c))
+    const Variable c = variablelist_at(b, i);
+    if(!validate_variable(a, &c))
       return true;
   }
   return ret;
 }
 
-ANN static bool validate_stmt_list(Validate *a, Stmt_List b) {
+ANN static bool validate_stmt_list(Validate *a, StmtList *b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Stmt* c = mp_vector_at(b, Stmt, i);
+    Stmt* c = stmtlist_ptr_at(b, i);
     if(!validate_stmt(a, c))
       ret = false;
   }
@@ -489,7 +489,7 @@ ANN static bool validate_extend_def(Validate *a, Extend_Def b) {
 
 #define validate_prim_def dummy_func
 
-DECL_SECTION_FUNC(validate, bool, Validate*)
+DECL_SECTION_FUNC(validate, bool, Validate*,)
 ANN static bool validate_section(Validate *a, Section *b) {
   if(b->poison) return false;
   if(!validate_section_func[b->section_type](a, *(void**)&b->d))
@@ -500,7 +500,7 @@ ANN static bool validate_section(Validate *a, Section *b) {
 ANN static bool validate_ast(Validate *a, Ast b) {
   bool ret = true;
   for(uint32_t i = 0; i < b->len; i++) {
-    Section *c = mp_vector_at(b, Section, i);
+    Section *c = sectionlist_ptr_at(b, i);
     if(!validate_section(a, c))
       ret = false;
   }

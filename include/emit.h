@@ -6,13 +6,14 @@ typedef struct {
   uint32_t reg;
   uint32_t limit;
 } MaybeVal;
+MK_VECTOR_TYPE(MaybeVal, maybeval)
 
 typedef struct Frame_ {
   struct Vector_ stack;
   struct Map_    handlers;
   struct Vector_ defer;
   m_uint         value_count;
-  MP_Vector *maybe_stack;
+  MaybeValList  *maybe_stack;
   uint16_t       curr_offset;
   uint16_t       try_top;
 } Frame;
@@ -36,7 +37,6 @@ typedef struct Code_ {
 } Code;
 
 struct EmitterInfo_ {
-  struct Vector_ pure;
   VM_Code (*emit_code)(const Emitter);
   VM_Code  code;
   bool     debug;

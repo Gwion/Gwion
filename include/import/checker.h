@@ -7,8 +7,9 @@ typedef struct ImportCK { // name_checker ?
   m_str  name;
   Symbol sym;
   union {
-    ID_List          tmpl;
-    Specialized_List sl;
+    TagList         *tags;
+    EnumValueList   *enums;
+    SpecializedList *sl;
     Exp*              exp;
   };
   union {
@@ -16,14 +17,14 @@ typedef struct ImportCK { // name_checker ?
     Exp *when; // typedef when
   };
   union {
-    Variable_List     list; // union
+    VariableList     *list; // union
     struct Vector_ v;
-    MP_Vector *mpv;
-    //    ID_List curr;// enum
+    ArgList *arg_list;
+    //    TagList *curr;// enum
   };
   union {
     Type_Decl *td;   // typedef
-    ID_List    curr; // enum
+    TagList    *curr; // enum
   };
   enum importck_type type;
   ae_flag            flag; // ????
@@ -44,13 +45,13 @@ ANN void func_checker_clean(const Gwi gwi, struct ImportCK *ck);
 ANN bool check_typename_def(const Gwi gwi, struct ImportCK *ck);
 
 ANN Symbol     str2sym(const Gwion, const m_str, const loc_t);
-ANN ID_List    str2symlist(const Gwion, const m_str, const loc_t);
+ANN TagList*   str2symlist(const Gwion, const m_str, const loc_t);
 ANN bool       str2var(const Gwion, Var_Decl*, const m_str, const loc_t);
 ANN Type_Decl *str2td(const Gwion, const m_str, const loc_t);
 ANN Type       str2type(const Gwion, const m_str, const loc_t);
 
 // those functions return a mp_alloced string
-ANEW ANN m_str tl2str(const Gwion, const TmplArg_List, const loc_t);
+ANEW ANN m_str tl2str(const Gwion, const TmplArgList*, const loc_t);
 ANEW ANN m_str type2str(const Gwion, const Type, const loc_t);
 
 ANN static inline Type_Decl *type2td(const Gwion gwion, const Type t,

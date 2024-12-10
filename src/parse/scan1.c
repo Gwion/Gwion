@@ -10,8 +10,8 @@
 #include "instr.h"
 #include "import.h"
 
-ANN static bool scan1_stmt_list(const Env env, Stmt_List list);
-ANN static bool scan1_stmt(const Env env, Stmt* stmt);
+ANN static bool scan1_stmt_list(const Env, StmtList *);
+ANN static bool scan1_stmt(const Env, Stmt*);
 
 ANN static inline bool type_cyclic(const Env env, const Type t,
                                      const Type_Decl *td) {
@@ -87,10 +87,13 @@ static inline bool scan1_defined(const Env env, const Var_Decl *var) {
         env->scope->depth)
            ? nspc_lookup_value1
            : nspc_lookup_value2)(env->curr, var->tag.sym);
-  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class)))
-    ERR_B(var->tag.loc,
+  if(v && (!v->from->owner_class || isa(env->class_def, v->from->owner_class))) {
+    env_err(env, var->tag.loc,
           _("variable %s has already been defined in the same scope..."),
           s_name(var->tag.sym));
+    defined_here(v);
+    return false;
+  }
   return true;
 }
 
@@ -255,7 +258,7 @@ ANN static bool scan1_exp_named(const Env env, Exp_Named *named) {
   return scan1_exp(env, named->exp);
 }
 
-HANDLE_EXP_FUNC(scan1, bool, Env)
+HANDLE_EXP_FUNC(scan1, bool, Env,)
 
 ANN static inline bool _scan1_stmt_match_case(const restrict Env env,
                                                 const Stmt_Match   stmt) {
@@ -274,8 +277,8 @@ ANN static inline bool scan1_stmt_using(const restrict Env env,
   if(stmt->tag.sym)
     CHECK_B(scan1_exp(env, stmt->d.exp));
   if(!env->curr->info->gwusing)
-    env->curr->info->gwusing = new_mp_vector(env->gwion->mp, Stmt_Using, 0);
-  mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, stmt);
+    env->curr->info->gwusing = new_usinglist(env->gwion->mp, 0);
+  usinglist_add(env->gwion->mp, &env->curr->info->gwusing, stmt);
   return true;
 }
 
@@ -284,10 +287,10 @@ ANN static inline bool scan1_stmt_using(const restrict Env env,
 ANN static inline bool
     _scan1_stmt_match(const restrict Env env, const Stmt_Match stmt) {
   if (stmt->where) CHECK_B(scan1_stmt(env, stmt->where));
-  Stmt_List l = stmt->list;
+  StmtList *l = stmt->list;
   bool ok = true;
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(l, i);
     if(stmt->poison) continue;
     if(!scan1_stmt_match_case(env, &stmt->d.stmt_match))
       POISON_NODE(ok, env, stmt);
@@ -307,11 +310,11 @@ ANN static inline bool scan1_handler(const restrict Env env,
 }
 
 ANN static inline bool scan1_handler_list(const restrict Env env,
-                                            const Handler_List handlers) {
+                                            const HandlerList *handlers) {
   bool ok = true;
   for(uint32_t i = 0; i < handlers->len; i++) {
-    Handler * handler = mp_vector_at(handlers, Handler, i);
-    if(!scan1_handler(env, handler))
+    const Handler handler = handlerlist_at(handlers, i);
+    if(!scan1_handler(env, &handler))
       POISON(ok, env);
   }
   return ok;
@@ -381,9 +384,9 @@ describe_ret_nspc(loop, Stmt_Loop,, !( (!stmt->idx.tag.sym ? true : !shadow_var(
 ANN static inline bool if_stmt_is_return(Stmt* stmt) {
   if (stmt->stmt_type == ae_stmt_return) return true;
   if (stmt->stmt_type == ae_stmt_code) {
-    if (mp_vector_len(stmt->d.stmt_code.stmt_list)) {
-      Stmt* s = mp_vector_back(stmt->d.stmt_code.stmt_list, Stmt);
-      if (s->stmt_type == ae_stmt_return) return true;
+    if (stmtlist_len(stmt->d.stmt_code.stmt_list)) {
+      Stmt s = stmtlist_back(stmt->d.stmt_code.stmt_list);
+      if (s.stmt_type == ae_stmt_return) return true;
     }
   }
   return false;
@@ -432,10 +435,10 @@ ANN bool scan1_enum_def(const Env env, const Enum_Def edef) {
   const Type t = edef->type;
   t->nspc = new_nspc(env->gwion->mp, t->name);
   const m_uint scope = env_push_type(env, t);
-  ID_List list = edef->list;
+  EnumValueList *list = edef->list;
   m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
-    EnumValue ev = *mp_vector_at(list, EnumValue, i);
+    const EnumValue ev = enumvaluelist_at(list, i);
     CHECK_B(can_define(env, ev.tag.sym, ev.tag.loc));
     const m_int value = !ev.set
       ? last
@@ -455,10 +458,10 @@ ANN static Value arg_value(const Env env, Arg *const arg) {
   return v;
 }
 
-ANN static bool scan1_args(const Env env, Arg_List args) {
+ANN static bool scan1_args(const Env env, ArgList *args) {
   bool ok = true;
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
+    Arg *arg = arglist_ptr_at(args, i);
     Var_Decl *const vd = &arg->var.vd;
     if (vd->tag.sym) {
       if(!not_reserved(env, vd->tag))
@@ -486,10 +489,10 @@ ANN static Type scan1_noret(const Env env, const Func_Base *base) {
 }
 
 ANN static bool _scan1_fbase_tmpl(const Env env, Func_Base *base) {
-  Specialized_List sl = base->tmpl->list;
+  const SpecializedList *sl = base->tmpl->list;
   for(uint32_t i = 0; i < sl->len; i++) {
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
-    nspc_add_type(env->curr, spec->tag.sym, env->gwion->type[et_auto]);
+    const Specialized spec = specializedlist_at(sl, i);
+    nspc_add_type(env->curr, spec.tag.sym, env->gwion->type[et_auto]);
   }
   CHECK_B((base->ret_type = scan1_noret(env, base)));
   return true;
@@ -502,20 +505,20 @@ ANN static bool scan1_fbase_tmpl(const Env env, Func_Base *const base) {
   return ret;
 }
 
-ANN static bool spec_acc_has(const MemPool mp, MP_Vector **acc, const Symbol xid) {
+ANN static bool spec_acc_has(const MemPool mp, TagList **acc, const Tag tag) {
   for(uint32_t i = 0; i < (*acc)->len; i++) {
-    const Symbol sym = *mp_vector_at(*acc, Symbol, i);
-    if (xid == sym) return true;
+    const Tag t = taglist_at(*acc, i);
+    if (t.sym == tag.sym) return true;
   }
-  mp_vector_add(mp, acc, Symbol, xid);
+  taglist_add(mp, acc, tag);
   return false;
 }
 
-ANN static bool find_op_template_type(const MemPool mp, const Symbol xid, const Specialized_List sl, MP_Vector **acc) {
+ANN static bool find_op_template_type(const MemPool mp, const Symbol xid, const SpecializedList *sl, TagList **acc) {
   for(uint32_t i = 0; i < sl->len; i++) {
-    Specialized *spec = mp_vector_at(sl, Specialized, i);
-    if (xid == spec->tag.sym) {
-      spec_acc_has(mp, acc, xid);
+    const Specialized spec = specializedlist_at(sl, i);
+    if (xid == spec.tag.sym) {
+      spec_acc_has(mp, acc, spec.tag);
       return true;
     }
   }
@@ -525,17 +528,17 @@ ANN static bool find_op_template_type(const MemPool mp, const Symbol xid, const 
 ANN static bool scan1_fdef_base_tmpl(const Env env, const Func_Def fdef) {
   Func_Base *const base = fdef->base;
   if (!fbflag(base, fbflag_op)) return scan1_fbase_tmpl(env, base);
-  Arg_List         args = fdef->base->args;
-  Specialized_List sl   = fdef->base->tmpl->list;
-  MP_Vector *acc = new_mp_vector(env->gwion->mp, Symbol, 0);
+  ArgList         *args = fdef->base->args;
+  const SpecializedList *sl   = fdef->base->tmpl->list;
+  TagList *acc = new_taglist(env->gwion->mp, 0);
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    if (!arg->var.td->next) {
-      find_op_template_type(env->gwion->mp, arg->var.td->tag.sym, sl, &acc);
+    const Arg arg = arglist_at(args, i);
+    if (!arg.var.td->next) {
+      find_op_template_type(env->gwion->mp, arg.var.td->tag.sym, sl, &acc);
     }
   }
   const uint32_t len = acc->len;
-  free_mp_vector(env->gwion->mp, Symbol, acc);
+  free_taglist(env->gwion->mp, acc);
   if (len < sl->len) ERR_B(base->tag.loc, "too many template types for operator");
   if (!env->curr->operators)
     env->curr->operators = mp_calloc(env->gwion->mp, NspcOp);
@@ -566,24 +569,24 @@ ANN static inline bool scan1_union_def_inner_loop(const Env env,
                                                     Union_Def udef) {
   m_uint      sz = 0;
   bool ok = true;
-  Variable_List  l  = udef->l;
+  VariableList *l  = udef->l;
   for(uint32_t i = 0; i < l->len; i++) {
-    Variable *um = mp_vector_at(l, Variable, i);
-    if (nspc_lookup_value0(env->curr, um->vd.tag.sym)) {
+    const Variable um = variablelist_at(l, i);
+    if (nspc_lookup_value0(env->curr, um.vd.tag.sym)) {
       // TODO: use already_declared
-      ERR_OK(ok, um->vd.tag.loc, _("'%s' already declared in union"), s_name(um->vd.tag.sym));
+      ERR_OK(ok, um.vd.tag.loc, _("'%s' already declared in union"), s_name(um.vd.tag.sym));
       continue;
     }
-    const Type t = known_type(env, um->td);
+    const Type t = known_type(env, um.td);
     if(t) {
       if(tflag(t, tflag_ref)) {
-        ERR_OK(ok, um->vd.tag.loc, _("can't declare ref type in union"));
+        ERR_OK(ok, um.vd.tag.loc, _("can't declare ref type in union"));
         continue;
       }
-      const Value v = new_value(env, t, um->vd.tag);
+      const Value v = new_value(env, t, um.vd.tag);
       tuple_contains(env, v);
       valuefrom(env, v->from);
-      nspc_add_value_front(env->curr, um->vd.tag.sym, v);
+      nspc_add_value_front(env->curr, um.vd.tag.sym, v);
       if (t->size > sz) sz = t->size;
     } else POISON(ok, env);
   }
@@ -640,7 +643,7 @@ ANN static bool scan1_stmt_spread(const Env env, const Spread_Def spread) {
   ERR_B(stmt_self(spread)->loc, "spread statement outside of variadic environment");
 }
 
-DECL_STMT_FUNC(scan1, bool, Env)
+DECL_STMT_FUNC(scan1, bool, Env,)
 
 ANN static inline bool scan1_stmt(const Env env, Stmt* stmt) {
   return scan1_stmt_func[stmt->stmt_type](env, &stmt->d);
@@ -653,22 +656,20 @@ ANN static inline bool end_flow(Stmt* s) {
          t == ae_stmt_return;
 }
 
-ANN static void dead_code(const Env env, Stmt_List l, uint32_t len) {
+ANN static void dead_code(const Env env, StmtList *l, uint32_t len) {
   for(uint32_t i = len; i < l->len; i++) {
-    Stmt* s = mp_vector_at(l, Stmt, i);
+    Stmt* s = stmtlist_ptr_at(l, i);
     free_stmt(env->gwion->mp, s);
   }
   l->len = len;
 }
 
-ANN static bool scan1_stmt_list(const Env env, Stmt_List l) {
+ANN static bool scan1_stmt_list(const Env env, StmtList *l) {
   uint32_t i;
   bool ok = true;
-  const uint32_t nusing = env->curr->info->gwusing
-    ? env->curr->info->gwusing->len
-    : 0;
+  const uint32_t nusing = usinglist_len(env->curr->info->gwusing);
   for(i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(l, i);
     if(stmt->poison) { ok = false; continue;}
     if(!scan1_stmt(env, stmt)) {
       POISON_NODE(ok, env, stmt);
@@ -695,7 +696,7 @@ ANN static bool class_internal(const Env env, const Func_Base *base) {
 
 ANN static inline bool scan_internal_arg(const Env        env,
                                            const Func_Base *base) {
-  if (mp_vector_len(base->args) == 1) return true;
+  if (arglist_len(base->args) == 1) return true;
   assert(base->td);
   ERR_B(base->td->tag.loc, _("'%s' must have one (and only one) argument"),
         s_name(base->tag.sym));
@@ -732,11 +733,11 @@ ANN static bool scan_internal(const Env env, const Func_Base *base) {
   return true;
 }
 
-ANN static bool scan1_fdef_args(const Env env, Arg_List args) {
+ANN static bool scan1_fdef_args(const Env env, ArgList *args) {
   bool ok = true;
   for(uint32_t i = 0; i < args->len; i++) {
-    Arg *arg = mp_vector_at(args, Arg, i);
-    if(!shadow_arg(env, arg->var.vd.tag))
+    const Arg arg = arglist_at(args, i);
+    if(!shadow_arg(env, arg.var.vd.tag))
       POISON(ok, env);
   }
   return ok;
@@ -825,7 +826,7 @@ ANN bool scan1_func_def(const Env env, const Func_Def fdef) {
 #define scan1_trait_def dummy_func
 #define scan1_extend_def dummy_func
 #define scan1_prim_def dummy_func
-HANDLE_SECTION_FUNC(scan1, bool, Env)
+HANDLE_SECTION_FUNC(scan1, bool, Env,)
 
 ANN static Type scan1_get_parent(const Env env, const Type_Def tdef) {
   const Type parent = tdef->type->info->parent;
@@ -871,26 +872,26 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
    !isa(cdef->base.type, env->gwion->type[et_dict])) {
     MemPool mp = env->gwion->mp;
     Ast base = cdef->body;
-    Stmt_List ctor = new_mp_vector(mp, Stmt, 0);
-    Ast body = new_mp_vector(mp, Section, 1); // room for ctor
+    StmtList *ctor = new_stmtlist(mp, 0);
+    Ast body = new_sectionlist(mp, 1); // room for ctor
     for(uint32_t i = 0; i < base->len; i++) {
-      Section section = *mp_vector_at(base, Section, i);
+      const Section section = sectionlist_at(base, i);
       if(section.poison) continue;
       if(section.section_type == ae_section_stmt) {
-        Stmt_List list = section.d.stmt_list;
+        StmtList *list = section.d.stmt_list;
         for(uint32_t j = 0; j < list->len; j++) {
-          Stmt* stmt = mp_vector_at(list, Stmt, j);
-          if(stmt->poison) continue;
-          mp_vector_add(mp, &ctor, Stmt, *stmt);
+          Stmt stmt = stmtlist_at(list, j);
+          if(stmt.poison) continue;
+          stmtlist_add(mp, &ctor, stmt);
         }
-      } else mp_vector_add(mp, &body, Section, section);
+      } else sectionlist_add(mp, &body, section);
     }
     Type_Decl *td = type2td(env->gwion, env->gwion->type[et_void], cdef->base.tag.loc);
     Symbol sym = insert_symbol("@ctor");
     Func_Base *fb = new_func_base(mp, td, sym, NULL, ae_flag_none, cdef->base.tag.loc);
     Func_Def  fdef = new_func_def(mp, fb, ctor);
-    mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef, cdef->base.tag.loc));
-    free_mp_vector(mp, Section, base);
+    sectionlist_set(body, 0, MK_SECTION(func, func_def, fdef, cdef->base.tag.loc));
+    free_sectionlist(mp, base);
     cdef->body = body;
   }
 //  return 
@@ -900,12 +901,12 @@ ANN static bool scan1_class_def_body(const Env env, const Class_Def cdef) {
 }
 
 ANN static bool scan1_class_tmpl(const Env env, const Class_Def c) {
-  Specialized_List sl = c->base.tmpl->list;
-  TmplArg_List tl = c->base.tmpl->call;
+  SpecializedList *sl = c->base.tmpl->list;
+  TmplArgList *tl = c->base.tmpl->call;
   env_push_type(env, c->base.type);
   bool ret = true;
   for(uint32_t i = 0; i < sl->len; i++) {
-    const TmplArg targ = *mp_vector_at(tl, TmplArg, i);
+    const TmplArg targ = tmplarglist_at(tl, i);
     if (targ.type == tmplarg_td) continue;
     if(!scan1_exp(env, targ.d.exp)) {
       ret = false;
@@ -932,7 +933,7 @@ ANN bool scan1_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
-    Section *section = mp_vector_at(a, Section, i);
+    Section *section = sectionlist_ptr_at(a, i);
     if(section->poison) { ok = false; continue;}
     if(!scan1_section(env, section))
       POISON_SECTION(ok, env, section);

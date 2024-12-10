@@ -22,16 +22,16 @@ ANN static inline bool scan0_defined(const Env env, const Tag tag) {
   return can_define(env, tag.sym, tag.loc);
 }
 
-ANN static Arg_List fptr_arg_list(const Env env, const Fptr_Def fptr) {
+ANN static ArgList *fptr_arg_list(const Env env, const Fptr_Def fptr) {
   if(env->class_def && !GET_FLAG(fptr->base, static)) {
     Arg arg = { .var = {.td = type2td(env->gwion, env->class_def, fptr->base->td->tag.loc)}};
-    const uint32_t len = mp_vector_len(fptr->base->args);
-    Arg_List args = new_mp_vector(env->gwion->mp, Arg, len + 1);
-    mp_vector_set(args, Arg, 0, arg);
+    const uint32_t len = arglist_len(fptr->base->args);
+    ArgList *args = new_arglist(env->gwion->mp, len + 1);
+    arglist_set(args, 0, arg);
     for(uint32_t i = 0; i < len; i++) {
-      Arg *base  = mp_vector_at(fptr->base->args, Arg, i);
-      Arg arg = { .var = {.td = cpy_type_decl(env->gwion->mp, base->var.td)}};
-      mp_vector_set(args, Arg, i+1, arg);
+      const Arg base   = arglist_at(fptr->base->args, i);
+      Arg arg = { .var = {.td = cpy_type_decl(env->gwion->mp, base.var.td)}};
+      arglist_set(args, i+1, arg);
     }
     return args;
   } else if(fptr->base->args)
@@ -58,12 +58,12 @@ ANN bool scan0_fptr_def(const Env env, const Fptr_Def fptr) {
   CHECK_B(scan0_defined(env, fptr->base->tag));
   const bool global = GET_FLAG(fptr->base, global);
   UNSET_FLAG(fptr->base, global);
-  const Arg_List args = fptr_arg_list(env, fptr);
+  ArgList *args = fptr_arg_list(env, fptr);
   Func_Base *const fbase = new_func_base(env->gwion->mp, cpy_type_decl(env->gwion->mp, fptr->base->td),
     insert_symbol("func"), args, ae_flag_static | ae_flag_private, loc);
   const Func_Def fdef = new_func_def(env->gwion->mp, fbase, NULL);
-  Ast body = new_mp_vector(env->gwion->mp, Section, 1);
-  mp_vector_set(body, Section, 0, MK_SECTION(func, func_def, fdef, loc));
+  Ast body = new_sectionlist(env->gwion->mp, 1);
+  sectionlist_set(body, 0, MK_SECTION(func, func_def, fdef, loc));
   Type_Decl* td = new_type_decl(env->gwion->mp, insert_symbol(env->gwion->type[et_closure]->name), loc);
   const Class_Def cdef = new_class_def(env->gwion->mp, ae_flag_final, fptr->base->tag, td, body);
   if(global) SET_FLAG(cdef, global);
@@ -331,13 +331,13 @@ ANN static Type cdef_parent(const Env env, const Class_Def cdef) {
   return ok ? t : NULL;
 }
 
-ANN static bool find_traits(const Env env, ID_List traits, const loc_t loc) {
+ANN static bool find_traits(const Env env, TagList *traits, const loc_t loc) {
   bool ok = true;
   for(uint32_t i = 0; i < traits->len; i++) {
-    Symbol xid = *mp_vector_at(traits, Symbol, i);
-    if (!nspc_lookup_trait1(env->curr, xid)) {
+    const Tag tag = taglist_at(traits, i);
+    if (!nspc_lookup_trait1(env->curr, tag.sym)) {
       gwlog_error(_("can't find trait"), NULL, env->name, loc, 0);
-      did_you_mean_trait(env->curr, s_name(xid));
+      did_you_mean_trait(env->curr, s_name(tag.sym));
       env_set_error(env, true);
       POISON(ok, env);
     }
@@ -370,21 +370,19 @@ ANN static Type scan0_class_def_init(const Env env, const Class_Def cdef) {
   return t;
 }
 
-ANN static bool scan0_stmt_list(const Env env, Stmt_List l) {
+ANN static bool scan0_stmt_list(const Env env, StmtList *l) {
   bool ok = true;
-  const uint32_t nusing = env->curr->info->gwusing
-    ? env->curr->info->gwusing->len
-    : 0;
+  const uint32_t nusing = usinglist_len(env->curr->info->gwusing);
   for(m_uint i = 0; i < l->len; i++) {
-    Stmt* stmt = mp_vector_at(l, Stmt, i);
+    Stmt* stmt = stmtlist_ptr_at(l, i);
     if(stmt->poison) { ok = false; continue; }
     if (stmt->stmt_type == ae_stmt_pp) {
       if (stmt->d.stmt_pp.pp_type == ae_pp_include)
         env->name = stmt->d.stmt_pp.data;
     } else if(stmt->stmt_type == ae_stmt_using) {
       if(!env->curr->info->gwusing)
-        env->curr->info->gwusing = new_mp_vector(env->gwion->mp, Stmt_Using, 0);
-      mp_vector_add(env->gwion->mp, &env->curr->info->gwusing, Stmt_Using, &stmt->d.stmt_using);
+        env->curr->info->gwusing = new_usinglist(env->gwion->mp, 0);
+      usinglist_add(env->gwion->mp, &env->curr->info->gwusing, &stmt->d.stmt_using);
     } else if(stmt->stmt_type == ae_stmt_import) {
       if(!env->scope->depth && !env->class_def) {
         if(!plugin_ini(env->gwion, s_name(stmt->d.stmt_import.tag.sym), stmt->loc))
@@ -419,10 +417,10 @@ ANN static bool scan0_extend_def(const Env env, const Extend_Def xdef) {
   bool ok = true;
   if(type_global(env, t)) {
     for(uint32_t i = 0; i < xdef->traits->len; i++) {
-      const Symbol xid = *mp_vector_at(xdef->traits, Symbol, i);
-      const Trait global = nspc_lookup_trait1(env->global_nspc, xid);
+      const Tag tag = taglist_at(xdef->traits, i);
+      const Trait global = nspc_lookup_trait1(env->global_nspc, tag.sym);
       if(!global) {
-        const Trait trait = nspc_lookup_trait1(env->curr, xid);
+        const Trait trait = nspc_lookup_trait1(env->curr, tag.sym);
         gwlog_error("trait should be declared global", NULL, trait->filename, trait->loc, 0);
         gwlog_related("from the request ", env->name, xdef->td->tag.loc);
         env_set_error(env, true);
@@ -448,22 +446,22 @@ ANN static bool _scan0_trait_def(const Env env, const Trait_Def pdef) {
   if(!ast) return true; // ???
   bool ok = true;
   for(m_uint i = 0; i < ast->len; i++) {
-    Section *section = mp_vector_at(ast, Section, i);
+    Section *section = sectionlist_ptr_at(ast, i);
     if(section->poison) { ok = false; continue; }
     if (section->section_type == ae_section_func) {
       const Func_Def fdef = section->d.func_def;
       if (fdef->base->flag != ae_flag_none &&
           fdef->base->flag != (ae_flag_none | ae_flag_abstract))
         ERR_OK(ok, fdef->base->tag.loc, "Trait function must be declared without qualifiers");
-      if (!trait->fun) trait->fun = new_mp_vector(env->gwion->mp, Func_Def, 0);
-      mp_vector_add(env->gwion->mp, &trait->fun, Func_Def, fdef);
+      if (!trait->fun) trait->fun = new_funcdeflist(env->gwion->mp, 0);
+      funcdeflist_add(env->gwion->mp, &trait->fun, fdef);
     } else if (section->section_type == ae_section_stmt) {
-      Stmt_List list = section->d.stmt_list;
+      StmtList *list = section->d.stmt_list;
       for(uint32_t i = 0; i < list->len; i++) {
-        Stmt* stmt = mp_vector_at(list, Stmt, i);
-        if(stmt->poison) { ok = false; continue;}
-        if(stmt->d.stmt_exp.val->exp_type != ae_exp_decl)
-          ERR_OK(ok, stmt->loc, "trait can only contains variable requests and functions");
+        const Stmt stmt = stmtlist_at(list, i);
+        if(stmt.poison) { ok = false; continue;}
+        if(stmt.d.stmt_exp.val->exp_type != ae_exp_decl)
+          ERR_OK(ok, stmt.loc, "trait can only contains variable requests and functions");
       }
     } else
         ERR_OK(ok, pdef->tag.loc, "invalid section for trait definition");
@@ -499,7 +497,7 @@ ANN bool scan0_prim_def(const Env env, const Prim_Def pdef) {
   return true;
 }
 
-HANDLE_SECTION_FUNC(scan0, bool, Env)
+HANDLE_SECTION_FUNC(scan0, bool, Env,)
 
 ANN static bool scan0_class_def_inner(const Env env, const Class_Def cdef) {
   CHECK_B(not_reserved(env, cdef->base.tag));
@@ -527,7 +525,7 @@ ANN bool scan0_ast(const Env env, Ast *ast) {
   Ast a = *ast;
   bool ok = true;
   for(m_uint i = 0; i < a->len; i++) {
-    Section * section = mp_vector_at(a, Section, i);
+    Section * section = sectionlist_ptr_at(a, i);
     if(section->poison) { ok = false; continue;}
     if(!scan0_section(env, section))
       POISON_SECTION(ok, env, section);

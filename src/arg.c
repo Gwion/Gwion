@@ -114,12 +114,21 @@ ANN static inline void get_cdoc(const Gwion gwion, const char *cdoc) {
   gwion_set_cdoc(gwion, is_cdoc);
 }
 
+ANN static char* gw_args(const char* base, Vector args) {
+  m_str d = strdup(base);
+  char *name = strsep(&d, ":");
+  if (d) vector_init(args);
+  while (d) vector_add(args, (vtype)strdup(strsep(&d, ":")));
+  xfree(d);
+  return name;
+}
+
 ANN static inline void load_plugin(const Gwion gwion, const char *plug_name) {
   char c[1024];
   sprintf(c, "#import %s\n", plug_name);
   const bool cdoc = gwion->data->cdoc;
   gwion->data->cdoc = true;
-  compile_string(gwion, "<command-line>", c);
+  compile_string(gwion, "<command-line>", c, NULL);
   gwion->data->cdoc = cdoc;
 }
 
@@ -128,10 +137,16 @@ ANN void arg_compile(const Gwion gwion, CliArg *arg) {
   for (m_uint i = 0; i < vector_size(v); i++) {
     switch (vector_at(v, i)) {
     case ARG_FILE:
-      compile_filename(gwion, (m_str)VPTR(v, ++i));
+        // TODO: make arguments
+      {
+      struct Vector_ args = {};
+      char *name = gw_args((m_str)VPTR(v, ++i), &args);
+      compile_filename(gwion, name, args.ptr ? &args : NULL);
+      xfree(name);
+        }
       break;
     case ARG_STDIN:
-      compile_file(gwion, "stdin", stdin);
+      compile_file(gwion, "stdin", stdin, NULL);
       break;
     case ARG_LOAD_PLUGIN:
       load_plugin(gwion, (m_str)VPTR(v, ++i));

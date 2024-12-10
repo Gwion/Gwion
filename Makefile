@@ -46,11 +46,11 @@ ifeq (${USE_HELGRIND}, 1)
 CFLAGS += -DUSE_HELGRIND
 endif
 
-src_obj := $(src:.c=.o)
+OBJ := $(src:src/%.c=build/%.o)
 gcda := $(src:.c=.gcda)
 gcno := $(src:.c=.gcno)
-lib_obj := $(filter-out src/main.o, ${src_obj})
-almost_obj := $(filter-out src/vm/vm.o, ${src_obj})
+lib_obj := $(filter-out src/main.o, ${OBJ})
+almost_obj := $(filter-out src/vm/vm.o, ${OBJ})
 
 CFLAGS  += -Iinclude
 
@@ -79,9 +79,9 @@ LINKER ?= ${CC}
 
 all: options-show prg
 
-prg: ${GWLIBS} ${config_obj} src/main.o
+prg: ${GWLIBS} ${config_obj} build/main.o
 	@$(info link ${PRG})
-	${LINKER} src/main.o -o ${PRG} ${config_obj} ${PLUGLIBS} ${LDFLAGS} ${LIBS}
+	${LINKER} build/main.o -o ${PRG} ${config_obj} ${PLUGLIBS} ${LDFLAGS} ${LIBS}
 
 options-show:
 	@$(call _options)
@@ -89,9 +89,9 @@ options-show:
 
 with_config:
 	@bash scripts/embed.bash gwion.config.json
-	@touch src/main.c
+	@touch build/main.c
 	@${MAKE} USE_CONFIG=1
-	@touch src/main.c
+	@touch build/main.c
 
 almost_gwion: ${almost_obj} ${ALMOST_LIBS}
 
@@ -137,7 +137,7 @@ update: clean-all
 
 clean: clean_core
 	$(info cleaning ...)
-	@rm -f src/*.o src/*/*.o gwion lib${PRG}.a ${gcno} ${gcda}
+	@rm -f build/*.o build/*/*.o gwion lib${PRG}.a ${gcno} ${gcda} embed/*.o
 
 install: all translation-install
 	$(info installing ${GWION_PACKAGE} in ${PREFIX})
