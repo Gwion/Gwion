@@ -361,7 +361,8 @@ ANEW ANN m_str tl2str(const Gwion gwion, const TmplArgList *tl,
   struct GwfmtState ls = {.minimize=true, .ppa = gwion->ppa, .color=false};
   gwfmt_state_init(&ls);
   text_init(&ls.text, gwion->mp);
-  Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .line = 1, .last = cht_nl };
+  Gwfmt gwfmter = {.mp = gwion->mp, .st = gwion->st, .ls = &ls, .last = cht_nl };
+  pos_ini(&gwfmter.pos);
   struct td_info info = {.tl = tl, .fmt = &gwfmter };
   CHECK_O(td_info_run(gwion->env, &info));
   return ls.text.str;
