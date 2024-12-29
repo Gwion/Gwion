@@ -360,6 +360,7 @@ static Value func_value(const Env env, const Func f, const Value overload) {
   const Symbol sym = insert_symbol(t->name);
   const Value v = t->info->value = new_value(env, t, MK_TAG(sym, f->def->base->tag.loc));
   valuefrom(env, v->from);
+  v->from->ctx = env->context;
   CHECK_O(scan2_func_assign(env, f->def, f, v));
   if (!overload)
     func_no_overload(env, f, v);

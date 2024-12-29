@@ -444,7 +444,12 @@ ANN2(1, 2) static bool sema_spread(Sema *a, const Spread_Def spread, SectionList
   char c[256]; // dangerous?
   const m_str data = spread->data;
   DECL_B(FILE *,f, = fmemopen(data, strlen(data), "r"));
-  struct AstGetter_ arg =  {a->filename, f, a->st, .ppa = a->ppa};
+  struct AstGetter_ arg =  {
+    .name = a->filename, 
+    .f = f, 
+    .st = a->st, 
+    .ppa = a->ppa
+  };
   if(!a->tmpls) { // we are trying this to prevent too many errors
     DECL_B(Ast, ast, = parse_pos(&arg, spread->tag.loc.first));
     const bool ret = sema_ast(a, &ast);
@@ -637,8 +642,8 @@ ANN static bool sema_stmt_list(Sema *a, StmtList **b) {
       UsingStmtList *selection = c->d.stmt_import.selection;
       c->d.stmt_import.selection = NULL;
       stmtlist_resize(a->mp, b, len + selection->len);
-      memmove((*b)->ptr + (i + 1 + selection->len) * sizeof(Stmt), 
-              (*b)->ptr + (i + 1) * sizeof(Stmt),
+      memmove((*b)->ptr + (i + 1 + selection->len), 
+              (*b)->ptr + (i + 1),
               (len - i) * sizeof(Stmt));
       for(uint32_t j = 0; j < selection->len; j++) {
         Stmt *stmt = stmtlist_ptr_at(*b, i + j + 1);

@@ -128,7 +128,7 @@ ANN bool gwion_ini(const Gwion gwion, CliArg *arg) {
   tcol_override_color_checks(gwion->data->color);
   if(!vector_size(&gwion->data->passes->vec)) {
     if (!gwion->data->cdoc)
-    pass_default(gwion);
+      pass_default(gwion);
     else doc_mode(gwion);
   }
   return !arg->quit ? gwion_ok(gwion, arg) : false;

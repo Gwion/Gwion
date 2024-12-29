@@ -163,7 +163,7 @@ ANN static bool dependencies(struct Gwion_ *gwion, const Plug plug, const loc_t 
     m_str *      deps = base;
     while (*deps) {
       if(!_plugin_ini(gwion, *deps, loc, false)) {
-        env_err(gwion->env, loc, "%s: no such plugin (dependency)\n", *deps);
+        env_err(gwion->env, loc, "%s: no such plugin (dependency)", *deps);
         ret = false;
       }
       ++deps;
@@ -226,7 +226,7 @@ ANN static bool _plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t
 ANN bool plugin_ini(struct Gwion_ *gwion, const m_str iname, const loc_t loc) {
   const Env env = gwion->env;
   if(!_plugin_ini(gwion, iname, loc, true)) {
-    env_err(env, loc, "%s: no such plugin\n", iname);
+    env_err(env, loc, "%s: no such plugin", iname);
     return false;
   }
   return true;
@@ -250,7 +250,7 @@ ANN gwdriver_t driver_ini(const struct Gwion_ *gwion, struct SoundInfo_ *si) {
       return drv;
     }
   }
-  gw_err("%s: no such driver\n", dname);
+  gw_err("%s: no such driver", dname);
   free_mstr(gwion->mp, dname);
   return NULL;
 }

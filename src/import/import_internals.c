@@ -29,6 +29,15 @@ ANN void gwi_reset(const Gwi gwi) {
   env_reset(gwi->gwion->env);
 }
 
+static int doc2console(Gwion gwion NUSED, const char *str) {
+  return fprintf(stdout, "%s", str);
+}
+
+static int (*doc_func)(Gwion, const char *str) = doc2console;
+void set_doc_func(int (*f)(Gwion, const char*)) {
+  doc_func = f;
+}
+
 ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
   struct GwfmtState ls     = {.builtin = true, .nindent = 4};
   gwfmt_state_init(&ls);
@@ -38,7 +47,7 @@ ANN static bool run_with_doc(const Gwi gwi, bool (*f)(const Gwi)) {
   gwfmt_util(&gwfmter, "{-}#!+ %s{0}\n", gwi->gwion->env->name);
   gwi->gwfmt = &gwfmter;
   const bool ret = f(gwi);
-  fprintf(stdout, "%s", ls.text.str);
+  doc_func(gwi->gwion, ls.text.str);
   free_mstr(gwi->gwion->mp, ls.text.str);
   return ret;
 }

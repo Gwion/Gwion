@@ -22,6 +22,7 @@ struct Compiler {
   struct Vector_    args;
   VM_Shred          shred;
   ValueList        *values;
+  CommentList     **comments;
   enum compile_type type;
 };
 
@@ -88,12 +89,16 @@ ANN static inline bool compiler_open(struct Compiler *c) {
 }
 
 ANN static inline bool _passes(struct Gwion_ *gwion, struct Compiler *c) {
+  bool error = false;
   for (m_uint i = 0; i < vector_size(&gwion->data->passes->vec); ++i) {
     const compilation_pass pass =
         (compilation_pass)vector_at(&gwion->data->passes->vec, i);
-    if(!pass(gwion->env, &c->ast)) {
-      gwion->data->errored = true;
+    if(error && pass == emit_ast)
       return false;
+    if(!pass(gwion->env, &c->ast)) {
+      error = true;
+      gwion->data->errored = true;
+//      return false;
     }
   }
   return true;
@@ -129,8 +134,15 @@ ANN static inline bool passes(struct Gwion_ *gwion, struct Compiler *c) {
 }
 
 ANN static inline bool _check(struct Gwion_ *gwion, struct Compiler *c) {
-  struct AstGetter_ arg = {c->name, c->file, gwion->st, .ppa = gwion->ppa};
+  struct AstGetter_ arg = {
+    .name = c->name,
+    .f = c->file, 
+    .st = gwion->st, 
+    .ppa = gwion->ppa,
+    .comments = c->comments
+  };
   CHECK_B((c->ast = parse(&arg)));
+//  c->comments = arg.comments;
   gwion->env->name = c->name;
   return passes(gwion, c);
 }
@@ -195,6 +207,19 @@ ANN2(1,2,3) m_uint compile_string_xid_values(struct Gwion_ *gwion, const char *f
   gwion->vm->shreduler->shred_ids--;
   return c.shred->tick->xid = xid;
 }
+
+ANN2(1,2,3) m_uint compile_string_xid_values_comments(struct Gwion_ *gwion, const char *filename,
+                              const char *data, Vector args, const m_uint xid, ValueList *values, CommentList **comments) {
+  struct Compiler c = {.base = filename, .type = COMPILE_MSTR, .data = data, .values=values, .comments = comments};
+  if(args) c.args.ptr = args->ptr;
+  if (!compile(gwion, &c)) return 0;
+//  assert(c.shred);
+//  gwion->vm->shreduler->shred_ids--;
+//  if(c.shred)
+//    c.shred->tick->xid = xid;
+  return xid;
+}
+
 
 ANN2(1,2,3) m_uint compile_file_xid_values(struct Gwion_ *gwion, const char * filename,
                             FILE *file, Vector args, const m_uint xid, ValueList *values) {

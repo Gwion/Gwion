@@ -7,7 +7,12 @@
 
 ANN Ast gwion_parse_ast(const Gwion gwion, const char *data) {
   FILE *file = fmemopen((void*)data, strlen(data), "r");
-  struct AstGetter_ arg = {gwion->env->name, file, gwion->st, .ppa = gwion->ppa};
+  struct AstGetter_ arg = {
+    .name = gwion->env->name,
+    .f = file,
+    .st = gwion->st,
+    .ppa = gwion->ppa
+  };
   return parse(&arg);
 }
 

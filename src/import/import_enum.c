@@ -30,7 +30,7 @@ ANN bool gwi_enum_ini(const Gwi gwi, const m_str type) {
 ANN bool gwi_enum_add(const Gwi gwi, const m_str name, const m_uint i) {
   CHECK_B(ck_ok(gwi, ck_edef));
   DECL_B(const Symbol, xid, = gwi_str2sym(gwi, name));
-  const EnumValue ev = { .tag = MK_TAG(xid, gwi->loc), .gwint = { .num = i }, .set = true};
+  const EnumValue ev = { .tag = MK_TAG(xid, gwi->loc) , .gwint = { .num = i }, .set = true};
   enumvaluelist_add(gwi->gwion->mp, &gwi->ck->enums, ev);
   return true;
 }

@@ -27,19 +27,9 @@ typedef struct Gwi_ *Gwi;
 #define OP_CHECK(a) ANN Type a(const Env env NUSED, void *data NUSED)
 #define OP_EMIT(a)  ANN bool a(const Emitter emit NUSED, void *data NUSED)
 #ifdef GWION_BUILTIN
-#define GWI_B(a)                                                              \
-  {                                                                            \
-    gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
-    (void)(a);                                                                 \
-  }
 #define GWI_B(a)                                                               \
   {                                                                            \
-    gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
-    (void)(a);                                                                 \
-  }
-#define GWI_B(a)                                                              \
-  {                                                                            \
-    gwi_set_loc(gwi, __FILE__, __LINE__);                                      \
+    gwi_set_loc(gwi, "file://" __FILE__, __LINE__);                                      \
     (void)(a);                                                                 \
   }
 #define GWION_IMPORT(a) ANN bool gwimport_##a(const Gwi gwi)

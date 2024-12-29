@@ -128,6 +128,7 @@ ANN static bool scan1_decl(const Env env, Exp_Decl *const decl) {
   v->type = t;
   if (decl_ref) SET_FLAG(v, late);
   v->flag |= decl->var.td->flag;
+  v->from->ctx = env->context;
   if (!env->scope->depth) {
     valuefrom(env, v->from);
     if (env->class_def) {
@@ -438,7 +439,7 @@ ANN bool scan1_enum_def(const Env env, const Enum_Def edef) {
   EnumValueList *list = edef->list;
   m_int last = 0;
   for(uint32_t i = 0; i < list->len; i++) {
-    const EnumValue ev = enumvaluelist_at(list, i);
+    EnumValue ev = enumvaluelist_at(list, i);
     CHECK_B(can_define(env, ev.tag.sym, ev.tag.loc));
     const m_int value = !ev.set
       ? last
@@ -453,6 +454,7 @@ ANN static Value arg_value(const Env env, Arg *const arg) {
   const Var_Decl *vd = &arg->var.vd;
   const Symbol sym = vd->tag.sym ?: insert_symbol((m_str)__func__);
   const Value    v   = new_value(env, arg->type, MK_TAG(sym, arg->var.vd.tag.loc));
+  v->from->ctx = env->context;
   if (arg->var.td)
     v->flag = arg->var.td->flag;
   return v;

@@ -15,6 +15,7 @@ typedef struct GwionData_ {
   struct Passes_ *passes;
   Plugs *plugs;
   threadpool_t    *tpool;
+  int (*doc_func)(Gwion gwion, const char*);
   bool            cdoc;
   bool            errored;
   bool            color;
