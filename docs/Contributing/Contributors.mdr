@@ -1,7 +1,0 @@
-# Contributors
-
-Thanks goes to these wonderful people:
-
-@hide wget https://api.github.com/repos/Gwion/Gwion/contributors
-@hide cat contributors  | jq ".[]|objects|.login,.avatar_url,.html_url"  > contributor_list
-@hide bash scripts/contributors.sh
