@@ -1091,9 +1091,9 @@ INSTR(ArrayBottom) {
 }
 
 INSTR(ArrayPost) {
-  xfree(*(m_uint **)REG(0));
   const M_Object o              = *(M_Object *)(REG(-SZ_INT));
   *(m_uint *)(o->data + SZ_INT) = 0;
+  xfree(*(m_uint **)REG(0));
 }
 
 INSTR(ArrayInit) { // for litteral array
