@@ -115,7 +115,10 @@ ANN static Func create_tmpl(const Env env, struct ResolverArgs *ra,
         env_set_error(env, true);
         return NULL;
       }
-      Arg arg = { .var = MK_VAR(cpy_type_decl(env->gwion->mp, targ.d.td), (Var_Decl){ .tag = MK_TAG(insert_symbol(c), fdef->base->tag.loc)})};
+      Arg arg = {
+        .var = MK_VAR(cpy_type_decl(env->gwion->mp, targ.d.td), (Var_Decl){ .tag = MK_TAG(insert_symbol(c), fdef->base->tag.loc)}),
+        .loc = fdef->base->tag.loc
+      };
       arglist_add(env->gwion->mp, &args, arg);
     }
     fdef->base->args = args;

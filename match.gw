@@ -1,0 +1,12 @@
+class Foo {
+  var int    i;
+  var float  j;
+}
+
+#!- some doc
+#!- some doc
+var Foo foo;
+
+match 1 {
+  case x : <<< x >>>;
+}

@@ -1,0 +1,5 @@
+
+operator int ===--+ (int i, int) {}
+
+
+#!funptr void foo(int i : 12);

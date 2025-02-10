@@ -131,7 +131,7 @@ ANN m_str tdpp(MemPool mp, SymTable *st, const Type_Decl *td,
 }
 
 ANN static inline void *type_unknown(const Env env, const Type_Decl *td) {
-  m_str str = tdpp(env->gwion->mp, env->gwion->st, td, false, tcol_has_color());
+  m_str str = tdpp(env->gwion->mp, env->gwion->st, td, tcol_has_color(), false);
   env_err(env, td->tag.loc, _("unknown type '%s'"), str);
   free_mstr(env->gwion->mp, str);
   return NULL;

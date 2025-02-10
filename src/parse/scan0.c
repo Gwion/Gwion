@@ -24,13 +24,15 @@ ANN static inline bool scan0_defined(const Env env, const Tag tag) {
 
 ANN static ArgList *fptr_arg_list(const Env env, const Fptr_Def fptr) {
   if(env->class_def && !GET_FLAG(fptr->base, static)) {
-    Arg arg = { .var = {.td = type2td(env->gwion, env->class_def, fptr->base->td->tag.loc)}};
+    Arg arg = { .var = {.td = type2td(env->gwion, env->class_def, fptr->base->td->tag.loc)},
+      .loc = fptr->base->td->tag.loc
+    };
     const uint32_t len = arglist_len(fptr->base->args);
     ArgList *args = new_arglist(env->gwion->mp, len + 1);
     arglist_set(args, 0, arg);
     for(uint32_t i = 0; i < len; i++) {
       const Arg base   = arglist_at(fptr->base->args, i);
-      Arg arg = { .var = {.td = cpy_type_decl(env->gwion->mp, base.var.td)}};
+      Arg arg = { .var = {.td = cpy_type_decl(env->gwion->mp, base.var.td)}, .loc = base.var.td->tag.loc};
       arglist_set(args, i+1, arg);
     }
     return args;

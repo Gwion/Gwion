@@ -121,7 +121,7 @@ static ArgList *new_args(const MemPool mp, const Type_Decl *td,
                           const m_uint N) {
   ArgList *args = new_arglist(mp, N);
   for(uint32_t i = 0; i < N; i++) {
-    Arg arg = { .var = { .td = cpy_type_decl(mp, td) }};
+    Arg arg = { .var = { .td = cpy_type_decl(mp, td) }, .loc = td->tag.loc};
     arglist_set(args, i, arg);
   }
   return args;

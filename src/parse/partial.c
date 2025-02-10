@@ -23,7 +23,9 @@ ANN static ArgList *partial_arg_list(const Env env, const ArgList *base, Exp* e)
       sprintf(c, "@%u", args->len);
       const Arg src = arglist_at(base, i);
       Type_Decl *td = src.var.td ? cpy_type_decl(env->gwion->mp, src.var.td) : NULL;
-      Arg arg = { .var = MK_VAR(td, (Var_Decl){ .tag = MK_TAG(insert_symbol(c), src.var.vd.tag.loc)})};
+      Arg arg = { .var = MK_VAR(td, (Var_Decl){ .tag = MK_TAG(insert_symbol(c), src.var.vd.tag.loc)}), 
+        .loc = src.var.vd.tag.loc
+      };
       arglist_add(env->gwion->mp, &args, arg);
     }
     i++;

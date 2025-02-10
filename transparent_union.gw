@@ -1,0 +1,11 @@
+union U {
+  int foo;
+  float f;
+}
+
+var U u;
+
+11 :=> u.f;
+12 :=> u.foo;
+<<< u.f >>>;
+

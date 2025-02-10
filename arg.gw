@@ -1,0 +1,4 @@
+#! test
+#! test
+<<< me.args() >>>;
+<<< me.arg(0) >>>;

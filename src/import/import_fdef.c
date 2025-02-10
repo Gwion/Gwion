@@ -107,7 +107,7 @@ ANN bool gwi_func_arg(const Gwi gwi, const restrict m_str t,
   DECL_B(Type_Decl *, td, = gwi_str2td(gwi, t));
   struct Var_Decl_ var;
   if(gwi_str2var(gwi, &var, n)) {
-    Arg arg = { .var = MK_VAR(td, var) };
+    Arg arg = { .var = MK_VAR(td, var), .loc = td->tag.loc};
     arglist_add(gwi->gwion->mp, &gwi->ck->arg_list, arg);
     return true;
   }

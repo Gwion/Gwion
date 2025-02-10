@@ -615,11 +615,18 @@ ANN static bool sema_arg_list(Sema *a, ArgList *b,
     if(!c->var.vd.tag.sym && arg_needs_sym) {
       gwlog_error("argument needs name", NULL, a->filename, c->var.vd.tag.loc, 0);
       ok = false;
+      continue;
     }
     if(!sema_arg(a, c, no_default))
       ok = false;
-    if(c->exp) *has_default = true;
-    else if(*has_default) {
+    if(c->exp) {
+      if(!arg_needs_sym) {
+        ok = false;
+        gwlog_error("can't have default argument here", NULL, a->filename, c->exp->loc, 0);
+        continue;
+      }
+      *has_default = true;
+    } else if(*has_default) {
       gwlog_error("missing default argument", NULL, a->filename, c->var.vd.tag.loc, 0);
       ok = false;
     }

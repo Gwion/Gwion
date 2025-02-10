@@ -204,7 +204,7 @@ ANN static ArgList *fptr_args(const Gwion gwion, struct td_checker *tdc) {
       free_arg_list(gwion->mp, args);
       return ARG_ERROR;
     }
-    arglist_add(gwion->mp, &args, (Arg){ .var = {.td = td }});
+    arglist_add(gwion->mp, &args, (Arg){ .var = {.td = td }, .loc = td->tag.loc});
   } while(*tdc->str == ',' && tdc->str++);
   return args;
 }

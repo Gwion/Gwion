@@ -1032,7 +1032,9 @@ ANN static Exp* check_lambda_captures(const Env env, const Func_Def fdef) {
     Arg arg = { .var = MK_VAR(
         type2td(env->gwion, t, cap->var.tag.loc),
         (Var_Decl){ .tag = MK_TAG(cap->var.tag.sym, cap->var.tag.loc) }
-    )};
+        ),
+        .loc = cap->var.tag.loc
+    };
     arglist_add(env->gwion->mp, &fdef->base->args, arg);
     Exp* exp = new_prim_id(env->gwion->mp, cap->var.tag.sym, cap->var.tag.loc);
     if(args) tmp = tmp->next = exp;
@@ -1424,7 +1426,7 @@ ANN bool check_type_def(const Env env, const Type_Def tdef) {
     struct Var_Decl_ decl = { .tag = MK_TAG(insert_symbol("self"), tdef->when->loc) };
     Type_Decl *td = cpy_type_decl(env->gwion->mp, tdef->ext);
     ArgList *args = new_arglist(env->gwion->mp, 1);
-    arglist_set(args, 0, ((Arg) { .var = MK_VAR(td, decl)}));
+    arglist_set(args, 0, ((Arg) { .var = MK_VAR(td, decl), .loc = tdef->when->loc}));
     Func_Base *fb = new_func_base(
         env->gwion->mp, type2td(env->gwion, tdef->type, tdef->tag.loc),
         insert_symbol("@implicit"), args, ae_flag_none, tdef->tag.loc);

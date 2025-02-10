@@ -69,5 +69,3 @@ ANN void print_signature(const Gwion gwion, const Func f) {
   gwlog_related_from(ls.text.str, f->value_ref->from); 
   text_release(&ls.text);
 }
-
-
