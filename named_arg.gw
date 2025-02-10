@@ -1,5 +1,0 @@
-fun void test(float bar) { <<< "${__func__} ${bar}" >>>; }
-fun void test(int foo, float f) { <<< "${__func__} ${foo} ${f}" >>>; }
-
-test(bar = 12.0);
-test(4.2, foo = 13);

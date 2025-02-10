@@ -1,6 +1,0 @@
-fun void test() {
-  <<< 12 >>>;
-}
-
-using foo : test;
-foo(12);
